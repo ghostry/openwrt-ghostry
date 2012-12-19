@@ -1,0 +1,157 @@
+diff -Nur linux-2.6.35.7//fs/partitions/check.c tiny210//fs/partitions/check.c
+--- linux-2.6.35.7//fs/partitions/check.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/partitions/check.c	2011-08-08 12:52:16.000000000 +0800
+@@ -272,6 +272,13 @@
+ 	return sprintf(buf, "%8u %8u\n", p->in_flight[0], p->in_flight[1]);
+ }
+ 
++ssize_t part_partition_name_show(struct device *dev,
++			struct device_attribute *attr, char *buf)
++{
++	struct hd_struct *p = dev_to_part(dev);
++	return sprintf(buf, "%s\n", p->partition_name);
++}
++
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+ ssize_t part_fail_show(struct device *dev,
+ 		       struct device_attribute *attr, char *buf)
+@@ -303,6 +310,8 @@
+ 		   NULL);
+ static DEVICE_ATTR(stat, S_IRUGO, part_stat_show, NULL);
+ static DEVICE_ATTR(inflight, S_IRUGO, part_inflight_show, NULL);
++static DEVICE_ATTR(partition_name, S_IRUGO, part_partition_name_show, NULL);
++
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+ static struct device_attribute dev_attr_fail =
+ 	__ATTR(make-it-fail, S_IRUGO|S_IWUSR, part_fail_show, part_fail_store);
+@@ -316,6 +325,7 @@
+ 	&dev_attr_discard_alignment.attr,
+ 	&dev_attr_stat.attr,
+ 	&dev_attr_inflight.attr,
++	&dev_attr_partition_name.attr,
+ #ifdef CONFIG_FAIL_MAKE_REQUEST
+ 	&dev_attr_fail.attr,
+ #endif
+@@ -341,10 +351,21 @@
+ 	kfree(p);
+ }
+ 
++static int part_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct hd_struct *part = dev_to_part(dev);
++
++	add_uevent_var(env, "PARTN=%u", part->partno);
++	if (part->partition_name)
++		add_uevent_var(env, "PARTNAME=%s", part->partition_name);
++	return 0;
++}
++
+ struct device_type part_type = {
+ 	.name		= "partition",
+ 	.groups		= part_attr_groups,
+ 	.release	= part_release,
++	.uevent		= part_uevent,
+ };
+ 
+ static void delete_partition_rcu_cb(struct rcu_head *head)
+@@ -386,6 +407,11 @@
+ static DEVICE_ATTR(whole_disk, S_IRUSR | S_IRGRP | S_IROTH,
+ 		   whole_disk_show, NULL);
+ 
++static void name_partition(struct hd_struct *p, const char *name)
++{
++	strlcpy(p->partition_name, name, GENHD_PART_NAME_SIZE);
++}
++
+ struct hd_struct *add_partition(struct gendisk *disk, int partno,
+ 				sector_t start, sector_t len, int flags)
+ {
+@@ -669,6 +695,7 @@
+ 			       disk->disk_name, p, -PTR_ERR(part));
+ 			continue;
+ 		}
++		name_partition(part, state->parts[p].name);
+ #ifdef CONFIG_BLK_DEV_MD
+ 		if (state->parts[p].flags & ADDPART_FLAG_RAID)
+ 			md_autodetect_dev(part_to_dev(part)->devt);
+diff -Nur linux-2.6.35.7//fs/partitions/check.h tiny210//fs/partitions/check.h
+--- linux-2.6.35.7//fs/partitions/check.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/partitions/check.h	2011-08-08 12:52:16.000000000 +0800
+@@ -1,6 +1,8 @@
+ #include <linux/pagemap.h>
+ #include <linux/blkdev.h>
+ 
++#define PART_NAME_SIZE 128
++
+ /*
+  * add_gd_partition adds a partitions details to the devices partition
+  * description.
+@@ -12,6 +14,7 @@
+ 		sector_t from;
+ 		sector_t size;
+ 		int flags;
++		char name[PART_NAME_SIZE];
+ 	} parts[DISK_MAX_PARTS];
+ 	int next;
+ 	int limit;
+@@ -29,14 +32,28 @@
+ }
+ 
+ static inline void
+-put_partition(struct parsed_partitions *p, int n, sector_t from, sector_t size)
++put_named_partition(struct parsed_partitions *p, int n, sector_t from,
++	sector_t size, const char *name, size_t name_size)
+ {
+ 	if (n < p->limit) {
+ 		p->parts[n].from = from;
+ 		p->parts[n].size = size;
+ 		printk(" %s%d", p->name, n);
++		if (name) {
++			if (name_size > PART_NAME_SIZE - 1)
++				name_size = PART_NAME_SIZE - 1;
++			memcpy(p->parts[n].name, name, name_size);
++			p->parts[n].name[name_size] = 0;
++			printk(" (%s)", p->parts[n].name);
++		}
+ 	}
+ }
+ 
++static inline void
++put_partition(struct parsed_partitions *p, int n, sector_t from, sector_t size)
++{
++	put_named_partition(p, n, from, size, NULL, 0);
++}
++
+ extern int warn_no_part;
+ 
+diff -Nur linux-2.6.35.7//fs/partitions/efi.c tiny210//fs/partitions/efi.c
+--- linux-2.6.35.7//fs/partitions/efi.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/partitions/efi.c	2011-08-08 12:52:16.000000000 +0800
+@@ -602,7 +602,7 @@
+ {
+ 	gpt_header *gpt = NULL;
+ 	gpt_entry *ptes = NULL;
+-	u32 i;
++	u32 i, j;
+ 	unsigned ssz = bdev_logical_block_size(state->bdev) / 512;
+ 
+ 	if (!find_valid_gpt(state, &gpt, &ptes) || !gpt || !ptes) {
+@@ -617,11 +617,17 @@
+ 		u64 start = le64_to_cpu(ptes[i].starting_lba);
+ 		u64 size = le64_to_cpu(ptes[i].ending_lba) -
+ 			   le64_to_cpu(ptes[i].starting_lba) + 1ULL;
++		u8 name[sizeof(ptes->partition_name) / sizeof(efi_char16_t)];
+ 
+ 		if (!is_pte_valid(&ptes[i], last_lba(state->bdev)))
+ 			continue;
+ 
+-		put_partition(state, i+1, start * ssz, size * ssz);
++		/* Truncate to ASCII. UTF8 might be better... */
++		for (j = 0; j < sizeof(name); j++)
++			name[j] = ptes[i].partition_name[j] & 0x7f;
++
++		put_named_partition(state, i+1, start * ssz, size * ssz,
++				    name, strnlen(name, sizeof(name)));
+ 
+ 		/* If this is a RAID volume, tell md */
+ 		if (!efi_guidcmp(ptes[i].partition_type_guid,

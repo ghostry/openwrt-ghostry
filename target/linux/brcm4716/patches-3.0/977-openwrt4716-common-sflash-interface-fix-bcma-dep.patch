@@ -1,0 +1,18 @@
+--- linux-3.0.1.orig/arch/mips/bcm47xx/bus.c	2011-08-08 17:16:42.000000000 +0300
++++ linux-3.0.1/arch/mips/bcm47xx/bus.c	2011-08-08 17:54:12.000000000 +0300
+@@ -11,6 +11,7 @@
+ 
+ #include <bus.h>
+ 
++#ifdef CONFIG_BCM47XX_BCMA
+ static int bcm47xx_sflash_bcma_read(struct bcm47xx_sflash *dev, u32 offset, u32 len, u8 *buf)
+ {
+ 	return bcma_sflash_read(dev->bcc, offset, len, buf);
+@@ -51,6 +52,7 @@ void bcm47xx_sflash_struct_bcma_init(str
+ 	sflash->numblocks = bcc->sflash.numblocks;
+ 	sflash->size = bcc->sflash.size;
+ }
++#endif /* CONFIG_BCM47XX_BCMA */
+ 
+ static int bcm47xx_sflash_ssb_read(struct bcm47xx_sflash *dev, u32 offset, u32 len, u8 *buf)
+ {

@@ -1,0 +1,20 @@
+From: Bernhard Loos <bernhardloos@googlemail.com>
+
+Disable SSB PCI-E core due to code brokeness.
+Signed-off-by: George Kashperko <george@znau.edu.ua>
+---
+ drivers/ssb/driver_pcicore.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+--- linux-3.0.1.orig/drivers/ssb/driver_pcicore.c	2011-08-08 15:20:21.000000000 +0300
++++ linux-3.0.1/drivers/ssb/driver_pcicore.c	2011-08-08 16:25:42.000000000 +0300
+@@ -544,6 +544,10 @@ void __devinit ssb_pcicore_init(struct s
+ 
+ #ifdef CONFIG_SSB_PCICORE_HOSTMODE
+ 	pc->hostmode = pcicore_is_in_hostmode(pc);
++	if (pc->hostmode && pc->dev->id.coreid == SSB_DEV_PCIE) {
++		printk(KERN_WARNING "Disabling SSB PCI-E host due to code brokeness\n");
++		pc->hostmode = 0;
++	}
+ 	if (pc->hostmode)
+ 		ssb_pcicore_init_hostmode(pc);
+ #endif /* CONFIG_SSB_PCICORE_HOSTMODE */

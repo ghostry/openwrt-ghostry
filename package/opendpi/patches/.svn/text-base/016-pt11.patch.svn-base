@@ -1,0 +1,156 @@
+--- /dev/null
++++ b/src/lib/protocols/pt11.c	
+@@ -0,0 +1,153 @@
++/*
++ * pt11.c
++ * Copyright (C) 2009-2011 by ipoque GmbH
++ * 
++ * This file is part of OpenDPI, an open source deep packet inspection
++ * library based on the PACE technology by ipoque GmbH
++ * 
++ * OpenDPI is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ * 
++ * OpenDPI is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ * 
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with OpenDPI.  If not, see <http://www.gnu.org/licenses/>.
++ * 
++ */
++
++
++#include "ipq_protocols.h"
++#ifdef IPOQUE_PROTOCOL_PT11
++/*static inline u8 ipoque_is_valid_pt11_ft_packet(const struct ipoque_packet_struct *packet)
++{
++
++
++｝
++*/
++
++static void ipoque_int_pt11_add_connection(struct ipoque_detection_module_struct
++											   *ipoque_struct)
++{
++	ipoque_int_add_connection(ipoque_struct, IPOQUE_PROTOCOL_PT11, IPOQUE_REAL_PROTOCOL);
++}
++
++void ipoque_int_search_pt11_udp(struct ipoque_detection_module_struct
++							*ipoque_struct)
++{
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++	struct ipoque_flow_struct *flow = ipoque_struct->flow;
++	// struct ipoque_id_struct *src=ipoque_struct->src;
++	// struct ipoque_id_struct *dst=ipoque_struct->dst;
++			if (get_u16(packet->payload, 2) == 0 && get_u16(packet->payload, 6) == 0)
++				{
++				if ( get_l16(packet->payload, 4) == packet->payload_packet_len )
++					{
++
++					IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG,
++							"found pt11.\n");
++					ipoque_int_pt11_add_connection(ipoque_struct);
++					return;
++					}
++				}
++
++	IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG, "exclude pt11.\n");
++	IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_PT11);
++}
++void ipoque_int_search_pt11_tcp(struct ipoque_detection_module_struct
++							*ipoque_struct)
++{
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++	struct ipoque_flow_struct *flow = ipoque_struct->flow;
++
++		if ( packet->payload_packet_len >= 8  && get_l16(packet->payload, 0) == packet->payload_packet_len && get_u16(packet->payload, 6) 
++== 0)
++			{
++				//Server list
++				if (get_u16(packet->payload, 2) == 0 && packet->payload[4] == 0x0a)
++					switch(packet->payload[5])
++						{
++						case 0x04:
++						case 0x06:
++						case 0x07:
++						case 0x6c:
++	//						flow->pt11_stage++;
++							IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG,
++									"found pt11.\n");
++							ipoque_int_pt11_add_connection(ipoque_struct);
++							break;
++						default:
++							break;
++						}
++
++				if (get_u16(packet->payload, 2) == 0 && packet->payload[4] == 0x1f)
++					switch(packet->payload[5])
++						{
++						case 0x02:
++						case 0x03:
++						case 0x66:
++						case 0x67:
++						case 0x69:
++	//						flow->pt11_stage++;
++							IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG,
++									"found pt11.\n");
++							ipoque_int_pt11_add_connection(ipoque_struct);
++							break;
++						default:
++							break;
++						}
++				//host list 01 04 05 65 66 67 68 69 6a 6c
++				if (get_u16(packet->payload, 2) == 0 && packet->payload[4] == 0x14)
++					switch(packet->payload[5])
++						{
++						case 0x01:
++						case 0x02:
++						case 0x04:
++						case 0x05:
++						case 0x65:
++						case 0x66:
++						case 0x67:
++						case 0x68:
++						case 0x69:
++						case 0x6a:
++						case 0x6c:
++	//						flow->pt11_stage++;
++							IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG,
++									"found pt11.\n");
++							ipoque_int_pt11_add_connection(ipoque_struct);
++							break;
++						default:
++							break;
++						}
++/*				if(flow->pt11_stage >= 3){
++						IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG,
++								"found pt11.\n");
++						ipoque_int_pt11_add_connection(ipoque_struct);
++						return;
++						}
++*/
++			}
++if(flow->packet_counter > 20 ) {
++	IPQ_LOG(IPOQUE_PROTOCOL_PT11, ipoque_struct, IPQ_LOG_DEBUG, "exclude pt11.\n");
++	IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_PT11);
++	}
++}
++
++void ipoque_search_pt11(struct ipoque_detection_module_struct *ipoque_struct)
++{
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++	//struct ipoque_flow_struct *flow = ipoque_struct->flow;
++	//struct ipoque_id_struct *src = ipoque_struct->src;
++	//struct ipoque_id_struct *dst = ipoque_struct->dst;
++	
++	if (packet->tcp != NULL && packet->payload_packet_len != 0) {
++		ipoque_int_search_pt11_tcp(ipoque_struct);
++	} else if (packet->udp != NULL) {
++		ipoque_int_search_pt11_udp(ipoque_struct);
++	}
++}
++#endif

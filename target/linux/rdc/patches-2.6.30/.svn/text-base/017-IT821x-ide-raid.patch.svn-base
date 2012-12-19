@@ -1,0 +1,20 @@
+diff -Nur linux-2.6.32.20.orig/drivers/ide/it821x.c linux-2.6.32.20.new/drivers/ide/it821x.c
+--- linux-2.6.32.20.orig/drivers/ide/it821x.c	2010-08-20 14:34:38.000000000 -0400
++++ linux-2.6.32.20.new/drivers/ide/it821x.c	2010-10-24 06:09:05.000000000 -0400
+@@ -97,7 +97,7 @@
+  *	device.
+  */
+ 
+-static int it8212_noraid;
++static int it8212_noraid=1;
+ 
+ /**
+  *	it821x_program	-	program the PIO/MWDMA registers
+@@ -633,6 +633,7 @@
+ 	.init_hwif	= init_hwif_it821x,
+ 	.port_ops	= &it821x_port_ops,
+ 	.pio_mask	= ATA_PIO4,
++        .host_flags = IDE_HFLAG_SINGLE,
+ };
+ 
+ /**

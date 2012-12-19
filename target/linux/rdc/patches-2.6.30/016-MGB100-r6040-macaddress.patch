@@ -1,0 +1,23 @@
+--- linux-2.6.30.10/drivers/net/r6040.c.orig	2010-12-31 07:20:26.000000000 -0500
++++ linux-2.6.30.10/drivers/net/r6040.c	2010-12-31 08:27:51.000000000 -0500
+@@ -1143,12 +1143,18 @@
+ 
+ 	/* Set MAC address */
+ 	card_idx++;
+-
++#ifdef CONFIG_MGB100
++ 	adrp = (u16 *)dev->dev_addr;
++	printk(KERN_WARNING DRV_NAME ": Use MAC address form MGB1OO Redboot.\n");
++	adrp[0] = ioread16(ioaddr + 0x68);
++	adrp[1] = ioread16(ioaddr + 0x6A);
++	adrp[2] = ioread16(ioaddr + 0x6C);
++#else
+ 	adrp = (u16 *)dev->dev_addr;
+ 	adrp[0] = ioread16(ioaddr + MID_0L);
+ 	adrp[1] = ioread16(ioaddr + MID_0M);
+ 	adrp[2] = ioread16(ioaddr + MID_0H);
+-
++#endif
+ 	/* Some bootloader/BIOSes do not initialize
+ 	 * MAC address, warn about that */
+ 	if (!(adrp[0] || adrp[1] || adrp[2])) {

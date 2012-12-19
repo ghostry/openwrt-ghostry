@@ -1,0 +1,2552 @@
+diff -uprN linux-2.6.32/Documentation/x86/rdc.txt linux-2.6.32.new/Documentation/x86/rdc.txt
+--- linux-2.6.32/Documentation/x86/rdc.txt	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/Documentation/x86/rdc.txt	2010-03-06 22:26:27.000000000 -0500
+@@ -0,0 +1,69 @@
++
++Introduction
++============
++
++RDC (http://www.rdc.com.tw) have been manufacturing x86-compatible SoC
++(system-on-chips) for a number of years.  They are not the fastest of
++CPUs (clock speeds ranging from 133-150MHz) but 486SX compatibility
++coupled with very low power consumption[1] and low cost make them ideal
++for embedded applications.
++
++
++Where to find
++=============
++
++RDC chips show up in numerous embedded devices, but be careful since
++many of them will not run Linux 2.6 without significant expertise.
++
++There are several variants of what the linux kernel refers to generically
++as RDC321X:  R8610, R321x, S3282 and AMRISC20000.
++
++R321x: Found in various routers, see the OpenWrt project for details,
++   http://wiki.openwrt.org/oldwiki/rdcport
++
++R8610: Found on the RDC evaluation board
++   http://www.ivankuten.com/system-on-chip-soc/rdc-r8610/
++
++AMRISC20000: Found in the MGB-100 wireless hard disk
++   http://tintuc.no-ip.com/linux/tipps/mgb100/
++
++S3282: Found in various NAS devices, including the Bifferboard
++   http://www.bifferos.com
++
++
++Kernel Configuration
++====================
++
++Add support for this CPU with CONFIG_X86_RDC321X.  Ensure that maths
++emulation is included (CONFIG_MATH_EMULATION selected) and avoid MCE
++(CONFIG_X86_MCE not selected).
++
++
++CPU detection
++=============
++
++None of these chips support the cpuid instruction, so as with some
++other x86 compatible SoCs, we must check the north bridge and look
++for specific 'signature' PCI device config.
++
++The current detection code has been tested only on the Bifferboard
++(S3282 CPU), please send bug reports or success stories with
++other devices to bifferos@yahoo.co.uk.
++
++
++Credits
++=======
++
++Many thanks to RDC for providing the customer codes to allow
++detection of all known variants, without which this detection code
++would have been very hard to ascertain.
++
++
++References
++==========
++
++[1] S3282 in certain NAS solutions consumes less than 1W
++
++
++mark@bifferos.com 2009
++
+diff -uprN linux-2.6.32/arch/x86/Kconfig linux-2.6.32.new/arch/x86/Kconfig
+--- linux-2.6.32/arch/x86/Kconfig	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/Kconfig	2010-03-06 22:43:11.000000000 -0500
+@@ -397,8 +397,11 @@ config X86_RDC321X
+ 	bool "RDC R-321x SoC"
+ 	depends on X86_32
+ 	depends on X86_EXTENDED_PLATFORM
++	select PCI
+ 	select M486
+ 	select X86_REBOOTFIXUPS
++	select EMBEDDED
++	select ARCH_REQUIRE_GPIOLIB
+ 	---help---
+ 	  This option is needed for RDC R-321x system-on-chip, also known
+ 	  as R-8610-(G).
+@@ -2018,6 +2021,20 @@ config OLPC
+ 	  Add support for detecting the unique features of the OLPC
+ 	  XO hardware.
+ 
++config MGB100
++	def_bool n
++    prompt "MGB100 platform support"
++    help
++      Adds support for MGB100. Enter Y if you have:
++        * Level-One    WAP-0007
++        * Comet Labs   MGB100
++        * Conceptronic CHD2WLANU
++        * Micronica    MGB100
++        * AirLive (OvisLink) WMU-6000FS
++        * Safecom      SWSAPUR-5400
++        * SMC          WAPS-G EU
++        * Pearl        PE6643
++
+ endif # X86_32
+ 
+ config K8_NB
+diff -uprN linux-2.6.32/arch/x86/Makefile linux-2.6.32.new/arch/x86/Makefile
+--- linux-2.6.32/arch/x86/Makefile	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/Makefile	2010-03-06 22:53:48.000000000 -0500
+@@ -125,6 +125,13 @@ libs-y  += arch/x86/lib/
+ # See arch/x86/Kbuild for content of core part of the kernel
+ core-y += arch/x86/
+ 
++# RDC R-321X support
++#core-$(CONFIG_X86_RDC321X)   += arch/x86/mach-rdc321x/
++
++# MGB100 support
++#mcore-$(CONFIG_MGB100)		+= arch/x86/mach-mgb100/ // for older kernels
++core-$(CONFIG_MGB100)		+= arch/x86/mach-mgb100/
++
+ # drivers-y are linked after core-y
+ drivers-$(CONFIG_MATH_EMULATION) += arch/x86/math-emu/
+ drivers-$(CONFIG_PCI)            += arch/x86/pci/
+diff -uprN linux-2.6.32/arch/x86/boot/boot.h linux-2.6.32.new/arch/x86/boot/boot.h
+--- linux-2.6.32/arch/x86/boot/boot.h	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/boot/boot.h	2010-03-06 22:26:00.000000000 -0500
+@@ -64,7 +64,7 @@ static inline void outl(u32 v, u16 port)
+ {
+ 	asm volatile("outl %0,%1" : : "a" (v), "dN" (port));
+ }
+-static inline u32 inl(u32 port)
++static inline u32 inl(u16 port)
+ {
+ 	u32 v;
+ 	asm volatile("inl %1,%0" : "=a" (v) : "dN" (port));
+diff -uprN linux-2.6.32/arch/x86/boot/compressed/misc.c linux-2.6.32.new/arch/x86/boot/compressed/misc.c
+--- linux-2.6.32/arch/x86/boot/compressed/misc.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/boot/compressed/misc.c	2010-03-07 01:53:43.000000000 -0500
+@@ -31,7 +31,9 @@
+ #include <asm/page.h>
+ #include <asm/boot.h>
+ #include <asm/bootparam.h>
+-
++#ifdef CONFIG_MGB100
++#include <asm/mach-mgb100/early_serial.h>
++#endif
+ /* WARNING!!
+  * This code is compiled with -fPIC and it is relocated dynamically
+  * at run time, but no relocation processing is performed.
+@@ -339,11 +341,17 @@ asmlinkage void decompress_kernel(void *
+ 		error("Wrong destination address");
+ #endif
+ 
+-	if (!quiet)
++	if (!quiet) 
++                early_serial_init(); //init serial
++                early_serial_write("early_serial_init...ok!\n", 512);
++          early_serial_write("serial_debug @ Lintel\n\n", 512);
++	        early_serial_write("MGB100 Linux 2.6.32 \n\n", 512);
+ 		putstr("\nDecompressing Linux... ");
++                early_serial_write("Uncompressing Linux...", 512);
+ 	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
+ 	parse_elf(output);
+ 	if (!quiet)
+ 		putstr("done.\nBooting the kernel.\n");
++                early_serial_write("Done,\n booting Kernel!\n\n", 512);
+ 	return;
+ }
+diff -uprN linux-2.6.32/arch/x86/boot/memory.c linux-2.6.32.new/arch/x86/boot/memory.c
+--- linux-2.6.32/arch/x86/boot/memory.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/boot/memory.c	2010-03-06 22:50:06.000000000 -0500
+@@ -73,6 +73,13 @@ static int detect_memory_e820(void)
+ 
+ static int detect_memory_e801(void)
+ {
++#ifdef CONFIG_MGB100
++/*
++Patched  by lintel
++if MGB100 has "13M LOWMEM" bug
++*/
++    boot_params.alt_mem_k = 31744;  //Setting for  MGB100 32M LowMEM
++#else
+ 	struct biosregs ireg, oreg;
+ 
+ 	initregs(&ireg);
+@@ -102,6 +109,7 @@ static int detect_memory_e801(void)
+ 		 */
+ 		boot_params.alt_mem_k = oreg.ax;
+ 	}
++#endif
+ 
+ 	return 0;
+ }
+diff -uprN linux-2.6.32/arch/x86/boot/pm.c linux-2.6.32.new/arch/x86/boot/pm.c
+--- linux-2.6.32/arch/x86/boot/pm.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/boot/pm.c	2010-03-06 22:26:00.000000000 -0500
+@@ -14,6 +14,9 @@
+ 
+ #include "boot.h"
+ #include <asm/segment.h>
++#ifdef CONFIG_X86_RDC321X
++#include <asm/rdc321x_defs.h>
++#endif
+ 
+ /*
+  * Invoke the realmode switch hook if present; otherwise
+@@ -112,6 +115,16 @@ void go_to_protected_mode(void)
+ 		die();
+ 	}
+ 
++#ifdef CONFIG_X86_RDC321X
++	{
++		u32 bootctl;
++
++		outl(0x80003840, RDC3210_CFGREG_ADDR);
++		bootctl = inl(RDC3210_CFGREG_DATA) | 0x07ff0000;
++		outl(bootctl, RDC3210_CFGREG_DATA);
++	}
++#endif
++
+ 	/* Reset coprocessor (IGNNE#) */
+ 	reset_coprocessor();
+ 
+diff -uprN linux-2.6.32/arch/x86/include/asm/mach-mgb100/early_serial.h linux-2.6.32.new/arch/x86/include/asm/mach-mgb100/early_serial.h
+--- linux-2.6.32/arch/x86/include/asm/mach-mgb100/early_serial.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/include/asm/mach-mgb100/early_serial.h	2010-03-07 01:25:00.000000000 -0500
+@@ -0,0 +1,78 @@
++/*
++  early_serial_out from openwrt
++  add by Lintel
++
++use:
++
++  early_serial_init();  to init
++  early_serial_write();  to write (must init  frist)
++
++Example:
++  early_serial_init(); 
++  early_serial_write("Uncompressing Linux...\n", 512);
++
++
++Mail:lintel77@qq.com
++
++*/
++static int early_serial_base = 0x3f8;  /* ttyS0 */
++
++#define XMTRDY          0x20
++
++#define DLAB            0x80
++
++#define TXR             0       /*  Transmit register (WRITE) */
++#define RXR             0       /*  Receive register  (READ)  */
++#define IER             1       /*  Interrupt Enable          */
++#define IIR             2       /*  Interrupt ID              */
++#define FCR             2       /*  FIFO control              */
++#define LCR             3       /*  Line control              */
++#define MCR             4       /*  Modem control             */
++#define LSR             5       /*  Line Status               */
++#define MSR             6       /*  Modem Status              */
++#define DLL             0       /*  Divisor Latch Low         */
++#define DLH             1       /*  Divisor latch High        */
++
++
++static int early_serial_putc(unsigned char ch)
++{
++        unsigned timeout = 0xffff;
++        while ((inb(early_serial_base + LSR) & XMTRDY) == 0 && --timeout)
++                cpu_relax();
++        outb(ch, early_serial_base + TXR);
++        return timeout ? 0 : -1;
++}
++
++static void early_serial_write(const char *s, unsigned n)
++{
++        while (*s && n-- > 0) {
++                if (*s == '\n')
++                        early_serial_putc('\r');
++                early_serial_putc(*s);
++                s++;
++        }
++}
++
++#define DEFAULT_BAUD 38400
++
++static __init void early_serial_init(void)
++{
++        unsigned char c;
++        unsigned divisor;
++        unsigned baud = DEFAULT_BAUD;
++        char *e;
++
++        outb(0x3, early_serial_base + LCR);     /* 8n1 */
++        outb(0, early_serial_base + IER);       /* no interrupt */
++        outb(0, early_serial_base + FCR);       /* no fifo */
++        outb(0x3, early_serial_base + MCR);     /* DTR + RTS */
++
++	baud = DEFAULT_BAUD;
++
++        divisor = 115200 / baud;
++        c = inb(early_serial_base + LCR);
++        outb(c | DLAB, early_serial_base + LCR);
++        outb(divisor & 0xff, early_serial_base + DLL);
++        outb((divisor >> 8) & 0xff, early_serial_base + DLH);
++        outb(c & ~DLAB, early_serial_base + LCR);
++} 
+diff -uprN linux-2.6.32/arch/x86/include/asm/mach-mgb100/mgb100.h linux-2.6.32.new/arch/x86/include/asm/mach-mgb100/mgb100.h
+--- linux-2.6.32/arch/x86/include/asm/mach-mgb100/mgb100.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/include/asm/mach-mgb100/mgb100.h	2010-03-07 03:00:54.000000000 -0500
+@@ -0,0 +1,14 @@
++//lintel add 2010/3/8
++#ifdef CONFIG_MGB100
++#define USB1_GPIO 2 
++#define USB2_GPIO 3
++#elif defined(CONFIG_MGB111)
++#define USB1_GPIO 2
++#define USB2_GPIO 3
++#else
++#define USB1_GPIO 2 
++#define USB2_GPIO 3
++#endif
++ 
++//  write_gpio(USB1_GPIO, 1);
++// write_gpio(USB2_GPIO, 1);
+diff -uprN linux-2.6.32/arch/x86/include/asm/processor.h linux-2.6.32.new/arch/x86/include/asm/processor.h
+--- linux-2.6.32/arch/x86/include/asm/processor.h	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/include/asm/processor.h	2010-03-06 22:26:27.000000000 -0500
+@@ -122,7 +122,8 @@ struct cpuinfo_x86 {
+ #define X86_VENDOR_CENTAUR	5
+ #define X86_VENDOR_TRANSMETA	7
+ #define X86_VENDOR_NSC		8
+-#define X86_VENDOR_NUM		9
++#define X86_VENDOR_RDC		9
++#define X86_VENDOR_NUM		10
+ 
+ #define X86_VENDOR_UNKNOWN	0xff
+ 
+diff -uprN linux-2.6.32/arch/x86/include/asm/rdc321x_gpio.h linux-2.6.32.new/arch/x86/include/asm/rdc321x_gpio.h
+--- linux-2.6.32/arch/x86/include/asm/rdc321x_gpio.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/include/asm/rdc321x_gpio.h	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,16 @@
++#ifndef _ASM_X86_MACH_RDC321X_GPIO_H
++#define _ASM_X86_MACH_RDC321X_GPIO_H
++
++#include <linux/kernel.h>
++
++#define gpio_to_irq(gpio)       NULL
++
++#define gpio_get_value __gpio_get_value
++#define gpio_set_value __gpio_set_value
++
++#define gpio_cansleep __gpio_cansleep
++
++/* For cansleep */
++#include <asm-generic/gpio.h>
++
++#endif /* _ASM_X86_MACH_RDC321X_GPIO_H */
+diff -uprN linux-2.6.32/arch/x86/kernel/cpu/Makefile linux-2.6.32.new/arch/x86/kernel/cpu/Makefile
+--- linux-2.6.32/arch/x86/kernel/cpu/Makefile	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/arch/x86/kernel/cpu/Makefile	2010-03-06 22:26:27.000000000 -0500
+@@ -24,6 +24,7 @@ obj-$(CONFIG_CPU_SUP_CYRIX_32)		+= cyrix
+ obj-$(CONFIG_CPU_SUP_CENTAUR)		+= centaur.o
+ obj-$(CONFIG_CPU_SUP_TRANSMETA_32)	+= transmeta.o
+ obj-$(CONFIG_CPU_SUP_UMC_32)		+= umc.o
++obj-$(CONFIG_X86_RDC321X)		+= rdc.o
+ 
+ obj-$(CONFIG_PERF_EVENTS)		+= perf_event.o
+ 
+diff -uprN linux-2.6.32/arch/x86/kernel/cpu/rdc.c linux-2.6.32.new/arch/x86/kernel/cpu/rdc.c
+--- linux-2.6.32/arch/x86/kernel/cpu/rdc.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/kernel/cpu/rdc.c	2010-03-06 22:26:27.000000000 -0500
+@@ -0,0 +1,69 @@
++/*
++ * See Documentation/x86/rdc.txt
++ *
++ * mark@bifferos.com
++ */
++
++#include <linux/pci.h>
++#include <asm/pci-direct.h>
++#include "cpu.h"
++
++
++static void __cpuinit rdc_identify(struct cpuinfo_x86 *c)
++{
++	u16 vendor, device;
++	u32 customer_id;
++
++	if (!early_pci_allowed())
++		return;
++
++	/* RDC CPU is SoC (system-on-chip), Northbridge is always present */
++	vendor = read_pci_config_16(0, 0, 0, PCI_VENDOR_ID);
++	device = read_pci_config_16(0, 0, 0, PCI_DEVICE_ID);
++
++	if (vendor != PCI_VENDOR_ID_RDC || device != PCI_DEVICE_ID_RDC_R6020)
++		return;  /* not RDC */
++	/*
++	 * NB: We could go on and check other devices, e.g. r6040 NIC, but
++	 * that's probably overkill
++	 */
++
++	customer_id = read_pci_config(0, 0, 0, 0x90);
++
++	switch (customer_id) {
++		/* id names are from RDC */
++	case 0x00321000:
++		strcpy(c->x86_model_id, "R3210/R3211");
++		break;
++	case 0x00321001:
++		strcpy(c->x86_model_id, "AMITRISC20000/20010");
++		break;
++	case 0x00321002:
++		strcpy(c->x86_model_id, "R3210X/Edimax");
++		break;
++	case 0x00321003:
++		strcpy(c->x86_model_id, "R3210/Kcodes");
++		break;
++	case 0x00321004:  /* tested */
++		strcpy(c->x86_model_id, "S3282/CodeTek");
++		break;
++	case 0x00321007:
++		strcpy(c->x86_model_id, "R8610");
++		break;
++	default:
++		pr_info("RDC CPU: Unrecognised Customer ID (0x%x) please report to linux-kernel@vger.kernel.org\n", customer_id);
++		return;
++	}
++
++	strcpy(c->x86_vendor_id, "RDC");
++	c->x86_vendor = X86_VENDOR_RDC;
++}
++
++static const struct cpu_dev __cpuinitconst rdc_cpu_dev = {
++	.c_vendor	= "RDC",
++	.c_ident	= { "RDC" },
++	.c_identify	= rdc_identify,
++	.c_x86_vendor	= X86_VENDOR_RDC,
++};
++
++cpu_dev_register(rdc_cpu_dev);
+diff -uprN linux-2.6.32/arch/x86/mach-mgb100/Makefile linux-2.6.32.new/arch/x86/mach-mgb100/Makefile
+--- linux-2.6.32/arch/x86/mach-mgb100/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/mach-mgb100/Makefile	2010-03-06 22:43:11.000000000 -0500
+@@ -0,0 +1,5 @@
++#
++# Makefile for mgb100
++#
++
++obj-y					:= setup.o
+diff -uprN linux-2.6.32/arch/x86/mach-mgb100/setup.c linux-2.6.32.new/arch/x86/mach-mgb100/setup.c
+--- linux-2.6.32/arch/x86/mach-mgb100/setup.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/mach-mgb100/setup.c	2010-03-07 05:09:52.000000000 -0500
+@@ -0,0 +1,195 @@
++/*
++ * MGB100 devices setup
++ */
++#include <linux/init.h>
++#include <linux/i2c.h>
++#include <linux/i2c-gpio.h>
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/mtd/physmap.h>
++#include <linux/clocksource.h>
++#include <linux/jiffies.h>
++
++
++#define NSEC_PER_JIFFY	((u32)((((u64)NSEC_PER_SEC)<<8)/ACTHZ))
++#define JIFFIES_SHIFT	8
++
++// jiffies clock skew, seconds per hour
++static int jiffskew;
++static unsigned long jiff_last;
++static int adj;
++static int adj_last;
++
++static cycle_t jiffskew_read(void)
++{
++    if( jiffies != jiff_last ) {
++        adj_last += jiffskew;
++        if( adj_last >= 3600 ) {
++            ++adj;
++            adj_last -= 3600;
++        }else if( adj_last <= -3600 ) {
++            --adj;
++            adj_last += 3600;
++        }
++        ++jiff_last;
++        if( jiff_last != jiffies ) {
++            printk(KERN_WARNING "jiffskew: jiff_last=%lu, jiffies=%lu\n",
++                    jiff_last, jiffies);
++            jiff_last = jiffies;
++        }
++    }
++    return (cycle_t) jiffies + adj;
++}
++
++static struct clocksource clocksource_jiffskew = {
++	.name		= "jiffskew",
++	.rating		= 115,
++	.read		= jiffskew_read,
++	.mask		= 0xffffffff, /*32bits*/
++	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT,
++	.shift		= JIFFIES_SHIFT,
++};
++
++static int __init jiffskew_setup(char* str)
++{
++    if(str && !jiffskew) {
++        jiffskew = simple_strtol(str, NULL, 0);
++        if( jiffskew ) {
++            jiff_last = jiffies;
++            clocksource_register(&clocksource_jiffskew);
++            printk(KERN_INFO "jiffskew clocksource loaded\n");
++        }
++    }
++    return 1;
++}
++
++__setup("jiffskew=", jiffskew_setup);
++
++static struct gpio_led mgb100_led_pins[] = {
++	{
++		.name		= "usb1",
++		.gpio		= 3,
++		.active_low	= true,
++	},
++	{
++		.name		= "usb2",
++		.gpio		= 2,
++		.active_low	= true,
++	},
++	{
++		.name		= "backup",
++		.gpio		= 4,
++		.active_low	= true,
++	},
++	{
++		.name		= "hdd_status",
++		.gpio		= 5,
++		.active_low	= true,
++	},
++};
++
++static struct gpio_led_platform_data mgb100_led_data = {
++	.num_leds		= ARRAY_SIZE(mgb100_led_pins),
++	.leds			= mgb100_led_pins,
++};
++
++static struct platform_device mgb100_leds = {
++	.name			= "leds-gpio",
++	.id			= -1,
++	.dev.platform_data	= &mgb100_led_data,
++};
++
++static struct i2c_gpio_platform_data mgb100_i2c_gpio_data = {
++	.sda_pin		= 16,
++	.scl_pin		= 17,
++};
++
++static struct platform_device mgb100_i2c_gpio = {
++	.name			= "i2c-gpio",
++	.id			= 0,
++	.dev	 = {
++		.platform_data	= &mgb100_i2c_gpio_data,
++	},
++};
++
++static struct i2c_board_info mgb100_i2c_devices[] = {
++    {
++        I2C_BOARD_INFO("pcf8563", 0x51),
++    },
++};
++
++static struct mtd_partition mgb100_nor_partitions[] = {
++#if CONFIG_MGB100
++	{
++		.name		= "linux",
++		.size		= 0x100000,
++		.offset		= 0x10,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	} , {
++		.name		= "ramdisk",
++		.size		= 0x280000,
++		.offset		= 0x100010,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	} , {
++		.name		= "amitconfig",
++		.size		= 0x040000,
++		.offset		= 0x3b0010,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	} , {
++		.name		= "recovery",
++		.size		= 0x004000,
++		.offset		= 0x3f0010,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	} , {
++		.name		= "bios",
++		.size		= 0x005ff0,
++		.offset		= 0x3fa010,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	}
++#else
++	{
++		.name		= "MGB flash",
++		.size		= 0x00400000,
++		.mask_flags	= MTD_WRITEABLE  /* force read-only */
++	}
++#endif
++};
++
++static struct physmap_flash_data mgb100_nor_flash_data[] = {
++	{
++		.width		= 2,	/* bankwidth in bytes */
++		.parts		= mgb100_nor_partitions,
++		.nr_parts	= ARRAY_SIZE(mgb100_nor_partitions)
++	}
++};
++
++static struct resource mgb100_nor_resource = {
++	.start	= 0xffc00000,
++	.end	= 0xffffffff,
++	.flags	= IORESOURCE_MEM,
++};
++
++static struct platform_device mgb100_nor = {
++	.name	= "physmap-flash",
++	.id	= -1,
++	.dev	= {
++		.platform_data = mgb100_nor_flash_data,
++	},
++	.resource = &mgb100_nor_resource,
++	.num_resources = 1,
++};
++
++static struct platform_device *mgb100_devices[] __initdata = {
++	&mgb100_leds,
++	&mgb100_i2c_gpio,
++    &mgb100_nor,
++};
++
++static int __init mgb100_devices_setup(void)
++{
++	i2c_register_board_info(0, mgb100_i2c_devices,
++				ARRAY_SIZE(mgb100_i2c_devices));
++	platform_add_devices(mgb100_devices, ARRAY_SIZE(mgb100_devices));
++	return 0;
++}
++__initcall(mgb100_devices_setup);
+diff -uprN linux-2.6.32/arch/x86/mach-rdc321x/Makefile linux-2.6.32.new/arch/x86/mach-rdc321x/Makefile
+--- linux-2.6.32/arch/x86/mach-rdc321x/Makefile	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/mach-rdc321x/Makefile	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,5 @@
++#
++# Makefile for the RDC321x specific parts of the kernel
++#
++obj-$(CONFIG_X86_RDC321X)        := gpio.o platform.o
++
+diff -uprN linux-2.6.32/arch/x86/mach-rdc321x/gpio.c linux-2.6.32.new/arch/x86/mach-rdc321x/gpio.c
+--- linux-2.6.32/arch/x86/mach-rdc321x/gpio.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/mach-rdc321x/gpio.c	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,158 @@
++/*
++ *  GPIO support for RDC SoC R3210/R8610
++ *
++ *  Copyright (C) 2007, Florian Fainelli <florian@openwrt.org>
++ *  Copyright (C) 2008, Volker Weiss <dev@tintuc.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
++
++
++#include <linux/spinlock.h>
++#include <linux/io.h>
++#include <linux/types.h>
++#include <linux/module.h>
++#include <linux/gpio.h>
++
++#include <asm/rdc321x_gpio.h>
++#include <asm/rdc321x_defs.h>
++
++
++/* spin lock to protect our private copy of GPIO data register plus
++   the access to PCI conf registers. */
++static DEFINE_SPINLOCK(gpio_lock);
++
++/* copy of GPIO data registers */
++static u32 gpio_data_reg1;
++static u32 gpio_data_reg2;
++
++static inline void rdc321x_conf_write(unsigned addr, u32 value)
++{
++	outl((1 << 31) | (7 << 11) | addr, RDC3210_CFGREG_ADDR);
++	outl(value, RDC3210_CFGREG_DATA);
++}
++
++static inline void rdc321x_conf_or(unsigned addr, u32 value)
++{
++	outl((1 << 31) | (7 << 11) | addr, RDC3210_CFGREG_ADDR);
++	value |= inl(RDC3210_CFGREG_DATA);
++	outl(value, RDC3210_CFGREG_DATA);
++}
++
++static inline u32 rdc321x_conf_read(unsigned addr)
++{
++	outl((1 << 31) | (7 << 11) | addr, RDC3210_CFGREG_ADDR);
++
++	return inl(RDC3210_CFGREG_DATA);
++}
++
++/* configure pin as GPIO */
++static void rdc321x_configure_gpio(unsigned gpio)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++	rdc321x_conf_or(gpio < 32
++		? RDC321X_GPIO_CTRL_REG1 : RDC321X_GPIO_CTRL_REG2,
++		1 << (gpio & 0x1f));
++	spin_unlock_irqrestore(&gpio_lock, flags);
++}
++
++/* read GPIO pin */
++static int rdc_gpio_get_value(struct gpio_chip *chip, unsigned gpio)
++{
++	u32 reg;
++	unsigned long flags;
++
++	spin_lock_irqsave(&gpio_lock, flags);
++	reg = rdc321x_conf_read(gpio < 32
++		? RDC321X_GPIO_DATA_REG1 : RDC321X_GPIO_DATA_REG2);
++	spin_unlock_irqrestore(&gpio_lock, flags);
++
++	return (1 << (gpio & 0x1f)) & reg ? 1 : 0;
++}
++
++/* set GPIO pin to value */
++static void rdc_gpio_set_value(struct gpio_chip *chip,
++				unsigned gpio, int value)
++{
++	unsigned long flags;
++	u32 reg;
++
++	reg = 1 << (gpio & 0x1f);
++	if (gpio < 32) {
++		spin_lock_irqsave(&gpio_lock, flags);
++		if (value)
++			gpio_data_reg1 |= reg;
++		else
++			gpio_data_reg1 &= ~reg;
++		rdc321x_conf_write(RDC321X_GPIO_DATA_REG1, gpio_data_reg1);
++		spin_unlock_irqrestore(&gpio_lock, flags);
++	} else {
++		spin_lock_irqsave(&gpio_lock, flags);
++		if (value)
++			gpio_data_reg2 |= reg;
++		else
++			gpio_data_reg2 &= ~reg;
++		rdc321x_conf_write(RDC321X_GPIO_DATA_REG2, gpio_data_reg2);
++		spin_unlock_irqrestore(&gpio_lock, flags);
++	}
++}
++
++/* configure GPIO pin as input */
++static int rdc_gpio_direction_input(struct gpio_chip *chip, unsigned gpio)
++{
++	rdc321x_configure_gpio(gpio);
++
++	return 0;
++}
++
++/* configure GPIO pin as output and set value */
++static int rdc_gpio_direction_output(struct gpio_chip *chip,
++				unsigned gpio, int value)
++{
++	rdc321x_configure_gpio(gpio);
++	gpio_set_value(gpio, value);
++
++	return 0;
++}
++
++static struct gpio_chip rdc321x_gpio_chip = {
++	.label			= "rdc321x-gpio",
++	.direction_input	= rdc_gpio_direction_input,
++	.direction_output	= rdc_gpio_direction_output,
++	.get			= rdc_gpio_get_value,
++	.set			= rdc_gpio_set_value,
++	.base			= 0,
++	.ngpio			= RDC321X_MAX_GPIO,
++};
++
++/* initially setup the 2 copies of the gpio data registers.
++   This function is called before the platform setup code. */
++static int __init rdc321x_gpio_setup(void)
++{
++	/* this might not be, what others (BIOS, bootloader, etc.)
++	   wrote to these registers before, but it's a good guess. Still
++	   better than just using 0xffffffff. */
++
++	gpio_data_reg1 = rdc321x_conf_read(RDC321X_GPIO_DATA_REG1);
++	gpio_data_reg2 = rdc321x_conf_read(RDC321X_GPIO_DATA_REG2);
++
++	printk(KERN_INFO "rdc321x: registering %d GPIOs\n", rdc321x_gpio_chip.ngpio);
++	return gpiochip_add(&rdc321x_gpio_chip);
++}
++
++arch_initcall(rdc321x_gpio_setup);
+diff -uprN linux-2.6.32/arch/x86/mach-rdc321x/platform.c linux-2.6.32.new/arch/x86/mach-rdc321x/platform.c
+--- linux-2.6.32/arch/x86/mach-rdc321x/platform.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/arch/x86/mach-rdc321x/platform.c	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,290 @@
++/*
++ *  Generic RDC321x platform devices
++ *
++ *  Copyright (C) 2007-2009 OpenWrt.org
++ *  Copyright (C) 2007 Florian Fainelli <florian@openwrt.org>
++ *  Copyright (C) 2008-2009 Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License
++ *  as published by the Free Software Foundation; either version 2
++ *  of the License, or (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the
++ *  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
++ *  Boston, MA  02110-1301, USA.
++ *
++ */
++
++#include <linux/init.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
++#include <linux/device.h>
++#include <linux/platform_device.h>
++#include <linux/version.h>
++#include <linux/leds.h>
++#include <linux/gpio_keys.h>
++#include <linux/input.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/physmap.h>
++#include <linux/root_dev.h>
++
++#include <asm/rdc321x_gpio.h>
++
++/* Flash */
++#ifdef CONFIG_MTD_R8610
++#define CONFIG_MTD_RDC3210 1
++#elif defined CONFIG_MTD_RDC3210
++static struct resource rdc_flash_resource[] = {
++	[0] = {
++		.start = (u32)-CONFIG_MTD_RDC3210_SIZE,
++		.end = (u32)-1,
++		.flags = IORESOURCE_MEM,
++	},
++};
++
++static struct platform_device rdc_flash_device = {
++	.name = "rdc321x-flash",
++	.id = -1,
++	.num_resources = ARRAY_SIZE(rdc_flash_resource),
++	.resource = rdc_flash_resource,
++};
++#else
++static struct mtd_partition rdc_flash_parts[15];
++
++static struct resource rdc_flash_resource = {
++	.end = (u32)-1,
++	.flags = IORESOURCE_MEM,
++};
++
++static struct physmap_flash_data rdc_flash_data = {
++	.parts = rdc_flash_parts,
++};
++
++static struct platform_device rdc_flash_device = {
++	.name = "physmap-flash",
++	.id = -1,
++	.resource = &rdc_flash_resource,
++	.num_resources = 1,
++	.dev.platform_data = &rdc_flash_data,
++};
++#endif
++
++/* LEDS */
++static struct gpio_led default_leds[] = {
++	{ .name = "rdc321x:dmz", .gpio = 1, .active_low = 1},
++};
++
++static struct gpio_led_platform_data rdc321x_led_data = {
++	.num_leds = ARRAY_SIZE(default_leds),
++	.leds = default_leds,
++};
++
++static struct platform_device rdc321x_leds = {
++	.name = "leds-gpio",
++	.id = -1,
++	.dev = {
++		.platform_data = &rdc321x_led_data,
++	}
++};
++
++/* Watchdog */
++static struct platform_device rdc321x_wdt = {
++	.name = "rdc321x-wdt",
++	.id = -1,
++	.num_resources = 0,
++};
++
++/* Button */
++static struct gpio_keys_button rdc321x_gpio_btn[] = {
++	{
++		.gpio = 0,
++		.code = BTN_0,
++		.desc = "Reset",
++		.active_low = 1,
++	}
++};
++
++static struct gpio_keys_platform_data rdc321x_gpio_btn_data = {
++	.buttons = rdc321x_gpio_btn,
++	.nbuttons = ARRAY_SIZE(rdc321x_gpio_btn),
++};
++
++static struct platform_device rdc321x_button = {
++	.name = "gpio-keys",
++	.id = -1,
++	.dev = {
++		.platform_data = &rdc321x_gpio_btn_data,
++	}
++};
++
++static struct platform_device *rdc321x_devs[] = {
++	&rdc_flash_device,
++	&rdc321x_leds,
++	&rdc321x_wdt,
++	&rdc321x_button,
++};
++
++static int probe_flash_start(struct map_info *the_map)
++{
++	struct mtd_info *res;
++
++	the_map->virt = ioremap(the_map->phys, the_map->size);
++	if (the_map->virt == NULL)
++		return 1;
++	for (the_map->bankwidth = 32; the_map->bankwidth; the_map->bankwidth
++			>>= 1) {
++		res = do_map_probe("cfi_probe", the_map);
++		if (res == NULL)
++			res = do_map_probe("jedec_probe", the_map);
++		if (res != NULL)
++			break;
++	}
++	iounmap(the_map->virt);
++	if (res != NULL)
++		the_map->phys = (u32)-(s32)(the_map->size = res->size);
++	return res == NULL;
++}
++
++static int __init rdc_board_setup(void)
++{
++#ifndef CONFIG_MTD_RDC3210
++	struct map_info rdc_map_info;
++	u32 the_header[8];
++
++	ROOT_DEV = 0;
++	rdc_map_info.name = rdc_flash_device.name;
++	rdc_map_info.size = 0x800000;	//8MB
++	rdc_map_info.phys = (u32) -rdc_map_info.size;
++	rdc_map_info.bankwidth = 2;
++	rdc_map_info.set_vpp = NULL;
++	simple_map_init(&rdc_map_info);
++	while (probe_flash_start(&rdc_map_info)) {
++		if (rdc_map_info.size /= 2 < 0x100000)	//1MB
++			panic("Could not find start of flash!");
++		rdc_map_info.phys = (u32) -rdc_map_info.size;
++	}
++	rdc_flash_resource.start = rdc_map_info.phys;
++	rdc_flash_data.width = rdc_map_info.bankwidth;
++	rdc_map_info.virt = ioremap_nocache(rdc_map_info.phys, 0x10);
++	if (rdc_map_info.virt == NULL)
++		panic("Could not ioremap to read device magic!");
++	the_header[0] = ((u32 *)rdc_map_info.virt)[0];
++	the_header[1] = ((u32 *)rdc_map_info.virt)[1];
++	the_header[2] = ((u32 *)rdc_map_info.virt)[2];
++	the_header[3] = ((u32 *)rdc_map_info.virt)[3];
++	iounmap(rdc_map_info.virt);
++	rdc_map_info.virt = ioremap_nocache(rdc_map_info.phys + 0x8000, 0x10);
++	if (rdc_map_info.virt == NULL)
++		panic("Could not ioremap to read device magic!");
++	the_header[4] = ((u32 *)rdc_map_info.virt)[0];
++	the_header[5] = ((u32 *)rdc_map_info.virt)[1];
++	the_header[6] = ((u32 *)rdc_map_info.virt)[2];
++	the_header[7] = ((u32 *)rdc_map_info.virt)[3];
++	iounmap(rdc_map_info.virt);
++	if (!memcmp(the_header, "GMTK", 4)) {	/* Gemtek */
++		/* TODO */
++	} else if (!memcmp(the_header + 4, "CSYS", 4)) {	/* Sitecom */
++		rdc_flash_parts[0].name = "system";
++		rdc_flash_parts[0].offset = 0;
++		rdc_flash_parts[0].size = rdc_map_info.size - 0x10000;
++		rdc_flash_parts[1].name = "config";
++		rdc_flash_parts[1].offset = 0;
++		rdc_flash_parts[1].size = 0x8000;
++		rdc_flash_parts[2].name = "magic";
++		rdc_flash_parts[2].offset = 0x8000;
++		rdc_flash_parts[2].size = 0x14;
++		rdc_flash_parts[3].name = "kernel";
++		rdc_flash_parts[3].offset = 0x8014;
++		rdc_flash_parts[3].size = the_header[5];
++		rdc_flash_parts[4].name = "rootfs";
++		rdc_flash_parts[4].offset = 0x8014 + the_header[5];
++		rdc_flash_parts[4].size = rdc_flash_parts[0].size - rdc_flash_parts[4].offset;
++		rdc_flash_parts[5].name = "bootloader";
++		rdc_flash_parts[5].offset = rdc_flash_parts[0].size;
++		rdc_flash_parts[5].size = 0x10000;
++		rdc_flash_data.nr_parts = 6;
++	} else if (!memcmp(((u8 *)the_header) + 14, "Li", 2)) {	/* AMIT */
++		rdc_flash_parts[0].name = "kernel_parthdr";
++		rdc_flash_parts[0].offset = 0;
++		rdc_flash_parts[0].size = 0x10;
++		rdc_flash_parts[1].name = "kernel";
++		rdc_flash_parts[1].offset = 0x10;
++		rdc_flash_parts[1].size = 0xffff0;
++		rdc_flash_parts[2].name = "rootfs_parthdr";
++		rdc_flash_parts[2].offset = 0x100000;
++		rdc_flash_parts[2].size = 0x10;
++		rdc_flash_parts[3].name = "rootfs";
++		rdc_flash_parts[3].offset = 0x100010;
++		rdc_flash_parts[3].size = rdc_map_info.size - 0x160010;
++		rdc_flash_parts[4].name = "config_parthdr";
++		rdc_flash_parts[4].offset = rdc_map_info.size - 0x60000;
++		rdc_flash_parts[4].size = 0x10;
++		rdc_flash_parts[5].name = "config";
++		rdc_flash_parts[5].offset = rdc_map_info.size - 0x5fff0;
++		rdc_flash_parts[5].size = 0xfff0;
++		rdc_flash_parts[6].name = "recoveryfs_parthdr";
++		rdc_flash_parts[6].offset = rdc_map_info.size - 0x50000;
++		rdc_flash_parts[6].size = 0x10;
++		rdc_flash_parts[7].name = "recoveryfs";
++		rdc_flash_parts[7].offset = rdc_map_info.size - 0x4fff0;
++		rdc_flash_parts[7].size = 0x3fff0;
++		rdc_flash_parts[8].name = "recovery_parthdr";
++		rdc_flash_parts[8].offset = rdc_map_info.size - 0x10000;
++		rdc_flash_parts[8].size = 0x10;
++		rdc_flash_parts[9].name = "recovery";
++		rdc_flash_parts[9].offset = rdc_map_info.size - 0xfff0;
++		rdc_flash_parts[9].size = 0x7ff0;
++		rdc_flash_parts[10].name = "productinfo_parthdr";
++		rdc_flash_parts[10].offset = rdc_map_info.size - 0x8000;
++		rdc_flash_parts[10].size = 0x10;
++		rdc_flash_parts[11].name = "productinfo";
++		rdc_flash_parts[11].offset = rdc_map_info.size - 0x7ff0;
++		rdc_flash_parts[11].size = 0x1ff0;
++		rdc_flash_parts[12].name = "bootloader_parthdr";
++		rdc_flash_parts[12].offset = rdc_map_info.size - 0x6000;
++		rdc_flash_parts[12].size = 0x10;
++		rdc_flash_parts[13].name = "bootloader";
++		rdc_flash_parts[13].offset = rdc_map_info.size - 0x5ff0;
++		rdc_flash_parts[13].size = 0x5ff0;
++		rdc_flash_parts[14].name = "everything";
++		rdc_flash_parts[14].offset = 0;
++		rdc_flash_parts[14].size = rdc_map_info.size;
++		rdc_flash_data.nr_parts = 15;
++	} else {	/* ZyXEL */
++		rdc_flash_parts[0].name = "kernel";
++		rdc_flash_parts[0].offset = 0;
++		rdc_flash_parts[0].size = 0x100000;
++		rdc_flash_parts[1].name = "rootfs";
++		rdc_flash_parts[1].offset = 0x100000;
++		rdc_flash_parts[1].size = rdc_map_info.size - 0x140000;
++		rdc_flash_parts[2].name = "linux";
++		rdc_flash_parts[2].offset = 0;
++		rdc_flash_parts[2].size = rdc_map_info.size - 0x40000;
++		rdc_flash_parts[3].name = "config";
++		rdc_flash_parts[3].offset = rdc_map_info.size - 0x40000;
++		rdc_flash_parts[3].size = 0x10000;
++		rdc_flash_parts[4].name = "productinfo";
++		rdc_flash_parts[4].offset = rdc_map_info.size - 0x30000;
++		rdc_flash_parts[4].size = 0x10000;
++		rdc_flash_parts[5].name = "bootloader";
++		rdc_flash_parts[5].offset = rdc_map_info.size - 0x20000;
++		rdc_flash_parts[5].size = 0x20000;
++		rdc_flash_data.nr_parts = 6;
++	}
++#endif
++	return platform_add_devices(rdc321x_devs, ARRAY_SIZE(rdc321x_devs));
++}
++
++#ifdef CONFIG_MTD_RDC3210
++arch_initcall(rdc_board_setup);
++#else
++late_initcall(rdc_board_setup);
++#endif
+diff -uprN linux-2.6.32/drivers/gpio/Makefile linux-2.6.32.new/drivers/gpio/Makefile
+--- linux-2.6.32/drivers/gpio/Makefile	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/gpio/Makefile	2010-03-06 22:55:23.000000000 -0500
+@@ -17,5 +17,6 @@ obj-$(CONFIG_GPIO_TWL4030)	+= twl4030-gp
+ obj-$(CONFIG_GPIO_UCB1400)	+= ucb1400_gpio.o
+ obj-$(CONFIG_GPIO_XILINX)	+= xilinx_gpio.o
+ obj-$(CONFIG_GPIO_BT8XX)	+= bt8xxgpio.o
++obj-$(CONFIG_X86_RDC321X)	+= r6030gpio.o
+ obj-$(CONFIG_GPIO_VR41XX)	+= vr41xx_giu.o
+ obj-$(CONFIG_GPIO_WM831X)	+= wm831x-gpio.o
+diff -uprN linux-2.6.32/drivers/gpio/r6030gpio.c linux-2.6.32.new/drivers/gpio/r6030gpio.c
+--- linux-2.6.32/drivers/gpio/r6030gpio.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/drivers/gpio/r6030gpio.c	2010-03-06 23:15:28.000000000 -0500
+@@ -0,0 +1,270 @@
++/*
++    This program is free software; you can redistribute it and/or modify
++    it under the terms of the GNU General Public License as published by
++    the Free Software Foundation; either version 2 of the License, or
++    (at your option) any later version.
++
++    This program is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++    GNU General Public License for more details.
++
++    You should have received a copy of the GNU General Public License
++    along with this program; if not, write to the Free Software
++    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++*/
++
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/spinlock.h>
++#include <asm/gpio.h>
++
++#define DATAREG1        0x4c    // GPIO data register I address
++#define DATAREG2        0x88    // GPIO data register II address
++
++#define PIN_COUNT       59
++#define PIN_BYTES       8
++
++struct r6030gpio {
++    spinlock_t lock;
++    struct pci_dev *pdev;       // PCI device which the GPIO is on
++    struct gpio_chip gpio;
++    u8 requested[PIN_BYTES];    // pins requested
++    u8 inputs[PIN_BYTES];       // pins configured as input
++#ifdef CONFIG_PM
++    u8 saved[PIN_BYTES];        // registers saved state
++#endif
++};
++
++static int r6030gpio_request(struct gpio_chip *gpio, unsigned pin)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    rg->requested[pin/8] |= 1 << (pin&0x7);
++    spin_unlock_irqrestore(&rg->lock, flags);
++    return 0;
++}
++
++static void r6030gpio_free(struct gpio_chip *gpio, unsigned pin)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    rg->requested[pin/8] &= ~(1 << (pin&0x7));
++    spin_unlock_irqrestore(&rg->lock, flags);
++}
++
++static void gpio_write(struct r6030gpio *rg, int pin, int val)
++{
++    int byte, reg;
++    u8 regval;
++
++    byte = pin / 8;
++    reg = (byte >= 4 ? DATAREG2 : DATAREG1) + byte;
++    pin &= 0x7;
++    pci_read_config_byte(rg->pdev, reg, &regval);
++    if( val )
++        regval |= 1 << pin;
++    else
++        regval &= ~(1 << pin);
++    regval |= rg->inputs[byte];     // keep input registers pulled high
++    pci_write_config_byte(rg->pdev, reg, regval);
++}
++
++static int r6030gpio_direction_input(struct gpio_chip *gpio, unsigned pin)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    rg->inputs[pin/8] |= 1 << (pin&0x7);
++    gpio_write(rg, pin, 1);
++    spin_unlock_irqrestore(&rg->lock, flags);
++
++    return 0;
++}
++
++static int r6030gpio_get(struct gpio_chip *gpio, unsigned pin)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++    int reg;
++    u8 regval;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    reg = (pin >= 32 ? DATAREG2 : DATAREG1) + pin/8;
++    pci_read_config_byte(rg->pdev, reg, &regval);
++    spin_unlock_irqrestore(&rg->lock, flags);
++    return (regval & (1 << (pin&0x7))) != 0;
++}
++
++static int r6030gpio_direction_output(struct gpio_chip *gpio,
++                    unsigned pin, int val)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    rg->inputs[pin/8] &= ~(1 << (pin&0x7));
++    gpio_write(rg, pin, val);
++    spin_unlock_irqrestore(&rg->lock, flags);
++    return 0;
++}
++
++static void r6030gpio_set(struct gpio_chip *gpio,
++                unsigned pin, int val)
++{
++    struct r6030gpio *rg = container_of(gpio, struct r6030gpio, gpio);
++    unsigned long flags;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    gpio_write(rg, pin, val);
++    spin_unlock_irqrestore(&rg->lock, flags);
++}
++
++static void r6030gpio_setup(struct r6030gpio *rg)
++{
++    struct gpio_chip *c = &rg->gpio;
++
++//    c->label = rg->pdev->dev.bus_id;
++    c->label = dev_name(&rg->pdev->dev);               
++    c->owner = THIS_MODULE;
++    c->request = r6030gpio_request;
++    c->free = r6030gpio_free;
++    c->direction_input = r6030gpio_direction_input;
++    c->get = r6030gpio_get;
++    c->direction_output = r6030gpio_direction_output;
++    c->set = r6030gpio_set;
++    c->dbg_show = NULL;
++    c->base = 0;
++    c->ngpio = PIN_COUNT;
++    c->can_sleep = 0;
++}
++
++static int r6030gpio_probe(struct pci_dev *dev,
++            const struct pci_device_id *pci_id)
++{
++    struct r6030gpio *rg;
++    int err;
++
++    rg = kzalloc(sizeof(*rg), GFP_KERNEL);
++    if (!rg)
++        return -ENOMEM;
++
++    rg->pdev = dev;
++    spin_lock_init(&rg->lock);
++    err = pci_enable_device(dev);
++    if (err) {
++        printk(KERN_ERR "r6030gpio: Can't enable device.\n");
++        goto err_freebg;
++    }
++    pci_set_master(dev);
++    pci_set_drvdata(dev, rg);
++    r6030gpio_setup(rg);
++    err = gpiochip_add(&rg->gpio);
++    if (err) {
++        printk(KERN_ERR "r6030gpio: Failed to register GPIOs\n");
++        goto err_release;
++    }
++    printk(KERN_INFO "r6030gpio: gpio base %d\n", rg->gpio.base);
++    return 0;
++
++err_release:
++    pci_set_drvdata(dev, NULL);
++    pci_disable_device(dev);
++err_freebg:
++    kfree(rg);
++    return err;
++}
++
++static void r6030gpio_remove(struct pci_dev *pdev)
++{
++    struct r6030gpio *rg = pci_get_drvdata(pdev);
++
++    gpiochip_remove(&rg->gpio);
++    pci_disable_device(pdev);
++    pci_set_drvdata(pdev, NULL);
++    kfree(rg);
++}
++
++#ifdef CONFIG_PM
++static int r6030gpio_suspend(struct pci_dev *pdev, pm_message_t state)
++{
++    struct r6030gpio *rg = pci_get_drvdata(pdev);
++    unsigned long flags;
++    int i, reg;
++
++    spin_lock_irqsave(&rg->lock, flags);
++    for(i = 0; i < PIN_BYTES; ++i) {
++        reg = (i >= 4 ? DATAREG2 : DATAREG1) + (i & 0x3);
++        pci_read_config_byte(rg->pdev, reg, &rg->saved[i]);
++    }
++    spin_unlock_irqrestore(&rg->lock, flags);
++    pci_save_state(pdev);
++    pci_disable_device(pdev);
++    pci_set_power_state(pdev, pci_choose_state(pdev, state));
++    return 0;
++}
++
++static int r6030gpio_resume(struct pci_dev *pdev)
++{
++    struct r6030gpio *rg = pci_get_drvdata(pdev);
++    unsigned long flags;
++    int i, err, reg;
++    u8 saved;
++
++    pci_set_power_state(pdev, 0);
++    err = pci_enable_device(pdev);
++    if (err)
++        return err;
++    pci_restore_state(pdev);
++    spin_lock_irqsave(&rg->lock, flags);
++    for(i = 0; i < PIN_BYTES; ++i) {
++        reg = (i >= 4 ? DATAREG2 : DATAREG1) + (i & 0x3);
++        // keep not requested bits unchanged
++        pci_read_config_byte(rg->pdev, reg, &saved);
++        saved &= ~rg->requested[i];
++        saved |=  (rg->saved[i] | rg->inputs[i]) & rg->requested[i];
++        pci_write_config_dword(rg->pdev, reg, saved);
++    }
++    spin_unlock_irqrestore(&rg->lock, flags);
++    return 0;
++}
++#else
++#define r6030gpio_suspend NULL
++#define r6030gpio_resume NULL
++#endif /* CONFIG_PM */
++
++static struct pci_device_id r6030gpio_pci_tbl[] = {
++    { PCI_DEVICE(PCI_VENDOR_ID_RDC, PCI_DEVICE_ID_RDC_R6030) },
++    { 0, },
++};
++MODULE_DEVICE_TABLE(pci, r6030gpio_pci_tbl);
++
++static struct pci_driver r6030gpio_pci_driver = {
++    .name       = "r6030gpio",
++    .id_table   = r6030gpio_pci_tbl,
++    .probe      = r6030gpio_probe,
++    .remove     = r6030gpio_remove,
++    .suspend    = r6030gpio_suspend,
++    .resume     = r6030gpio_resume,
++};
++
++static int r6030gpio_init(void)
++{
++    return pci_register_driver(&r6030gpio_pci_driver);
++}
++module_init(r6030gpio_init)
++
++static void r6030gpio_exit(void)
++{
++    pci_unregister_driver(&r6030gpio_pci_driver);
++}
++module_exit(r6030gpio_exit)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Rafal Dabrowa");
++MODULE_DESCRIPTION("GPIO on RDC r6030 southbridge");
+diff -uprN linux-2.6.32/drivers/ide/it821x.c linux-2.6.32.new/drivers/ide/it821x.c
+--- linux-2.6.32/drivers/ide/it821x.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/ide/it821x.c	2010-03-06 22:43:11.000000000 -0500
+@@ -633,6 +633,7 @@ static const struct ide_port_info it821x
+ 	.init_hwif	= init_hwif_it821x,
+ 	.port_ops	= &it821x_port_ops,
+ 	.pio_mask	= ATA_PIO4,
++    .host_flags = IDE_HFLAG_SINGLE,
+ };
+ 
+ /**
+diff -uprN linux-2.6.32/drivers/mtd/chips/cfi_probe.c linux-2.6.32.new/drivers/mtd/chips/cfi_probe.c
+--- linux-2.6.32/drivers/mtd/chips/cfi_probe.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/chips/cfi_probe.c	2010-03-06 22:43:11.000000000 -0500
+@@ -393,6 +393,16 @@ static struct mtd_chip_driver cfi_chipdr
+ 
+ static int __init cfi_probe_init(void)
+ {
++    // Lily code
++    asm volatile (
++	"	movw	$0xcf8, %%dx;\n"
++	"	movl	$0x80003840, %%eax;\n"
++	"	outl	%%eax, %%dx;\n"
++	"	movb	$0xfc, %%dl;\n"
++	"	inl	%%dx, %%eax;\n"
++	"	orl	$0x87ff0000, %%eax;\n"
++	"	outl	%%eax, %%dx;\n"
++       	: : : "eax","edx" ) ;
+ 	register_mtd_chip_driver(&cfi_chipdrv);
+ 	return 0;
+ }
+diff -uprN linux-2.6.32/drivers/mtd/maps/Kconfig linux-2.6.32.new/drivers/mtd/maps/Kconfig
+--- linux-2.6.32/drivers/mtd/maps/Kconfig	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/Kconfig	2010-03-06 22:26:09.000000000 -0500
+@@ -114,6 +114,56 @@ config MTD_SUN_UFLASH
+ 	  Sun Microsystems boardsets.  This driver will require CFI support
+ 	  in the kernel, so if you did not enable CFI previously, do that now.
+ 
++config MTD_RDC3210
++	tristate "CFI Flash device mapped on RDC3210"
++	depends on X86 && MTD_CFI && MTD_PARTITIONS
++	help
++	  RDC-3210 is the flash device we find on Ralink reference board.
++
++config MTD_RDC3210_STATIC_MAP
++	bool "Partitions on RDC3210 mapped statically" if MTD_RDC3210
++	select MTD_RDC3210_FACTORY_PRESENT
++	help
++	  The mapping driver will use the static partition map for the
++	  RDC-3210 flash device.
++
++config MTD_RDC3210_FACTORY_PRESENT
++	bool "Reserve a partition on RDC3210 for factory presets"
++	depends on MTD_RDC3210
++	default y
++	help
++	  The mapping driver will reserve a partition on the RDC-3210 flash
++	  device for resetting flash contents to factory defaults.
++
++config MTD_RDC3210_ALLOW_JFFS2
++	bool "JFFS2 filesystem usable in a partition on RDC3210"
++	depends on MTD_RDC3210 && !MTD_RDC3210_STATIC_MAP
++	help
++	  The mapping driver will align a partition on the RDC-3210 flash
++	  device to an erase-block boundary so that a JFFS2 filesystem may
++	  reside on it.
++
++config MTD_RDC3210_SIZE
++	hex "Amount of flash memory on RDC3210"
++	depends on MTD_RDC3210
++	default "0x400000"
++	help
++	  Total size in bytes of the RDC-3210 flash device
++
++config MTD_RDC3210_BUSWIDTH
++	int "Width of CFI Flash device mapped on RDC3210"
++	depends on MTD_RDC3210
++	default "2"
++	help
++	  Number of bytes addressed on the RDC-3210 flash device before
++	  addressing the same chip again
++
++config MTD_R8610
++	tristate "CFI flash device mapped on R8610"
++	depends on X86 && MTD_CFI && MTD_PARTITIONS
++	help
++	  Flash support for the RDC R8610 evaluation board.
++
+ config MTD_SC520CDP
+ 	tristate "CFI Flash device mapped on AMD SC520 CDP"
+ 	depends on X86 && MTD_CFI && MTD_CONCAT
+diff -uprN linux-2.6.32/drivers/mtd/maps/Makefile linux-2.6.32.new/drivers/mtd/maps/Makefile
+--- linux-2.6.32/drivers/mtd/maps/Makefile	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/Makefile	2010-03-06 22:26:09.000000000 -0500
+@@ -26,6 +26,8 @@ obj-$(CONFIG_MTD_PHYSMAP)	+= physmap.o
+ obj-$(CONFIG_MTD_PHYSMAP_OF)	+= physmap_of.o
+ obj-$(CONFIG_MTD_PMC_MSP_EVM)   += pmcmsp-flash.o
+ obj-$(CONFIG_MTD_PCMCIA)	+= pcmciamtd.o
++obj-$(CONFIG_MTD_RDC3210)	+= rdc3210.o
++obj-$(CONFIG_MTD_R8610)		+= r8610.o
+ obj-$(CONFIG_MTD_RPXLITE)	+= rpxlite.o
+ obj-$(CONFIG_MTD_TQM8XXL)	+= tqm8xxl.o
+ obj-$(CONFIG_MTD_SA1100)	+= sa1100-flash.o
+diff -uprN linux-2.6.32/drivers/mtd/maps/bifferboard-flash.c linux-2.6.32.new/drivers/mtd/maps/bifferboard-flash.c
+--- linux-2.6.32/drivers/mtd/maps/bifferboard-flash.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/bifferboard-flash.c	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,243 @@
++/* Flash mapping for Bifferboard, (c) bifferos@yahoo.co.uk 
++ * Works with 1, 4 and 8MB flash versions
++ */
++
++#include <linux/delay.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++
++#define DRV "bifferboard-flash: "
++
++static struct mtd_info *bb_mtd = NULL;
++
++#define SIZE_BIFFBOOT 0x10000
++#define SIZE_SECTOR   0x10000
++#define SIZE_CONFIG   0x02000
++#define SIZE_1MB 0x00100000
++#define SIZE_4MB 0x00400000
++#define SIZE_8MB 0x00800000
++
++#define BASE_1MB 0xfff00000
++#define BASE_4MB 0xffc00000
++#define BASE_8MB 0xff800000
++
++#define OFFS_KERNEL 0x6000
++#define OFFS_CONFIG 0x4000
++
++/*
++ * Flash detection code.  This is needed because the cfi_probe doesn't probe
++ * for the size correctly.  You actually have to know the flash size before you
++ * call it, or so it seems.  It does work correctly if you map the entire flash
++ * chip, but unsure of the implications for mapping more mem than exists.
++ */
++
++static unsigned char ReadFlash(void* base, u32 addr)
++{
++	unsigned char val = *(volatile unsigned char *)(base+addr);  
++	udelay(1);
++	return val;
++}
++
++static void WriteFlash(void* base, u32 addr, unsigned short data)
++{
++	*(volatile unsigned short *)(base+addr) = data;
++}
++
++static DEFINE_SPINLOCK(flash_lock);
++
++static u32 bb_detect(void)
++{
++	u32 ret = 0;  
++	ulong flags;
++  
++	/* for detection, map in just the 1MB device, 1st 64k is enough */
++	void* base = ioremap_nocache(BASE_1MB, 0x10000);
++    
++	if (!base)
++	{
++		pr_err(DRV "Failed to map flash for probing\n");
++		return 0;
++	}
++  
++	spin_lock_irqsave(&flash_lock, flags);  
++  
++	/* put flash in auto-detect mode */
++	WriteFlash(base, 0xaaaa, 0xaaaa);
++	WriteFlash(base, 0x5554, 0x5555);
++	WriteFlash(base, 0xaaaa, 0x9090);
++
++	/* Read the auto-config data - 4 values in total */
++	ret = ReadFlash(base, 0x0000);  ret <<= 8;
++	ret |= ReadFlash(base, 0x0200);  ret <<= 8;
++	ret |= ReadFlash(base, 0x0003);  ret <<= 8;
++	ret |= ReadFlash(base, 0x0002);
++  
++	/* exit the autodetect state */
++	WriteFlash(base, 0x0000, 0xf0f0);
++  
++	spin_unlock_irqrestore(&flash_lock, flags);
++  
++	/* unmap it, it'll be re-mapped based on the detection */
++	iounmap(base);
++  
++	return ret;
++}
++
++
++static struct map_info bb_map;
++
++/* Update the map, using the detected flash signature. */
++static int bb_adjust_map(unsigned long sig, struct map_info* m)
++{
++	m->bankwidth = 2;
++	switch (sig)
++	{
++		case 0x7f1c225b :
++			m->name = "ENLV800B";
++			m->phys = BASE_1MB;
++			m->size = SIZE_1MB;
++			break;
++		case 0x7f1c22f9 :
++			m->name = "ENLV320B";
++			m->phys = BASE_4MB;
++			m->size = SIZE_4MB;
++			break;
++		case 0x7f1c22cb :
++			m->name = "ENLV640B";
++			m->phys = BASE_8MB;
++			m->size = SIZE_8MB;
++			break;
++		default:
++			return -ENXIO;
++	}
++	return 0;
++}
++
++
++/* adjust partition sizes, prior to adding the partition
++ * Values not specified by defines here are subject to replacement based on 
++ * the real flash size. (0x00000000 being the exception, of course) */
++
++static struct mtd_partition bb_parts[] = 
++{
++/* 0 */	{ name: "kernel",   offset: 0x00000000,         size: 0x000fa000 },
++/* 1 */	{ name: "rootfs",   offset: MTDPART_OFS_APPEND, size: 0x002F0000 },
++/* 2 */	{ name: "biffboot", offset: MTDPART_OFS_APPEND, size: MTDPART_SIZ_FULL, mask_flags: MTD_WRITEABLE },
++};
++
++
++/* returns the count of partitions to be used */
++static ulong bb_adjust_partitions(struct map_info* m)
++{
++	/* Read the kernel offset value, 1036 bytes into the config block. */
++	u16 km_units = *((u16*)(m->virt + OFFS_CONFIG + 1036));
++	u32 kernelmax = 0x200000;  /* Biffboot 2.7 or earlier default */
++	
++	/* special-case 1MB devices, because there are fewer partitions */
++	if (m->size == SIZE_1MB)
++	{
++		bb_parts[0].size   = SIZE_1MB - SIZE_BIFFBOOT;	/* kernel */
++		bb_parts[1].name   = "biffboot";		/* biffboot */
++		bb_parts[1].offset = MTDPART_OFS_APPEND;	/* biffboot */
++		bb_parts[1].size   = MTDPART_SIZ_FULL;		/* biffboot */
++		bb_parts[1].mask_flags = MTD_WRITEABLE;
++		return 2;   /* because there's no rootfs now */
++	}
++	
++	/* sanity check */
++	if (km_units > ((m->size-SIZE_BIFFBOOT)/SIZE_SECTOR))
++	{
++		pr_err(DRV "config block has invalid kernelmax\n");
++		return 0;
++	}
++	
++	kernelmax = km_units * SIZE_SECTOR;
++	
++	/* Kernel */
++	bb_parts[0].size = kernelmax;
++	
++	/* rootfs */
++	bb_parts[1].size   = m->size - kernelmax - SIZE_BIFFBOOT;
++		
++	return 3;  /* 3 partitions */
++}
++
++
++static int __init init_bb_map(void)
++{
++	int ret;
++	ulong signature = bb_detect();
++	ulong part_len;
++	
++	if (!signature)
++	{
++		pr_err(DRV "Undetected flash chip");
++		return -ENXIO;
++	}
++	
++	ret = bb_adjust_map(signature, &bb_map);
++	
++	if (ret)
++	{
++		pr_err(DRV "Unrecognised flash chip (signature: 0x%lx)\n", signature);
++		return ret;
++	}
++	
++	bb_map.virt = ioremap_nocache(bb_map.phys, bb_map.size);
++	if (!bb_map.virt) 
++	{
++		pr_err(DRV "ioremap\n");
++		return -EIO;
++	}
++	
++	bb_mtd = do_map_probe("cfi_probe", &bb_map);
++	if (!bb_mtd)
++	{
++		/* cfi_probe fails here for 1MB devices */
++		pr_err(DRV "cfi_probe\n");
++		ret = -ENXIO;
++		goto err;
++	}
++
++	part_len = bb_adjust_partitions(&bb_map);
++	if (!part_len)
++	{
++		pr_err(DRV "no partitions established");
++		ret = -ENXIO;
++		goto err2;
++	}
++	
++	bb_mtd->owner = THIS_MODULE;
++	ret = add_mtd_partitions(bb_mtd, bb_parts, part_len);
++	if (ret) 
++	{
++		pr_err(DRV "add_mtd_partitions\n");
++		ret = -ENXIO;
++		goto err2;
++	}
++	
++	return 0;
++	
++err2:
++	map_destroy(bb_mtd);
++err:
++	iounmap(bb_map.virt);
++
++	return ret;
++}
++
++static void __exit exit_bb_map(void)
++{
++	del_mtd_partitions(bb_mtd);
++	map_destroy(bb_mtd);	
++	iounmap(bb_map.virt);
++}
++
++module_init(init_bb_map);
++module_exit(exit_bb_map);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Bifferos <bifferos@yahoo.co.uk>");
++MODULE_DESCRIPTION("MTD map driver for Bifferboard");
++
+diff -uprN linux-2.6.32/drivers/mtd/maps/imghdr.h linux-2.6.32.new/drivers/mtd/maps/imghdr.h
+--- linux-2.6.32/drivers/mtd/maps/imghdr.h	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/imghdr.h	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,25 @@
++#ifndef GT_IMGHDR_H
++#define GT_IMGHDR_H
++
++#define GTIMG_MAGIC		"GMTK"
++
++/* Product ID */
++#define PID_RTL_AIRGO		1
++#define PID_RTL_RALINK		2
++#define PID_RDC_AIRGO		3
++#define PID_RDC_RALINK		5	/* White Lable */
++
++/* Gemtek */
++typedef struct
++{
++	u8		magic[4];		/* ASICII: GMTK */
++	u32		checksum;		/* CRC32 */
++	u32		version;		/* x.x.x.x */
++	u32		kernelsz;		/* The size of the kernel image */
++	u32		imagesz;		/* The length of this image file ( kernel + romfs + this header) */
++	u32		pid;			/* Product ID */
++	u32		fastcksum;		/* Partial CRC32 on (First(256), medium(256), last(512)) */
++	u32		reserved;
++}gt_imghdr_t;
++
++#endif
+diff -uprN linux-2.6.32/drivers/mtd/maps/r8610.c linux-2.6.32.new/drivers/mtd/maps/r8610.c
+--- linux-2.6.32/drivers/mtd/maps/r8610.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/r8610.c	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,97 @@
++/*
++ * Flash memory access on RDC R8610 Evaluation board
++ *
++ * (C) 2009, Florian Fainelli
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++
++#include <asm/io.h>
++
++static struct map_info r8610_map = {
++	.name		= "r8610",
++	.size		= CONFIG_MTD_RDC3210_SIZE,
++	.bankwidth	= CONFIG_MTD_RDC3210_BUSWIDTH,
++};
++
++static struct mtd_partition r8610_partitions[] = {
++        {
++                .name = "Kernel",
++                .size = 0x001f0000,
++                .offset = 0
++        },{
++                .name = "Config",
++                .size = 0x10000,
++		.offset = MTDPART_OFS_APPEND,
++        },{
++                .name = "Initrd",
++		.size = 0x1E0000, 
++		.offset = MTDPART_OFS_APPEND,
++        },{
++		.name = "Redboot",
++		.size = 0x20000,
++		.offset = MTDPART_OFS_APPEND,
++		.mask_flags = MTD_WRITEABLE
++	}
++};
++
++static struct mtd_info *mymtd;
++
++int __init r8610_mtd_init(void)
++{
++	struct mtd_partition *parts;
++	int nb_parts = 0;
++
++	/*
++	 * Static partition definition selection
++	 */
++	parts = r8610_partitions;
++	nb_parts = ARRAY_SIZE(r8610_partitions);
++
++	/*
++	 * Now let's probe for the actual flash.  Do it here since
++	 * specific machine settings might have been set above.
++	 */
++	r8610_map.phys = -r8610_map.size;
++	printk(KERN_NOTICE "r8610: flash device: %lx at %x\n", r8610_map.size, r8610_map.phys);
++
++	r8610_map.map_priv_1 = (unsigned long)(r8610_map.virt = ioremap_nocache(r8610_map.phys, r8610_map.size));
++	if (!r8610_map.map_priv_1) {
++                printk(KERN_ERR "Failed to ioremap\n");
++                return -EIO;
++	}
++
++	mymtd = do_map_probe("cfi_probe", &r8610_map);
++	if (!mymtd) {
++		iounmap(r8610_map.virt);
++		return -ENXIO;
++	}
++	mymtd->owner = THIS_MODULE;
++
++	add_mtd_partitions(mymtd, parts, nb_parts);
++
++	return 0;
++}
++
++static void __exit r8610_mtd_cleanup(void)
++{
++	if (mymtd) {
++		del_mtd_partitions(mymtd);
++		map_destroy(mymtd);
++		iounmap(r8610_map.virt);
++	}
++}
++
++module_init(r8610_mtd_init);
++module_exit(r8610_mtd_cleanup);
++
++MODULE_AUTHOR("Florian Fainelli <florian@openwrt.org>");
++MODULE_DESCRIPTION("RDC R8610 MTD driver");
++MODULE_LICENSE("GPL");
+diff -uprN linux-2.6.32/drivers/mtd/maps/rdc3210.c linux-2.6.32.new/drivers/mtd/maps/rdc3210.c
+--- linux-2.6.32/drivers/mtd/maps/rdc3210.c	1969-12-31 19:00:00.000000000 -0500
++++ linux-2.6.32.new/drivers/mtd/maps/rdc3210.c	2010-03-06 22:21:04.000000000 -0500
+@@ -0,0 +1,392 @@
++/*******************************************************************
++ * Simple Flash mapping for RDC3210                                *
++ *                                                                 *
++ *                                                     2005.03.23  *
++ *                              Dante Su (dante_su@gemtek.com.tw)  *
++ *                          Copyright (C) 2005 Gemtek Corporation  *
++ *******************************************************************/
++
++#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/kernel.h>
++#include <asm/io.h>
++#include <linux/mtd/mtd.h>
++#include <linux/mtd/map.h>
++#include <linux/mtd/partitions.h>
++#include <linux/autoconf.h>
++#include <linux/sched.h>
++#include <linux/magic.h>
++
++static struct mtd_info		*rdc3210_mtd;
++
++struct map_info rdc3210_map = 
++{
++	.name =		"RDC3210 Flash",
++	.size =		CONFIG_MTD_RDC3210_SIZE,
++	.bankwidth =	CONFIG_MTD_RDC3210_BUSWIDTH,
++};
++
++/* Dante: This is the default static mapping, however this is nothing but a hint. (Say dynamic mapping) */
++static struct mtd_partition rdc3210_parts[] = 
++{
++#if CONFIG_MTD_RDC3210_SIZE == 0x400000
++	{ name: "linux",   offset:  0,          size: 0x003C0000 },	/* 3840 KB = (Kernel + ROMFS) = (768 KB + 3072 KB) */
++	{ name: "romfs",   offset:  0x000C0000, size: 0x00300000 },	/* 3072 KB */
++	{ name: "nvram",   offset:  0x003C0000, size: 0x00010000 },	/*   64 KB */
++#ifdef CONFIG_MTD_RDC3210_FACTORY_PRESENT
++	{ name: "factory", offset:  0x003D0000, size: 0x00010000 },	/*   64 KB */
++#endif
++	{ name: "bootldr", offset:  0x003E0000, size: 0x00020000 },	/*  128 KB */
++#elif CONFIG_MTD_RDC3210_SIZE == 0x200000
++	{ name: "linux",   offset:  0x00008000, size: 0x001E8000 },
++	{ name: "romfs",   offset:  0x000C8000, size: 0x00128000 },
++	{ name: "nvram",   offset:  0x00000000, size: 0x00008000 },	/*   64 KB */
++#ifdef CONFIG_MTD_RDC3210_FACTORY_PRESENT
++#error Unsupported configuration!
++#endif
++	{ name: "bootldr", offset:  0x001F0000, size: 0x00010000 },
++
++#elif CONFIG_MTD_RDC3210_SIZE == 0x800000
++        { name: "linux",   offset:  0,          size: 0x001F0000 },     /* 1984 KB */
++        { name: "config",  offset:  0x001F0000, size: 0x00010000 },     /*   64 KB */
++        { name: "romfs",   offset:  0x00200000, size: 0x005D0000 },     /* 5952 KB */
++#ifdef CONFIG_MTD_RDC3210_FACTORY_PRESENT
++        { name: "factory", offset:  0x007D0000, size: 0x00010000 },     /*   64 KB */
++#endif
++        { name: "bootldr", offset:  0x007E0000, size: 0x00010000 },     /*   64 KB */
++#else
++#error Unsupported configuration!
++#endif
++};
++
++static __u32 crctab[257] = {
++	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
++	0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
++	0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
++	0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
++	0x1db71064, 0x6ab020f2, 0xf3b97148, 0x84be41de,
++	0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
++	0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec,
++	0x14015c4f, 0x63066cd9, 0xfa0f3d63, 0x8d080df5,
++	0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,
++	0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b,
++	0x35b5a8fa, 0x42b2986c, 0xdbbbc9d6, 0xacbcf940,
++	0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
++	0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116,
++	0x21b4f4b5, 0x56b3c423, 0xcfba9599, 0xb8bda50f,
++	0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
++	0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d,
++	0x76dc4190, 0x01db7106, 0x98d220bc, 0xefd5102a,
++	0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,
++	0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818,
++	0x7f6a0dbb, 0x086d3d2d, 0x91646c97, 0xe6635c01,
++	0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
++	0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457,
++	0x65b0d9c6, 0x12b7e950, 0x8bbeb8ea, 0xfcb9887c,
++	0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,
++	0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2,
++	0x4adfa541, 0x3dd895d7, 0xa4d1c46d, 0xd3d6f4fb,
++	0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,
++	0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9,
++	0x5005713c, 0x270241aa, 0xbe0b1010, 0xc90c2086,
++	0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,
++	0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4,
++	0x59b33d17, 0x2eb40d81, 0xb7bd5c3b, 0xc0ba6cad,
++	0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,
++	0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683,
++	0xe3630b12, 0x94643b84, 0x0d6d6a3e, 0x7a6a5aa8,
++	0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
++	0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe,
++	0xf762575d, 0x806567cb, 0x196c3671, 0x6e6b06e7,
++	0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,
++	0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5,
++	0xd6d6a3e8, 0xa1d1937e, 0x38d8c2c4, 0x4fdff252,
++	0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
++	0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60,
++	0xdf60efc3, 0xa867df55, 0x316e8eef, 0x4669be79,
++	0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,
++	0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f,
++	0xc5ba3bbe, 0xb2bd0b28, 0x2bb45a92, 0x5cb36a04,
++	0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,
++	0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a,
++	0x9c0906a9, 0xeb0e363f, 0x72076785, 0x05005713,
++	0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,
++	0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21,
++	0x86d3d2d4, 0xf1d4e242, 0x68ddb3f8, 0x1fda836e,
++	0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,
++	0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c,
++	0x8f659eff, 0xf862ae69, 0x616bffd3, 0x166ccf45,
++	0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
++	0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db,
++	0xaed16a4a, 0xd9d65adc, 0x40df0b66, 0x37d83bf0,
++	0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
++	0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6,
++	0xbad03605, 0xcdd70693, 0x54de5729, 0x23d967bf,
++	0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
++	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
++	0
++};
++
++static __u32 crc32(__u8 * buf, __u32 len)
++{
++	register int i;
++	__u32 sum;
++	register __u32 s0;
++	s0 = ~0;
++	for (i = 0; i < len; i++) {
++		s0 = (s0 >> 8) ^ crctab[(__u8) (s0 & 0xFF) ^ buf[i]];
++	}
++	sum = ~s0;
++	return sum;
++}
++
++static void erase_callback(struct erase_info *done)
++{
++	wait_queue_head_t *wait_q = (wait_queue_head_t *)done->priv;
++	wake_up(wait_q);
++}
++
++static int erase_write (struct mtd_info *mtd, unsigned long pos, 
++			int len, const char *buf)
++{
++	struct erase_info erase;
++	DECLARE_WAITQUEUE(wait, current);
++	wait_queue_head_t wait_q;
++	size_t retlen;
++	int ret;
++
++	/*
++	 * First, let's erase the flash block.
++	 */
++
++	init_waitqueue_head(&wait_q);
++	erase.mtd = mtd;
++	erase.callback = erase_callback;
++	erase.addr = pos;
++	erase.len = len;
++	erase.priv = (u_long)&wait_q;
++
++	set_current_state(TASK_INTERRUPTIBLE);
++	add_wait_queue(&wait_q, &wait);
++
++	ret = mtd->erase(mtd, &erase);
++	if (ret) {
++		set_current_state(TASK_RUNNING);
++		remove_wait_queue(&wait_q, &wait);
++		printk (KERN_WARNING "erase of region [0x%lx, 0x%x] "
++				     "on \"%s\" failed\n",
++			pos, len, mtd->name);
++		return ret;
++	}
++
++	schedule();  /* Wait for erase to finish. */
++	remove_wait_queue(&wait_q, &wait);
++
++	/*
++	 * Next, writhe data to flash.
++	 */
++
++	ret = mtd->write (mtd, pos, len, &retlen, buf);
++	if (ret)
++		return ret;
++	if (retlen != len)
++		return -EIO;
++	return 0;
++}
++
++static int __init init_rdc3210_map(void)
++{
++	rdc3210_map.phys = -rdc3210_map.size;
++       	printk(KERN_NOTICE "flash device: %lx at %x\n", rdc3210_map.size, rdc3210_map.phys);
++
++#if CONFIG_MTD_RDC3210_SIZE == 0x800000
++	simple_map_init(&rdc3210_map);
++#endif
++       	
++	rdc3210_map.map_priv_1 = (unsigned long)(rdc3210_map.virt = ioremap_nocache(rdc3210_map.phys, rdc3210_map.size));
++
++	if (!rdc3210_map.map_priv_1) 
++	{
++		printk("Failed to ioremap\n");
++		return -EIO;
++	}
++	rdc3210_mtd = do_map_probe("cfi_probe", &rdc3210_map);
++#ifdef CONFIG_MTD_RDC3210_STATIC_MAP	/* Dante: This is for fixed map */
++	if (rdc3210_mtd) 
++	{
++		rdc3210_mtd->owner = THIS_MODULE;
++		add_mtd_partitions(rdc3210_mtd, rdc3210_parts, sizeof(rdc3210_parts)/sizeof(rdc3210_parts[0]));
++		return 0;
++	}
++#else	/* Dante: This is for dynamic mapping */
++
++#include "imghdr.h"
++
++	typedef struct {
++		u8	magic[4];
++		u32	kernelsz, ramdisksz;
++		u8	magic2[4];
++		u32	sz2;
++	}sc_imghdr_t;
++
++	if (rdc3210_mtd) 
++	{	// Dante
++		sc_imghdr_t	*hdr2= (sc_imghdr_t *)(rdc3210_map.map_priv_1);
++		gt_imghdr_t	*hdr = (gt_imghdr_t *)hdr2
++#ifdef CONFIG_MTD_RDC3210_ALLOW_JFFS2
++			, *ptmp
++#endif
++			;
++		int	len, tmp, tmp2, tmp3, tmp4, hdr_type = 0;
++		
++		if(!memcmp(hdr->magic, GTIMG_MAGIC, 4))
++		{
++			hdr_type = 1;
++			tmp = hdr->kernelsz + sizeof(gt_imghdr_t);
++			tmp2 = rdc3210_mtd->erasesize;
++			tmp3 = ((tmp / 32) + ((tmp % 32) ? 1 : 0)) * 32;
++			tmp4 = ((tmp / tmp2) + ((tmp % tmp2) ? 1 : 0)) * tmp2;
++		}
++#ifndef CONFIG_MTD_RDC3210_ALLOW_JFFS2
++		else if (!memcmp(hdr2->magic, "CSYS", 4))
++		{
++			hdr_type = 2;
++			tmp = hdr2->ramdisksz + hdr2->kernelsz + sizeof(sc_imghdr_t);
++			tmp2 = rdc3210_mtd->erasesize;
++			tmp3 = ((tmp / 32) + ((tmp % 32) ? 1 : 0)) * 32;
++			tmp4 = ((tmp / tmp2) + ((tmp % tmp2) ? 1 : 0)) * tmp2;
++		}
++#endif
++		else
++		{
++			iounmap((void *)rdc3210_map.map_priv_1);
++			rdc3210_map.map_priv_1 = 0L;
++			rdc3210_map.virt = NULL;
++			printk("Invalid MAGIC for Firmware Image!!!\n");
++			return -EIO;
++		}
++#ifdef CONFIG_MTD_RDC3210_ALLOW_JFFS2
++		tmp = (tmp3 == tmp4) ? tmp4 + tmp2 : tmp4;
++		if ((ptmp = (gt_imghdr_t *)vmalloc(tmp)) == NULL)
++		{
++			iounmap((void *)rdc3210_map.map_priv_1);
++			rdc3210_map.map_priv_1 = 0L;
++			rdc3210_map.virt = NULL;
++			printk("Can't allocate 0x%08x for flash-reading buffer!\n", tmp);
++			return -ENOMEM;
++		}
++		if (rdc3210_mtd->read(rdc3210_mtd, 0, tmp, &len, (__u8 *)ptmp) || len != tmp)
++		{
++			vfree(ptmp);
++			iounmap((void *)rdc3210_map.map_priv_1);
++			rdc3210_map.map_priv_1 = 0L;
++			rdc3210_map.virt = NULL;
++			printk("Can't read that much flash! Read 0x%08x of it.\n", len);
++			return -EIO;
++		}
++#endif
++#ifdef CONFIG_MTD_RDC3210_FACTORY_PRESENT
++		/* 1. Adjust Redboot */
++		tmp = rdc3210_mtd->size - rdc3210_parts[4].size;
++		rdc3210_parts[4].offset = tmp - (tmp % tmp2);
++		rdc3210_parts[4].size   = rdc3210_mtd->size - rdc3210_parts[4].offset;
++		
++		/* 2. Adjust Factory Default */
++		tmp -= rdc3210_parts[3].size;
++		rdc3210_parts[3].offset = tmp - (tmp % tmp2);
++		rdc3210_parts[3].size   = rdc3210_parts[4].offset - rdc3210_parts[3].offset;
++#else
++		/* 1. Adjust Redboot */
++		tmp = rdc3210_mtd->size - rdc3210_parts[3].size;
++		rdc3210_parts[3].offset = tmp - (tmp % tmp2);
++		rdc3210_parts[3].size   = rdc3210_mtd->size - rdc3210_parts[3].offset;
++#endif
++		if (hdr_type == 1) {
++		/* 3. Adjust NVRAM */
++#ifdef CONFIG_MTD_RDC3210_ALLOW_JFFS2
++		if (*(__u32 *)(((unsigned char *)ptmp)+tmp3) == SQUASHFS_MAGIC)
++		{
++			len = 1;
++			tmp4 = tmp3;
++			tmp = hdr->imagesz;
++		rdc3210_parts[2].name   = "rootfs_data";
++		rdc3210_parts[2].offset = rdc3210_parts[0].offset + (((tmp / tmp2) + ((tmp % tmp2) ? 1 : 0)) * tmp2);
++		}
++		else
++#else
++			tmp4 = tmp3;
++#endif
++		{
++			len = 0;
++		tmp -= rdc3210_parts[2].size;
++		rdc3210_parts[2].offset = tmp - (tmp % tmp2);
++		}
++		rdc3210_parts[2].size   = rdc3210_parts[3].offset - rdc3210_parts[2].offset;
++		}
++		else if (hdr_type == 2)
++		{
++			len = 0;
++			tmp4 = tmp3;
++		}
++		
++		/* 4. Adjust Linux (Kernel + ROMFS) */
++		rdc3210_parts[0].size   = rdc3210_parts[len + hdr_type + 1].offset - rdc3210_parts[0].offset;
++
++		/* 5. Adjust ROMFS */
++		rdc3210_parts[1].offset = rdc3210_parts[0].offset + tmp4;
++		rdc3210_parts[1].size   = rdc3210_parts[hdr_type + 1].offset - rdc3210_parts[1].offset;
++#ifdef CONFIG_MTD_RDC3210_ALLOW_JFFS2
++		if (!(hdr->reserved || len))
++		{
++			__u8	buf[1024];
++			ptmp->reserved = hdr->imagesz;
++			ptmp->imagesz  = tmp4;
++			ptmp->checksum = ptmp->fastcksum = 0;
++			memcpy(buf, ptmp, 0x100);
++			memcpy(buf + 0x100, ((__u8 *)ptmp) + ((tmp4 >> 1) - ((tmp4 & 0x6) >> 1)), 0x100);
++			memcpy(buf + 0x200, ((__u8 *)ptmp) + (tmp4 - 0x200), 0x200);
++			ptmp->fastcksum = crc32(buf, sizeof(buf));
++			ptmp->checksum = crc32((__u8 *)ptmp, tmp4);
++			if (rdc3210_mtd->unlock) rdc3210_mtd->unlock(rdc3210_mtd, 0, tmp2);
++			if ((len = erase_write(rdc3210_mtd, 0, tmp2, (char *)ptmp)))
++			{
++				vfree(ptmp);
++				iounmap((void *)rdc3210_map.map_priv_1);
++				rdc3210_map.map_priv_1 = 0L;
++				rdc3210_map.virt = NULL;
++				printk("Couldn't erase! Got %d.\n", len);
++				return len;
++			}
++			if (rdc3210_mtd->sync) rdc3210_mtd->sync(rdc3210_mtd);
++		}
++		vfree(ptmp);
++#endif
++		rdc3210_mtd->owner = THIS_MODULE;
++		add_mtd_partitions(rdc3210_mtd, rdc3210_parts, sizeof(rdc3210_parts)/sizeof(rdc3210_parts[0]));
++		return 0;
++	}
++#endif
++	iounmap((void *)rdc3210_map.map_priv_1);
++	rdc3210_map.map_priv_1 = 0L;
++	rdc3210_map.virt = NULL;
++	return -ENXIO;
++}
++
++static void __exit cleanup_rdc3210_map(void)
++{
++	if (rdc3210_mtd) 
++	{
++		del_mtd_partitions(rdc3210_mtd);
++		map_destroy(rdc3210_mtd);
++	}
++	
++	if (rdc3210_map.map_priv_1) 
++	{
++		iounmap((void *)rdc3210_map.map_priv_1);
++		rdc3210_map.map_priv_1 = 0L;
++		rdc3210_map.virt = NULL;
++	}
++}
++
++module_init(init_rdc3210_map);
++module_exit(cleanup_rdc3210_map);
+diff -uprN linux-2.6.32/drivers/net/r6040.c linux-2.6.32.new/drivers/net/r6040.c
+--- linux-2.6.32/drivers/net/r6040.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/net/r6040.c	2010-03-07 02:19:29.000000000 -0500
+@@ -49,12 +49,12 @@
+ #include <asm/processor.h>
+ 
+ #define DRV_NAME	"r6040"
+-#define DRV_VERSION	"0.25"
+-#define DRV_RELDATE	"20Aug2009"
++#define DRV_VERSION	"0.21"
++#define DRV_RELDATE	"09Jan2009"
+ 
+ /* PHY CHIP Address */
+ #define PHY1_ADDR	1	/* For MAC1 */
+-#define PHY2_ADDR	3	/* For MAC2 */
++#define PHY2_ADDR	2	/* For MAC2 */
+ #define PHY_MODE	0x3100	/* PHY CHIP Register 0 */
+ #define PHY_CAP		0x01E1	/* PHY CHIP Register 4 */
+ 
+@@ -160,7 +160,6 @@ MODULE_AUTHOR("Sten Wang <sten.wang@rdc.
+ 	"Florian Fainelli <florian@openwrt.org>");
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("RDC R6040 NAPI PCI FastEthernet driver");
+-MODULE_VERSION(DRV_VERSION " " DRV_RELDATE);
+ 
+ /* RX and TX interrupts that we handle */
+ #define RX_INTS			(RX_FIFO_FULL | RX_NO_DESC | RX_FINISH)
+@@ -401,9 +400,6 @@ static void r6040_init_mac_regs(struct n
+ 	 * we may got called by r6040_tx_timeout which has left
+ 	 * some unsent tx buffers */
+ 	iowrite16(0x01, ioaddr + MTPR);
+-
+-	/* Check media */
+-	mii_check_media(&lp->mii_if, 1, 1);
+ }
+ 
+ static void r6040_tx_timeout(struct net_device *dev)
+@@ -488,12 +484,12 @@ static int r6040_close(struct net_device
+ 	/* Free Descriptor memory */
+ 	if (lp->rx_ring) {
+ 		pci_free_consistent(pdev, RX_DESC_SIZE, lp->rx_ring, lp->rx_ring_dma);
+-		lp->rx_ring = NULL;
++		lp->rx_ring = 0;
+ 	}
+ 
+ 	if (lp->tx_ring) {
+ 		pci_free_consistent(pdev, TX_DESC_SIZE, lp->tx_ring, lp->tx_ring_dma);
+-		lp->tx_ring = NULL;
++		lp->tx_ring = 0;
+ 	}
+ 
+ 	return 0;
+@@ -531,8 +527,6 @@ static int r6040_phy_mode_chk(struct net
+ 			phy_dat = 0x0000;
+ 	}
+ 
+-	mii_check_media(&lp->mii_if, 0, 1);
+-
+ 	return phy_dat;
+ };
+ 
+@@ -682,7 +676,8 @@ static int r6040_poll(struct napi_struct
+ 	work_done = r6040_rx(dev, budget);
+ 
+ 	if (work_done < budget) {
+-		napi_complete(napi);
++//		netif_rx_complete(napi);
++                napi_complete(napi);
+ 		/* Enable RX interrupt */
+ 		iowrite16(ioread16(ioaddr + MIER) | RX_INTS, ioaddr + MIER);
+ 	}
+@@ -704,11 +699,8 @@ static irqreturn_t r6040_interrupt(int i
+ 	/* Read MISR status and clear */
+ 	status = ioread16(ioaddr + MISR);
+ 
+-	if (status == 0x0000 || status == 0xffff) {
+-		/* Restore RDC MAC interrupt */
+-		iowrite16(misr, ioaddr + MIER);
++	if (status == 0x0000 || status == 0xffff)
+ 		return IRQ_NONE;
+-	}
+ 
+ 	/* RX interrupt request */
+ 	if (status & RX_INTS) {
+@@ -722,7 +714,8 @@ static irqreturn_t r6040_interrupt(int i
+ 
+ 		/* Mask off RX interrupt */
+ 		misr &= ~RX_INTS;
+-		napi_schedule(&lp->napi);
++//		netif_rx_schedule(&lp->napi);
++                napi_schedule(&lp->napi);
+ 	}
+ 
+ 	/* TX interrupt request */
+@@ -810,6 +803,7 @@ static void r6040_timer(unsigned long da
+ 		lp->phy_mode = phy_mode;
+ 		lp->mcr0 = (lp->mcr0 & 0x7fff) | phy_mode;
+ 		iowrite16(lp->mcr0, ioaddr);
++		printk(KERN_INFO "Link Change %x \n", ioread16(ioaddr));
+ 	}
+ 
+ 	/* Timer active again */
+@@ -883,13 +877,13 @@ static int r6040_open(struct net_device 
+ 	return 0;
+ }
+ 
+-static netdev_tx_t r6040_start_xmit(struct sk_buff *skb,
+-				    struct net_device *dev)
++static int r6040_start_xmit(struct sk_buff *skb, struct net_device *dev)
+ {
+ 	struct r6040_private *lp = netdev_priv(dev);
+ 	struct r6040_descriptor *descptr;
+ 	void __iomem *ioaddr = lp->base;
+ 	unsigned long flags;
++	int ret = NETDEV_TX_OK;
+ 
+ 	/* Critical Section */
+ 	spin_lock_irqsave(&lp->lock, flags);
+@@ -899,7 +893,8 @@ static netdev_tx_t r6040_start_xmit(stru
+ 		spin_unlock_irqrestore(&lp->lock, flags);
+ 		netif_stop_queue(dev);
+ 		printk(KERN_ERR DRV_NAME ": no tx descriptor\n");
+-		return NETDEV_TX_BUSY;
++		ret = NETDEV_TX_BUSY;
++		return ret;
+ 	}
+ 
+ 	/* Statistic Counter */
+@@ -927,8 +922,7 @@ static netdev_tx_t r6040_start_xmit(stru
+ 
+ 	dev->trans_start = jiffies;
+ 	spin_unlock_irqrestore(&lp->lock, flags);
+-
+-	return NETDEV_TX_OK;
++	return ret;
+ }
+ 
+ static void r6040_multicast_list(struct net_device *dev)
+@@ -1083,22 +1077,23 @@ static int __devinit r6040_init_one(stru
+ 	int err, io_size = R6040_IO_SIZE;
+ 	static int card_idx = -1;
+ 	int bar = 0;
++	long pioaddr;
+ 	u16 *adrp;
+ 
+-	printk("%s\n", version);
++	printk(KERN_INFO "%s\n", version);
+ 
+ 	err = pci_enable_device(pdev);
+ 	if (err)
+ 		goto err_out;
+ 
+ 	/* this should always be supported */
+-	err = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++	err = pci_set_dma_mask(pdev, DMA_32BIT_MASK);
+ 	if (err) {
+ 		printk(KERN_ERR DRV_NAME ": 32-bit PCI DMA addresses"
+ 				"not supported by the card\n");
+ 		goto err_out;
+ 	}
+-	err = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
++	err = pci_set_consistent_dma_mask(pdev, DMA_32BIT_MASK);
+ 	if (err) {
+ 		printk(KERN_ERR DRV_NAME ": 32-bit PCI DMA addresses"
+ 				"not supported by the card\n");
+@@ -1106,12 +1101,13 @@ static int __devinit r6040_init_one(stru
+ 	}
+ 
+ 	/* IO Size check */
+-	if (pci_resource_len(pdev, bar) < io_size) {
++	if (pci_resource_len(pdev, 0) < io_size) {
+ 		printk(KERN_ERR DRV_NAME ": Insufficient PCI resources, aborting\n");
+ 		err = -EIO;
+ 		goto err_out;
+ 	}
+ 
++	pioaddr = pci_resource_start(pdev, 0);	/* IO map base address */
+ 	pci_set_master(pdev);
+ 
+ 	dev = alloc_etherdev(sizeof(struct r6040_private));
+@@ -1186,13 +1182,6 @@ static int __devinit r6040_init_one(stru
+ 	lp->mii_if.phy_id_mask = 0x1f;
+ 	lp->mii_if.reg_num_mask = 0x1f;
+ 
+-	/* Check the vendor ID on the PHY, if 0xffff assume none attached */
+-	if (r6040_phy_read(ioaddr, lp->phy_addr, 2) == 0xffff) {
+-		printk(KERN_ERR DRV_NAME ": Failed to detect an attached PHY\n");
+-		err = -ENODEV;
+-		goto err_out_unmap;
+-	}
+-
+ 	/* Register net device. After this dev->name assign */
+ 	err = register_netdev(dev);
+ 	if (err) {
+diff -uprN linux-2.6.32/drivers/net/wireless/rt2x00/rt2500pci.c linux-2.6.32.new/drivers/net/wireless/rt2x00/rt2500pci.c
+--- linux-2.6.32/drivers/net/wireless/rt2x00/rt2500pci.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/net/wireless/rt2x00/rt2500pci.c	2010-03-06 22:43:11.000000000 -0500
+@@ -1388,8 +1388,9 @@ static irqreturn_t rt2500pci_interrupt(i
+ 	/*
+ 	 * 1 - Beacon timer expired interrupt.
+ 	 */
+-	if (rt2x00_get_field32(reg, CSR7_TBCN_EXPIRE))
+-		rt2x00lib_beacondone(rt2x00dev);
++/*	if (rt2x00_get_field32(reg, CSR7_TBCN_EXPIRE)) {
++ *		rt2x00lib_beacondone(rt2x00dev);
++ *  }*/
+ 
+ 	/*
+ 	 * 2 - Rx ring done interrupt.
+diff -uprN linux-2.6.32/drivers/net/wireless/rt2x00/rt2x00queue.c linux-2.6.32.new/drivers/net/wireless/rt2x00/rt2x00queue.c
+--- linux-2.6.32/drivers/net/wireless/rt2x00/rt2x00queue.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/net/wireless/rt2x00/rt2x00queue.c	2010-03-06 22:43:11.000000000 -0500
+@@ -105,6 +105,14 @@ void rt2x00queue_map_txskb(struct rt2x00
+ 	 */
+ 	skb_push(skb, rt2x00dev->hw->extra_tx_headroom);
+ 
++    if( (int)skb->data & 3 ) {
++        int align = (int)skb->data & 3;
++        int len = skb->len;
++        skb_push(skb, align);
++        memmove(skb->data, skb->data+align, len);
++        skb_trim(skb, len);
++    }
++
+ 	skbdesc->skb_dma =
+ 	    dma_map_single(rt2x00dev->dev, skb->data, skb->len, DMA_TO_DEVICE);
+ 
+diff -uprN linux-2.6.32/drivers/pcmcia/yenta_socket.c linux-2.6.32.new/drivers/pcmcia/yenta_socket.c
+--- linux-2.6.32/drivers/pcmcia/yenta_socket.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/pcmcia/yenta_socket.c	2010-03-06 22:25:09.000000000 -0500
+@@ -1174,6 +1174,17 @@ static int __devinit yenta_probe (struct
+ 
+ 	/* We must finish initialization here */
+ 
++#ifdef CONFIG_X86_RDC321X
++/* #define YO_TI1510_DATASHEET_GUY_EXPLAIN_THIS_JUNK 0x0044f044 */
++#define YO_TI1510_DATASHEET_GUY_EXPLAIN_THIS_JUNK 0x0844b060
++/* #define YO_TI1510_DATASHEET_GUY_EXPLAIN_THIS_JUNK 0x0044d044 */
++
++	config_writel(socket, 32*4, YO_TI1510_DATASHEET_GUY_EXPLAIN_THIS_JUNK);
++	config_writel(socket, 35*4, 0x00000022);
++	config_writel(socket, 36*4, 0x60200000);
++	config_writel(socket, 40*4, 0x7e020000);
++#endif
++
+ 	if (!socket->cb_irq || request_irq(socket->cb_irq, yenta_interrupt, IRQF_SHARED, "yenta", socket)) {
+ 		/* No IRQ or request_irq failed. Poll */
+ 		socket->cb_irq = 0; /* But zero is a valid IRQ number. */
+diff -uprN linux-2.6.32/drivers/usb/host/ehci-q.c linux-2.6.32.new/drivers/usb/host/ehci-q.c
+--- linux-2.6.32/drivers/usb/host/ehci-q.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/usb/host/ehci-q.c	2010-03-06 23:19:16.000000000 -0500
+@@ -667,6 +667,12 @@ qh_urb_transaction (
+ 
+ 	maxpacket = max_packet(usb_maxpacket(urb->dev, urb->pipe, !is_input));
+ 
++    /* buggy R8610 usb host controller (MGB100) */
++    if( ! is_input && len >= maxpacket && buf & 3 )
++        printk(KERN_WARNING
++                "usb %s: packet unaligned, device may work incorrectly\n",
++//                urb->dev->dev.bus_id);
++               dev_name(&urb->dev->dev));
+ 	/*
+ 	 * buffer gets wrapped in one or more qtds;
+ 	 * last one may be "short" (including zero len)
+diff -uprN linux-2.6.32/drivers/usb/host/ohci-q.c linux-2.6.32.new/drivers/usb/host/ohci-q.c
+--- linux-2.6.32/drivers/usb/host/ohci-q.c	2010-02-09 07:57:19.000000000 -0500
++++ linux-2.6.32.new/drivers/usb/host/ohci-q.c	2010-03-06 22:43:11.000000000 -0500
+@@ -741,6 +741,8 @@ static int td_done(struct ohci_hcd *ohci
+ 		urb->actual_length += dlen;
+ 		urb->iso_frame_desc [td->index].actual_length = dlen;
+ 		urb->iso_frame_desc [td->index].status = cc_to_error [cc];
++        if( cc == TD_BUFFEROVERRUN )
++            printk(KERN_ERR "ohci-q: buffer overrun\n");
+ 
+ 		if (cc != TD_CC_NOERROR)
+ 			ohci_vdbg (ohci,

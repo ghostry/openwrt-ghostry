@@ -1,0 +1,1405 @@
+--- linux-2.6.35.7/arch/arm/plat-samsung/adc.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/adc.c	2011-08-08 12:52:05.000000000 +0800
+@@ -38,11 +38,6 @@
+  * action is required.
+  */
+ 
+-enum s3c_cpu_type {
+-	TYPE_S3C24XX,
+-	TYPE_S3C64XX
+-};
+-
+ struct s3c_adc_client {
+ 	struct platform_device	*pdev;
+ 	struct list_head	 pend;
+@@ -66,11 +61,15 @@
+ 	struct s3c_adc_client	*cur;
+ 	struct s3c_adc_client	*ts_pend;
+ 	void __iomem		*regs;
+-	spinlock_t		 lock;
++	spinlock_t		lock;
++	enum s3c_cpu_type	cputype;
+ 
+-	unsigned int		 prescale;
++	unsigned int		prescale;
+ 
+-	int			 irq;
++	int			irq;
++	unsigned int		adccon;
++	unsigned int		adctsc;
++	unsigned int		adcdly;
+ };
+ 
+ static struct adc_device *adc_dev;
+@@ -98,8 +97,13 @@
+ 	con &= ~S3C2410_ADCCON_STDBM;
+ 	con &= ~S3C2410_ADCCON_STARTMASK;
+ 
+-	if (!client->is_ts)
+-		con |= S3C2410_ADCCON_SELMUX(client->channel);
++	if (!client->is_ts) {
++		if (adc->cputype == TYPE_S3C64XX)
++			writel(S3C_ADCCON_SELMUX_1(client->channel),
++					adc->regs + S3C_ADCMUX);
++		else
++			con |= S3C2410_ADCCON_SELMUX(client->channel);
++	}
+ 
+ 	writel(con, adc->regs + S3C2410_ADCCON);
+ }
+@@ -139,7 +143,7 @@
+ 	unsigned long flags;
+ 
+ 	if (!adc) {
+-		printk(KERN_ERR "%s: failed to find adc\n", __func__);
++		pr_err("%s: failed to find adc\n", __func__);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -271,9 +275,9 @@
+ {
+ 	struct adc_device *adc = pw;
+ 	struct s3c_adc_client *client = adc->cur;
+-	enum s3c_cpu_type cpu = platform_get_device_id(adc->pdev)->driver_data;
+ 	unsigned data0, data1;
+ 
++
+ 	if (!client) {
+ 		dev_warn(&adc->pdev->dev, "%s: no adc pending\n", __func__);
+ 		goto exit;
+@@ -285,7 +289,7 @@
+ 
+ 	client->nr_samples--;
+ 
+-	if (cpu == TYPE_S3C64XX) {
++	if (adc->cputype == TYPE_S3C64XX) {
+ 		/* S3C64XX ADC resolution is 12-bit */
+ 		data0 &= 0xfff;
+ 		data1 &= 0xfff;
+@@ -312,7 +316,7 @@
+ 	}
+ 
+ exit:
+-	if (cpu == TYPE_S3C64XX) {
++	if (adc->cputype == TYPE_S3C64XX) {
+ 		/* Clear ADC interrupt */
+ 		writel(0, adc->regs + S3C64XX_ADCCLRINT);
+ 	}
+@@ -323,12 +327,20 @@
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct adc_device *adc;
++	struct s3c_adc_mach_info *adcinfo;
+ 	struct resource *regs;
+ 	int ret;
+-	unsigned tmp;
++	unsigned int tmp = 0;
++
++	adcinfo = pdev->dev.platform_data;
++
++	if (!adcinfo) {
++		dev_err(&pdev->dev, "platform data missing!\n");
++		return -ENODEV;
++	}
+ 
+ 	adc = kzalloc(sizeof(struct adc_device), GFP_KERNEL);
+-	if (adc == NULL) {
++	if (unlikely(adc == NULL)) {
+ 		dev_err(dev, "failed to allocate adc_device\n");
+ 		return -ENOMEM;
+ 	}
+@@ -336,37 +348,38 @@
+ 	spin_lock_init(&adc->lock);
+ 
+ 	adc->pdev = pdev;
+-	adc->prescale = S3C2410_ADCCON_PRSCVL(49);
++
++	adc->cputype = platform_get_device_id(adc->pdev)->driver_data;
+ 
+ 	adc->irq = platform_get_irq(pdev, 1);
+-	if (adc->irq <= 0) {
++	if (unlikely(adc->irq <= 0)) {
+ 		dev_err(dev, "failed to get adc irq\n");
+ 		ret = -ENOENT;
+ 		goto err_alloc;
+ 	}
+ 
+ 	ret = request_irq(adc->irq, s3c_adc_irq, 0, dev_name(dev), adc);
+-	if (ret < 0) {
++	if (unlikely(ret < 0)) {
+ 		dev_err(dev, "failed to attach adc irq\n");
+ 		goto err_alloc;
+ 	}
+ 
+ 	adc->clk = clk_get(dev, "adc");
+-	if (IS_ERR(adc->clk)) {
++	if (unlikely(IS_ERR(adc->clk))) {
+ 		dev_err(dev, "failed to get adc clock\n");
+ 		ret = PTR_ERR(adc->clk);
+ 		goto err_irq;
+ 	}
+ 
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!regs) {
++	if (unlikely(!regs)) {
+ 		dev_err(dev, "failed to find registers\n");
+ 		ret = -ENXIO;
+ 		goto err_clk;
+ 	}
+ 
+ 	adc->regs = ioremap(regs->start, resource_size(regs));
+-	if (!adc->regs) {
++	if (unlikely(!adc->regs)) {
+ 		dev_err(dev, "failed to map registers\n");
+ 		ret = -ENXIO;
+ 		goto err_clk;
+@@ -374,11 +387,16 @@
+ 
+ 	clk_enable(adc->clk);
+ 
+-	tmp = adc->prescale | S3C2410_ADCCON_PRSCEN;
+-	if (platform_get_device_id(pdev)->driver_data == TYPE_S3C64XX) {
+-		/* Enable 12-bit ADC resolution */
++	/* Initialise registers */
++	if ((adcinfo->presc & 0xff) > 0)
++		tmp = (S3C2410_ADCCON_PRSCEN | S3C2410_ADCCON_PRSCVL(adcinfo->presc & 0xff));
++
++	if ((adcinfo->delay & 0xffff) > 0)
++		writel(adcinfo->delay & 0xffff, adc->regs + S3C2410_ADCDLY);
++
++	if (adcinfo->resolution == 12)
+ 		tmp |= S3C64XX_ADCCON_RESSEL;
+-	}
++
+ 	writel(tmp, adc->regs + S3C2410_ADCCON);
+ 
+ 	dev_info(dev, "attached adc driver\n");
+@@ -416,17 +434,12 @@
+ static int s3c_adc_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+ 	struct adc_device *adc = platform_get_drvdata(pdev);
+-	unsigned long flags;
+-	u32 con;
+ 
+-	spin_lock_irqsave(&adc->lock, flags);
+-
+-	con = readl(adc->regs + S3C2410_ADCCON);
+-	con |= S3C2410_ADCCON_STDBM;
+-	writel(con, adc->regs + S3C2410_ADCCON);
++	adc->adccon = readl(adc->regs + S3C2410_ADCCON);
++	adc->adctsc = readl(adc->regs + S3C2410_ADCTSC);
++	adc->adcdly = readl(adc->regs + S3C2410_ADCDLY);
+ 
+ 	disable_irq(adc->irq);
+-	spin_unlock_irqrestore(&adc->lock, flags);
+ 	clk_disable(adc->clk);
+ 
+ 	return 0;
+@@ -435,13 +448,14 @@
+ static int s3c_adc_resume(struct platform_device *pdev)
+ {
+ 	struct adc_device *adc = platform_get_drvdata(pdev);
+-	unsigned long flags;
+ 
+ 	clk_enable(adc->clk);
+-	enable_irq(adc->irq);
+ 
+-	writel(adc->prescale | S3C2410_ADCCON_PRSCEN,
+-	       adc->regs + S3C2410_ADCCON);
++	writel(adc->adctsc, adc->regs + S3C2410_ADCTSC);
++	writel(adc->adcdly, adc->regs + S3C2410_ADCDLY);
++	writel(adc->adccon, adc->regs + S3C2410_ADCCON);
++
++	enable_irq(adc->irq);
+ 
+ 	return 0;
+ }
+@@ -481,7 +495,7 @@
+ 
+ 	ret = platform_driver_register(&s3c_adc_driver);
+ 	if (ret)
+-		printk(KERN_ERR "%s: failed to add adc driver\n", __func__);
++		pr_err("%s: failed to add adc driver\n", __func__);
+ 
+ 	return ret;
+ }
+--- linux-2.6.35.7/arch/arm/plat-samsung/clock.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/clock.c	2011-08-08 12:52:05.000000000 +0800
+@@ -67,10 +67,19 @@
+ 
+ /* Clock API calls */
+ 
++static int nullstrcmp(const char *a, const char *b)
++{
++	if (!a)
++		return b ? -1 : 0;
++	if (!b)
++		return 1;
++
++	return strcmp(a, b);
++}
++
+ struct clk *clk_get(struct device *dev, const char *id)
+ {
+-	struct clk *p;
+-	struct clk *clk = ERR_PTR(-ENOENT);
++	struct clk *clk;
+ 	int idno;
+ 
+ 	if (dev == NULL || dev->bus != &platform_bus_type)
+@@ -80,28 +89,25 @@
+ 
+ 	spin_lock(&clocks_lock);
+ 
+-	list_for_each_entry(p, &clocks, list) {
+-		if (p->id == idno &&
+-		    strcmp(id, p->name) == 0 &&
+-		    try_module_get(p->owner)) {
+-			clk = p;
+-			break;
+-		}
+-	}
+-
+-	/* check for the case where a device was supplied, but the
+-	 * clock that was being searched for is not device specific */
+-
+-	if (IS_ERR(clk)) {
+-		list_for_each_entry(p, &clocks, list) {
+-			if (p->id == -1 && strcmp(id, p->name) == 0 &&
+-			    try_module_get(p->owner)) {
+-				clk = p;
+-				break;
+-			}
+-		}
+-	}
++	list_for_each_entry(clk, &clocks, list)
++		if (!nullstrcmp(id, clk->name) && clk->dev == dev)
++			goto found_it;
++
++	list_for_each_entry(clk, &clocks, list)
++		if (clk->id == idno && nullstrcmp(id, clk->name) == 0)
++			goto found_it;
++
++	list_for_each_entry(clk, &clocks, list)
++		if (clk->id == -1 && !nullstrcmp(id, clk->name) &&
++							clk->dev == NULL)
++			goto found_it;
+ 
++	clk = ERR_PTR(-ENOENT);
++	spin_unlock(&clocks_lock);
++	return clk;
++found_it:
++	if (!try_module_get(clk->owner))
++		clk = ERR_PTR(-ENOENT);
+ 	spin_unlock(&clocks_lock);
+ 	return clk;
+ }
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-hsmmc1.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-hsmmc1.c	2011-08-17 19:24:52.000000000 +0800
+@@ -59,10 +59,28 @@
+ {
+ 	struct s3c_sdhci_platdata *set = &s3c_hsmmc1_def_platdata;
+ 
+-	set->max_width = pd->max_width;
++	set->cd_type = pd->cd_type;
+ 
++	if (pd->max_width)
++		set->max_width = pd->max_width;
++	if (pd->host_caps)
++		set->host_caps |= pd->host_caps;
+ 	if (pd->cfg_gpio)
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->cfg_ext_cd)
++		set->cfg_ext_cd = pd->cfg_ext_cd;
++	if (pd->ext_cd)
++		set->ext_cd = pd->ext_cd;
++	if (pd->cfg_wp)
++		set->cfg_wp = pd->cfg_wp;
++	if (pd->get_ro)
++		set->get_ro = pd->get_ro;
++	if (pd->detect_ext_cd)
++		set->detect_ext_cd = pd->detect_ext_cd;
++	if (pd->detect_ext_cd)
++		set->detect_ext_cd = pd->detect_ext_cd;
++	if (pd->built_in)
++		set->built_in = pd->built_in;
+ }
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-hsmmc2.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-hsmmc2.c	2011-08-17 19:24:52.000000000 +0800
+@@ -60,10 +60,26 @@
+ {
+ 	struct s3c_sdhci_platdata *set = &s3c_hsmmc2_def_platdata;
+ 
+-	set->max_width = pd->max_width;
++	set->cd_type = pd->cd_type;
+ 
++	if (pd->max_width)
++		set->max_width = pd->max_width;
++	if (pd->host_caps)
++		set->host_caps |= pd->host_caps;
+ 	if (pd->cfg_gpio)
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->cfg_ext_cd)
++		set->cfg_ext_cd = pd->cfg_ext_cd;
++	if (pd->ext_cd)
++		set->ext_cd = pd->ext_cd;
++	if (pd->cfg_wp)
++		set->cfg_wp = pd->cfg_wp;
++	if (pd->get_ro)
++		set->get_ro = pd->get_ro;
++	if (pd->detect_ext_cd)
++		set->detect_ext_cd = pd->detect_ext_cd;
++	if (pd->built_in)
++		set->built_in = pd->built_in;
+ }
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-hsmmc.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-hsmmc.c	2011-08-17 19:24:52.000000000 +0800
+@@ -59,10 +59,26 @@
+ {
+ 	struct s3c_sdhci_platdata *set = &s3c_hsmmc0_def_platdata;
+ 
+-	set->max_width = pd->max_width;
++	set->cd_type = pd->cd_type;
+ 
++	if (pd->max_width)
++		set->max_width = pd->max_width;
++	if (pd->host_caps)
++		set->host_caps |= pd->host_caps;
+ 	if (pd->cfg_gpio)
+ 		set->cfg_gpio = pd->cfg_gpio;
+ 	if (pd->cfg_card)
+ 		set->cfg_card = pd->cfg_card;
++	if (pd->cfg_ext_cd)
++		set->cfg_ext_cd = pd->cfg_ext_cd;
++	if (pd->ext_cd)
++		set->ext_cd = pd->ext_cd;
++	if (pd->cfg_wp)
++		set->cfg_wp = pd->cfg_wp;
++	if (pd->get_ro)
++		set->get_ro = pd->get_ro;
++	if (pd->detect_ext_cd)
++		set->detect_ext_cd = pd->detect_ext_cd;
++	if (pd->built_in)
++		set->built_in = pd->built_in;
+ }
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-i2c0.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-i2c0.c	2011-08-08 12:52:05.000000000 +0800
+@@ -15,6 +15,8 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/err.h>
+ 
+ #include <mach/irqs.h>
+ #include <mach/map.h>
+@@ -24,6 +26,8 @@
+ #include <plat/devs.h>
+ #include <plat/cpu.h>
+ 
++#include <asm/io.h>
++
+ static struct resource s3c_i2c_resource[] = {
+ 	[0] = {
+ 		.start = S3C_PA_IIC,
+@@ -39,11 +43,7 @@
+ 
+ struct platform_device s3c_device_i2c0 = {
+ 	.name		  = "s3c2410-i2c",
+-#ifdef CONFIG_S3C_DEV_I2C1
+ 	.id		  = 0,
+-#else
+-	.id		  = -1,
+-#endif
+ 	.num_resources	  = ARRAY_SIZE(s3c_i2c_resource),
+ 	.resource	  = s3c_i2c_resource,
+ };
+@@ -51,8 +51,8 @@
+ static struct s3c2410_platform_i2c default_i2c_data0 __initdata = {
+ 	.flags		= 0,
+ 	.slave_addr	= 0x10,
+-	.frequency	= 100*1000,
+-	.sda_delay	= 100,
++	.frequency	= 400*1000,
++	.sda_delay	= S3C2410_IICLC_SDA_DELAY15 | S3C2410_IICLC_FILTER_ON,
+ };
+ 
+ void __init s3c_i2c0_set_platdata(struct s3c2410_platform_i2c *pd)
+@@ -70,3 +70,31 @@
+ 
+ 	s3c_device_i2c0.dev.platform_data = npd;
+ }
++
++void s3c_i2c0_force_stop()
++{
++	void __iomem *regs;
++	struct clk *clk;
++	unsigned long iicstat;
++
++	regs = ioremap(S3C_PA_IIC, SZ_4K);
++	if(regs == NULL) {
++		printk(KERN_ERR "%s, cannot request IO\n", __func__);
++		return;
++	}
++
++	clk = clk_get(&s3c_device_i2c0.dev, "i2c");
++	if(clk == NULL || IS_ERR(clk)) {
++		printk(KERN_ERR "%s, cannot get cloock\n", __func__);
++		return;
++	}
++
++	clk_enable(clk);
++	iicstat = readl(regs + S3C2410_IICSTAT);
++	writel(iicstat & ~S3C2410_IICSTAT_TXRXEN, regs + S3C2410_IICSTAT);
++	clk_disable(clk);
++
++	iounmap(regs);
++}
++EXPORT_SYMBOL(s3c_i2c0_force_stop);
++
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-i2c1.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-i2c1.c	2011-08-08 12:52:05.000000000 +0800
+@@ -15,6 +15,8 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/err.h>
+ 
+ #include <mach/irqs.h>
+ #include <mach/map.h>
+@@ -24,6 +26,8 @@
+ #include <plat/devs.h>
+ #include <plat/cpu.h>
+ 
++#include <asm/io.h>
++
+ static struct resource s3c_i2c_resource[] = {
+ 	[0] = {
+ 		.start = S3C_PA_IIC1,
+@@ -48,8 +52,8 @@
+ 	.flags		= 0,
+ 	.bus_num	= 1,
+ 	.slave_addr	= 0x10,
+-	.frequency	= 100*1000,
+-	.sda_delay	= 100,
++	.frequency	= 400*1000,
++	.sda_delay	= S3C2410_IICLC_SDA_DELAY5 | S3C2410_IICLC_FILTER_ON,
+ };
+ 
+ void __init s3c_i2c1_set_platdata(struct s3c2410_platform_i2c *pd)
+@@ -67,3 +71,31 @@
+ 
+ 	s3c_device_i2c1.dev.platform_data = npd;
+ }
++
++void s3c_i2c1_force_stop()
++{
++	void __iomem *regs;
++	struct clk *clk;
++	unsigned long iicstat;
++
++	regs = ioremap(S3C_PA_IIC1, SZ_4K);
++	if(regs == NULL) {
++		printk(KERN_ERR "%s, cannot request IO\n", __func__);
++		return;
++	}
++
++	clk = clk_get(&s3c_device_i2c1.dev, "i2c");
++	if(clk == NULL || IS_ERR(clk)) {
++		printk(KERN_ERR "%s, cannot get clock\n", __func__);
++		return;
++	}
++
++	clk_enable(clk);
++	iicstat = readl(regs + S3C2410_IICSTAT);
++	writel(iicstat & ~S3C2410_IICSTAT_TXRXEN, regs + S3C2410_IICSTAT);
++	clk_disable(clk);
++
++	iounmap(regs);
++}
++EXPORT_SYMBOL(s3c_i2c1_force_stop);
++
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-i2c2.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-i2c2.c	2011-08-08 12:52:05.000000000 +0800
+@@ -1,12 +1,11 @@
+ /* linux/arch/arm/plat-s3c/dev-i2c2.c
+  *
+- * Copyright (c) 2010 Samsung Electronics Co., Ltd.
+- *		http://www.samsung.com/
++ * Copyright 2008-2009 Simtec Electronics
++ *	Ben Dooks <ben@simtec.co.uk>
++ *	http://armlinux.simtec.co.uk/
+  *
+  * S3C series device definition for i2c device 2
+  *
+- * Based on plat-samsung/dev-i2c0.c
+- *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+@@ -16,6 +15,8 @@
+ #include <linux/kernel.h>
+ #include <linux/string.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
++#include <linux/err.h>
+ 
+ #include <mach/irqs.h>
+ #include <mach/map.h>
+@@ -25,6 +26,8 @@
+ #include <plat/devs.h>
+ #include <plat/cpu.h>
+ 
++#include <asm/io.h>
++
+ static struct resource s3c_i2c_resource[] = {
+ 	[0] = {
+ 		.start = S3C_PA_IIC2,
+@@ -32,8 +35,8 @@
+ 		.flags = IORESOURCE_MEM,
+ 	},
+ 	[1] = {
+-		.start = IRQ_CAN0,
+-		.end   = IRQ_CAN0,
++		.start = IRQ_IIC2,
++		.end   = IRQ_IIC2,
+ 		.flags = IORESOURCE_IRQ,
+ 	},
+ };
+@@ -49,8 +52,8 @@
+ 	.flags		= 0,
+ 	.bus_num	= 2,
+ 	.slave_addr	= 0x10,
+-	.frequency	= 100*1000,
+-	.sda_delay	= 100,
++	.frequency	= 400*1000,
++	.sda_delay	= S3C2410_IICLC_SDA_DELAY5 | S3C2410_IICLC_FILTER_ON,
+ };
+ 
+ void __init s3c_i2c2_set_platdata(struct s3c2410_platform_i2c *pd)
+@@ -68,3 +71,31 @@
+ 
+ 	s3c_device_i2c2.dev.platform_data = npd;
+ }
++
++void s3c_i2c2_force_stop()
++{
++	void __iomem *regs;
++	struct clk *clk;
++	unsigned long iicstat;
++
++	regs = ioremap(S3C_PA_IIC2, SZ_4K);
++	if(regs == NULL) {
++		printk(KERN_ERR "%s, cannot request IO\n", __func__);
++		return;
++	}
++
++	clk = clk_get(&s3c_device_i2c2.dev, "i2c");
++	if(clk == NULL || IS_ERR(clk)) {
++		printk(KERN_ERR "%s, cannot get cloock\n", __func__);
++		return;
++	}
++
++	clk_enable(clk);
++	iicstat = readl(regs + S3C2410_IICSTAT);
++	writel(iicstat & ~S3C2410_IICSTAT_TXRXEN, regs + S3C2410_IICSTAT);
++	clk_disable(clk);
++
++	iounmap(regs);
++}
++EXPORT_SYMBOL(s3c_i2c2_force_stop);
++
+--- linux-2.6.35.7/arch/arm/plat-samsung/dev-uart.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/dev-uart.c	2011-08-08 12:52:05.000000000 +0800
+@@ -17,19 +17,19 @@
+ 
+ /* uart devices */
+ 
+-static struct platform_device s3c24xx_uart_device0 = {
++struct platform_device s3c24xx_uart_device0 = {
+ 	.id		= 0,
+ };
+ 
+-static struct platform_device s3c24xx_uart_device1 = {
++struct platform_device s3c24xx_uart_device1 = {
+ 	.id		= 1,
+ };
+ 
+-static struct platform_device s3c24xx_uart_device2 = {
++struct platform_device s3c24xx_uart_device2 = {
+ 	.id		= 2,
+ };
+ 
+-static struct platform_device s3c24xx_uart_device3 = {
++struct platform_device s3c24xx_uart_device3 = {
+ 	.id		= 3,
+ };
+ 
+--- linux-2.6.35.7/arch/arm/plat-samsung/gpio-config.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/gpio-config.c	2011-08-08 12:52:05.000000000 +0800
+@@ -80,6 +80,26 @@
+ }
+ EXPORT_SYMBOL(s3c_gpio_setpull);
+ 
++int s3c_gpio_setpin(unsigned int pin, s3c_gpio_pull_t level)
++{
++        struct s3c_gpio_chip *chip = s3c_gpiolib_getchip(pin);
++        unsigned long flags;
++        int offset, ret;
++
++        if (!chip)
++                return -EINVAL;
++
++        offset = pin - chip->chip.base;
++
++        local_irq_save(flags);
++        //ret = s3c_gpio_do_setpin(chip, offset, level);
++       	ret = (chip->config->set_pin)(chip, offset, level);
++	 local_irq_restore(flags);
++
++        return ret;
++}
++
++EXPORT_SYMBOL(s3c_gpio_setpin);
+ #ifdef CONFIG_S3C_GPIO_CFG_S3C24XX
+ int s3c_gpio_setcfg_s3c24xx_a(struct s3c_gpio_chip *chip,
+ 			      unsigned int off, unsigned int cfg)
+@@ -273,12 +293,12 @@
+ 	if (!chip)
+ 		return -EINVAL;
+ 
+-	off = chip->chip.base - pin;
++	off = pin - chip->chip.base;
+ 	shift = off * 2;
+ 	reg = chip->base + 0x0C;
+ 
+ 	drvstr = __raw_readl(reg);
+-	drvstr = 0xffff & (0x3 << shift);
++	drvstr &= (0x3 << shift);
+ 	drvstr = drvstr >> shift;
+ 
+ 	return (__force s5p_gpio_drvstr_t)drvstr;
+@@ -296,11 +316,12 @@
+ 	if (!chip)
+ 		return -EINVAL;
+ 
+-	off = chip->chip.base - pin;
++	off = pin - chip->chip.base;
+ 	shift = off * 2;
+ 	reg = chip->base + 0x0C;
+ 
+ 	tmp = __raw_readl(reg);
++	tmp &= ~(0x3 << shift);
+ 	tmp |= drvstr << shift;
+ 
+ 	__raw_writel(tmp, reg);
+--- linux-2.6.35.7/arch/arm/plat-samsung/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/Kconfig	2011-08-08 12:52:05.000000000 +0800
+@@ -160,6 +160,11 @@
+ 	help
+ 	  Compile in platform device definitions for HSMMC channel 2
+ 
++config S3C_DEV_HSMMC3
++	bool
++	help
++	  Compile in platform device definitions for HSMMC channel 3
++
+ config S3C_DEV_HWMON
+ 	bool
+ 	help
+--- linux-2.6.35.7/arch/arm/plat-samsung/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/Makefile	2011-08-08 12:52:05.000000000 +0800
+@@ -12,7 +12,9 @@
+ # Objects we always build independent of SoC choice
+ 
+ obj-y				+= init.o
++ifndef CONFIG_S5P_HIGH_RES_TIMERS
+ obj-y				+= time.o
++endif
+ obj-y				+= clock.o
+ obj-y				+= pwm-clock.o
+ obj-y				+= gpio.o
+@@ -33,6 +35,7 @@
+ obj-$(CONFIG_S3C_DEV_HSMMC)	+= dev-hsmmc.o
+ obj-$(CONFIG_S3C_DEV_HSMMC1)	+= dev-hsmmc1.o
+ obj-$(CONFIG_S3C_DEV_HSMMC2)	+= dev-hsmmc2.o
++obj-$(CONFIG_S3C_DEV_HSMMC3)	+= dev-hsmmc3.o
+ obj-$(CONFIG_S3C_DEV_HWMON)	+= dev-hwmon.o
+ obj-y				+= dev-i2c0.o
+ obj-$(CONFIG_S3C_DEV_I2C1)	+= dev-i2c1.o
+--- linux-2.6.35.7/arch/arm/plat-samsung/pm.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/pm.c	2011-08-08 12:52:05.000000000 +0800
+@@ -26,15 +26,87 @@
+ #include <plat/regs-serial.h>
+ #include <mach/regs-clock.h>
+ #include <mach/regs-irq.h>
++#include <asm/fiq_glue.h>
+ #include <asm/irq.h>
+ 
+ #include <plat/pm.h>
++#include <plat/irq-eint-group.h>
+ #include <mach/pm-core.h>
+ 
+ /* for external use */
+ 
+ unsigned long s3c_pm_flags;
+ 
++/* ---------------------------------------------- */
++extern unsigned int pm_debug_scratchpad;
++#include <linux/slab.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
++#include <linux/module.h>
++
++#define PMSTATS_MAGIC "*PM*DEBUG*STATS*"
++
++struct pmstats {
++	char magic[16];
++	unsigned sleep_count;
++	unsigned wake_count;
++	unsigned sleep_freq;
++	unsigned wake_freq;
++};
++
++static struct pmstats *pmstats;
++static struct pmstats *pmstats_last;
++
++static ssize_t pmstats_read(struct file *file, char __user *buf,
++			    size_t len, loff_t *offset)
++{
++	if (*offset != 0)
++		return 0;
++	if (len > 4096)
++		len = 4096;
++
++	if (copy_to_user(buf, file->private_data, len))
++		return -EFAULT;
++
++	*offset += len;
++	return len;
++}
++
++static int pmstats_open(struct inode *inode, struct file *file)
++{
++	file->private_data = inode->i_private;
++	return 0;
++}
++
++static const struct file_operations pmstats_ops = {
++	.owner = THIS_MODULE,
++	.read = pmstats_read,
++	.open = pmstats_open,
++};
++
++void __init pmstats_init(void)
++{
++	pr_info("pmstats at %08x\n", pm_debug_scratchpad);
++	if (pm_debug_scratchpad)
++		pmstats = ioremap(pm_debug_scratchpad, 4096);
++	else
++		pmstats = kzalloc(4096, GFP_ATOMIC);
++
++	if (!memcmp(pmstats->magic, PMSTATS_MAGIC, 16)) {
++		pmstats_last = kzalloc(4096, GFP_ATOMIC);
++		if (pmstats_last)
++			memcpy(pmstats_last, pmstats, 4096);
++	}
++
++	memset(pmstats, 0, 4096);
++	memcpy(pmstats->magic, PMSTATS_MAGIC, 16);
++
++	debugfs_create_file("pmstats", 0444, NULL, pmstats, &pmstats_ops);
++	if (pmstats_last)
++		debugfs_create_file("pmstats_last", 0444, NULL, pmstats_last, &pmstats_ops);
++}
++/* ---------------------------------------------- */
++
+ /* Debug code:
+  *
+  * This code supports debug output to the low level UARTs for use on
+@@ -185,12 +257,8 @@
+ 
+ void s3c_pm_do_restore(struct sleep_save *ptr, int count)
+ {
+-	for (; count > 0; count--, ptr++) {
+-		printk(KERN_DEBUG "restore %p (restore %08lx, was %08x)\n",
+-		       ptr->reg, ptr->val, __raw_readl(ptr->reg));
+-
++	for (; count > 0; count--, ptr++)
+ 		__raw_writel(ptr->val, ptr->reg);
+-	}
+ }
+ 
+ /**
+@@ -214,8 +282,9 @@
+  *
+  * print any IRQs asserted at resume time (ie, we woke from)
+ */
+-static void s3c_pm_show_resume_irqs(int start, unsigned long which,
+-				    unsigned long mask)
++static void __maybe_unused s3c_pm_show_resume_irqs(int start,
++						   unsigned long which,
++						   unsigned long mask)
+ {
+ 	int i;
+ 
+@@ -231,6 +300,7 @@
+ 
+ void (*pm_cpu_prep)(void);
+ void (*pm_cpu_sleep)(void);
++void (*pm_cpu_restore)(void);
+ 
+ #define any_allowed(mask, allow) (((mask) & (allow)) != (allow))
+ 
+@@ -278,6 +348,7 @@
+ 	s3c_pm_save_uarts();
+ 	s3c_pm_save_core();
+ 
++
+ 	/* set the irq configuration for wake */
+ 
+ 	s3c_pm_configure_extint();
+@@ -297,6 +368,9 @@
+ 
+ 	s3c_pm_check_store();
+ 
++	/* clear wakeup_stat register for next wakeup reason */
++	__raw_writel(__raw_readl(S5P_WAKEUP_STAT), S5P_WAKEUP_STAT);
++
+ 	/* send the cpu to sleep... */
+ 
+ 	s3c_pm_arch_stop_clocks();
+@@ -305,20 +379,31 @@
+ 	 * we resume as it saves its own register state and restores it
+ 	 * during the resume.  */
+ 
++	pmstats->sleep_count++;
++	pmstats->sleep_freq = __raw_readl(S5P_CLK_DIV0);
+ 	s3c_cpu_save(regs_save);
++	pmstats->wake_count++;
++	pmstats->wake_freq = __raw_readl(S5P_CLK_DIV0);
+ 
+ 	/* restore the cpu state using the kernel's cpu init code. */
+ 
+ 	cpu_init();
+ 
+-	/* restore the system state */
++	fiq_glue_resume();
++	local_fiq_enable();
+ 
+ 	s3c_pm_restore_core();
+ 	s3c_pm_restore_uarts();
+ 	s3c_pm_restore_gpios();
++	s5pv210_restore_eint_group();
+ 
+ 	s3c_pm_debug_init();
+ 
++        /* restore the system state */
++
++	if (pm_cpu_restore)
++		pm_cpu_restore();
++
+ 	/* check what irq (if any) restored the system */
+ 
+ 	s3c_pm_arch_show_resume_irqs();
+@@ -372,6 +457,7 @@
+ int __init s3c_pm_init(void)
+ {
+ 	printk("S3C Power Management, Copyright 2004 Simtec Electronics\n");
++	pmstats_init();
+ 
+ 	suspend_set_ops(&s3c_pm_ops);
+ 	return 0;
+--- linux-2.6.35.7/arch/arm/plat-samsung/pm-gpio.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/pm-gpio.c	2011-08-08 12:52:05.000000000 +0800
+@@ -27,6 +27,9 @@
+ #define OFFS_CON	(0x00)
+ #define OFFS_DAT	(0x04)
+ #define OFFS_UP		(0x08)
++#define OFFS_DRV	(0x0C)
++#define OFFS_CONPDN	(0x10)
++#define OFFS_PUDPDN	(0x14)
+ 
+ static void s3c_gpio_pm_1bit_save(struct s3c_gpio_chip *chip)
+ {
+@@ -192,12 +195,15 @@
+ 	.resume = s3c_gpio_pm_2bit_resume,
+ };
+ 
+-#ifdef CONFIG_ARCH_S3C64XX
++#if defined(CONFIG_ARCH_S3C64XX) || defined(CONFIG_PLAT_S5P)
+ static void s3c_gpio_pm_4bit_save(struct s3c_gpio_chip *chip)
+ {
+ 	chip->pm_save[1] = __raw_readl(chip->base + OFFS_CON);
+ 	chip->pm_save[2] = __raw_readl(chip->base + OFFS_DAT);
+ 	chip->pm_save[3] = __raw_readl(chip->base + OFFS_UP);
++	chip->pm_save[4] = __raw_readl(chip->base + OFFS_DRV);
++	chip->pm_save[5] = __raw_readl(chip->base + OFFS_CONPDN);
++	chip->pm_save[6] = __raw_readl(chip->base + OFFS_PUDPDN);
+ 
+ 	if (chip->chip.ngpio > 8)
+ 		chip->pm_save[0] = __raw_readl(chip->base - 4);
+@@ -284,6 +290,9 @@
+ 
+ 	__raw_writel(chip->pm_save[2], base + OFFS_DAT);
+ 	__raw_writel(chip->pm_save[3], base + OFFS_UP);
++	__raw_writel(chip->pm_save[4], base + OFFS_DRV);
++	__raw_writel(chip->pm_save[5], base + OFFS_CONPDN);
++	__raw_writel(chip->pm_save[6], base + OFFS_PUDPDN);
+ 
+ 	if (chip->chip.ngpio > 8) {
+ 		S3C_PMDBG("%s: CON4 %08x,%08x => %08x,%08x, DAT %08x => %08x\n",
+@@ -302,7 +311,7 @@
+ 	.save	= s3c_gpio_pm_4bit_save,
+ 	.resume = s3c_gpio_pm_4bit_resume,
+ };
+-#endif /* CONFIG_ARCH_S3C64XX */
++#endif /* CONFIG_ARCH_S3C64XX || CONFIG_PLAT_S5P */
+ 
+ /**
+  * s3c_pm_save_gpio() - save gpio chip data for suspend
+--- linux-2.6.35.7/arch/arm/plat-samsung/pwm.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/pwm.c	2011-08-08 12:52:05.000000000 +0800
+@@ -46,6 +46,7 @@
+ #define pwm_dbg(_pwm, msg...) dev_dbg(&(_pwm)->pdev->dev, msg)
+ 
+ static struct clk *clk_scaler[2];
++static DEFINE_SPINLOCK(pwm_spin_lock);
+ 
+ /* Standard setup for a timer block. */
+ 
+@@ -141,15 +142,21 @@
+ 	unsigned long flags;
+ 	unsigned long tcon;
+ 
+-	local_irq_save(flags);
++	spin_lock_irqsave(&pwm_spin_lock, flags);
+ 
+-	tcon = __raw_readl(S3C2410_TCON);
+-	tcon |= pwm_tcon_start(pwm);
+-	__raw_writel(tcon, S3C2410_TCON);
++	if (!pwm->running) {
++		clk_enable(pwm->clk);
++		clk_enable(pwm->clk_div);
++
++		tcon = __raw_readl(S3C2410_TCON);
++		tcon |= pwm_tcon_start(pwm);
++		__raw_writel(tcon, S3C2410_TCON);
++
++		pwm->running = 1;
++	}
+ 
+-	local_irq_restore(flags);
++	spin_unlock_irqrestore(&pwm_spin_lock, flags);
+ 
+-	pwm->running = 1;
+ 	return 0;
+ }
+ 
+@@ -160,15 +167,20 @@
+ 	unsigned long flags;
+ 	unsigned long tcon;
+ 
+-	local_irq_save(flags);
++	spin_lock_irqsave(&pwm_spin_lock, flags);
+ 
+-	tcon = __raw_readl(S3C2410_TCON);
+-	tcon &= ~pwm_tcon_start(pwm);
+-	__raw_writel(tcon, S3C2410_TCON);
++	if (pwm->running) {
++		tcon = __raw_readl(S3C2410_TCON);
++		tcon &= ~pwm_tcon_start(pwm);
++		__raw_writel(tcon, S3C2410_TCON);
+ 
+-	local_irq_restore(flags);
++		clk_disable(pwm->clk);
++		clk_disable(pwm->clk_div);
+ 
+-	pwm->running = 0;
++		pwm->running = 0;
++	}
++
++	spin_unlock_irqrestore(&pwm_spin_lock, flags);
+ }
+ 
+ EXPORT_SYMBOL(pwm_disable);
+@@ -218,6 +230,9 @@
+ 	/* The TCMP and TCNT can be read without a lock, they're not
+ 	 * shared between the timers. */
+ 
++	clk_enable(pwm->clk);
++	clk_enable(pwm->clk_div);
++
+ 	tcmp = __raw_readl(S3C2410_TCMPB(pwm->pwm_id));
+ 	tcnt = __raw_readl(S3C2410_TCNTB(pwm->pwm_id));
+ 
+@@ -260,12 +275,13 @@
+ 
+ 	/* Update the PWM register block. */
+ 
+-	local_irq_save(flags);
++	spin_lock_irqsave(&pwm_spin_lock, flags);
+ 
+ 	__raw_writel(tcmp, S3C2410_TCMPB(pwm->pwm_id));
+ 	__raw_writel(tcnt, S3C2410_TCNTB(pwm->pwm_id));
+ 
+ 	tcon = __raw_readl(S3C2410_TCON);
++	tcon |= pwm_tcon_invert(pwm);
+ 	tcon |= pwm_tcon_manulupdate(pwm);
+ 	tcon |= pwm_tcon_autoreload(pwm);
+ 	__raw_writel(tcon, S3C2410_TCON);
+@@ -273,9 +289,13 @@
+ 	tcon &= ~pwm_tcon_manulupdate(pwm);
+ 	__raw_writel(tcon, S3C2410_TCON);
+ 
+-	local_irq_restore(flags);
++	spin_unlock_irqrestore(&pwm_spin_lock, flags);
++
++	clk_disable(pwm->clk);
++	clk_disable(pwm->clk_div);
+ 
+ 	return 0;
++
+ }
+ 
+ EXPORT_SYMBOL(pwm_config);
+@@ -296,8 +316,6 @@
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct pwm_device *pwm;
+-	unsigned long flags;
+-	unsigned long tcon;
+ 	unsigned int id = pdev->id;
+ 	int ret;
+ 
+@@ -332,15 +350,6 @@
+ 		goto err_clk_tin;
+ 	}
+ 
+-	local_irq_save(flags);
+-
+-	tcon = __raw_readl(S3C2410_TCON);
+-	tcon |= pwm_tcon_invert(pwm);
+-	__raw_writel(tcon, S3C2410_TCON);
+-
+-	local_irq_restore(flags);
+-
+-
+ 	ret = pwm_register(pwm);
+ 	if (ret) {
+ 		dev_err(dev, "failed to register pwm\n");
+@@ -397,14 +406,6 @@
+ 
+ static int s3c_pwm_resume(struct platform_device *pdev)
+ {
+-	struct pwm_device *pwm = platform_get_drvdata(pdev);
+-	unsigned long tcon;
+-
+-	/* Restore invertion */
+-	tcon = __raw_readl(S3C2410_TCON);
+-	tcon |= pwm_tcon_invert(pwm);
+-	__raw_writel(tcon, S3C2410_TCON);
+-
+ 	return 0;
+ }
+ 
+--- linux-2.6.35.7/arch/arm/plat-samsung/s3c-pl330.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/s3c-pl330.c	2011-08-09 11:11:50.000000000 +0800
+@@ -15,6 +15,7 @@
+ #include <linux/io.h>
+ #include <linux/slab.h>
+ #include <linux/platform_device.h>
++#include <linux/clk.h>
+ 
+ #include <asm/hardware/pl330.h>
+ 
+@@ -34,6 +35,7 @@
+ 	struct list_head	node;
+ 	struct pl330_info	*pi;
+ 	struct kmem_cache	*kmcache;
++	struct clk		*dmaclk;
+ };
+ 
+ /**
+@@ -432,7 +434,7 @@
+ 		r->x = &xfer->px;
+ 
+ 		/* Use max bandwidth for M<->M xfers */
+-		if (r->rqtype == MEMTOMEM) {
++		if (r->rqtype == MEMTOMEM || r->rqtype == MEMTOMEM_NOBARRIER) {
+ 			struct pl330_info *pi = xfer->chan->dmac->pi;
+ 			int burst = 1 << ch->rqcfg.brst_size;
+ 			u32 bytes = r->x->bytes;
+@@ -494,9 +496,11 @@
+ 
+ 	spin_lock_irqsave(&res_lock, flags);
+ 
+-	r->x = NULL;
++	if (!r->autoload) {
++		r->x = NULL;
+ 
+-	s3c_pl330_submit(ch, r);
++		s3c_pl330_submit(ch, r);
++	}
+ 
+ 	spin_unlock_irqrestore(&res_lock, flags);
+ 
+@@ -509,12 +513,20 @@
+ 		res = S3C2410_RES_ERR;
+ 
+ 	/* If last request had some xfer */
+-	if (xl) {
+-		xfer = container_of(xl, struct s3c_pl330_xfer, px);
+-		_finish_off(xfer, res, 0);
++	if (!r->autoload) {
++		if (xl) {
++			xfer = container_of(xl, struct s3c_pl330_xfer, px);
++			_finish_off(xfer, res, 0);
++		} else {
++			dev_info(ch->dmac->pi->dev, "%s:%d No Xfer?!\n",
++				__func__, __LINE__);
++		}
+ 	} else {
+-		dev_info(ch->dmac->pi->dev, "%s:%d No Xfer?!\n",
+-			__func__, __LINE__);
++		/* Do callback */
++
++		xfer = container_of(xl, struct s3c_pl330_xfer, px);
++		if (ch->callback_fn)
++			ch->callback_fn(NULL, xfer->token, xfer->px.bytes, res);
+ 	}
+ }
+ 
+@@ -656,6 +668,76 @@
+ }
+ EXPORT_SYMBOL(s3c2410_dma_ctrl);
+ 
++int s3c2410_dma_enqueue_autoload(enum dma_ch id, void *token,
++			dma_addr_t addr, int size, int numofblock)
++{
++	struct s3c_pl330_chan *ch;
++	struct s3c_pl330_xfer *xfer;
++	unsigned long flags;
++	int idx, ret = 0;
++
++	spin_lock_irqsave(&res_lock, flags);
++
++	ch = id_to_chan(id);
++
++	/* Error if invalid or free channel */
++	if (!ch || chan_free(ch)) {
++		ret = -EINVAL;
++		goto enq_exit;
++	}
++
++	/* Error if size is unaligned */
++	if (ch->rqcfg.brst_size && size % (1 << ch->rqcfg.brst_size)) {
++		ret = -EINVAL;
++		goto enq_exit;
++	}
++
++	xfer = kmem_cache_alloc(ch->dmac->kmcache, GFP_ATOMIC);
++	if (!xfer) {
++		ret = -ENOMEM;
++		goto enq_exit;
++	}
++
++	xfer->token = token;
++	xfer->chan = ch;
++	xfer->px.bytes = size;
++	xfer->px.next = NULL; /* Single request */
++
++	/* For S3C DMA API, direction is always fixed for all xfers */
++	if (ch->req[0].rqtype == MEMTODEV) {
++		xfer->px.src_addr = addr;
++		xfer->px.dst_addr = ch->sdaddr;
++	} else {
++		xfer->px.src_addr = ch->sdaddr;
++		xfer->px.dst_addr = addr;
++	}
++
++	add_to_queue(ch, xfer, 0);
++
++	/* Try submitting on either request */
++	idx = (ch->lrq == &ch->req[0]) ? 1 : 0;
++
++	if (!ch->req[idx].x) {
++		ch->req[idx].autoload = numofblock;
++		s3c_pl330_submit(ch, &ch->req[idx]);
++	}
++	else {
++		ch->req[1 - idx].autoload = numofblock;
++		s3c_pl330_submit(ch, &ch->req[1 - idx]);
++	}
++	spin_unlock_irqrestore(&res_lock, flags);
++
++	if (ch->options & S3C2410_DMAF_AUTOSTART)
++		s3c2410_dma_ctrl(id, S3C2410_DMAOP_START);
++
++	return 0;
++
++enq_exit:
++	spin_unlock_irqrestore(&res_lock, flags);
++
++	return ret;
++}
++
+ int s3c2410_dma_enqueue(enum dma_ch id, void *token,
+ 			dma_addr_t addr, int size)
+ {
+@@ -705,10 +787,13 @@
+ 	/* Try submitting on either request */
+ 	idx = (ch->lrq == &ch->req[0]) ? 1 : 0;
+ 
+-	if (!ch->req[idx].x)
++	if (!ch->req[idx].x) {
++		ch->req[idx].autoload = false;
+ 		s3c_pl330_submit(ch, &ch->req[idx]);
+-	else
++	} else {
++		ch->req[1 - idx].autoload = false;
+ 		s3c_pl330_submit(ch, &ch->req[1 - idx]);
++	}
+ 
+ 	spin_unlock_irqrestore(&res_lock, flags);
+ 
+@@ -743,8 +828,11 @@
+ 
+ 	dmac = ch->dmac;
+ 
++	clk_enable(dmac->dmaclk);
++
+ 	ch->pl330_chan_id = pl330_request_channel(dmac->pi);
+ 	if (!ch->pl330_chan_id) {
++		clk_disable(dmac->dmaclk);
+ 		chan_release(ch);
+ 		ret = -EBUSY;
+ 		goto req_exit;
+@@ -856,7 +944,7 @@
+ 	pl330_release_channel(ch->pl330_chan_id);
+ 
+ 	ch->pl330_chan_id = NULL;
+-
++	clk_disable(ch->dmac->dmaclk);
+ 	chan_release(ch);
+ 
+ free_exit:
+@@ -982,6 +1070,24 @@
+ 		ch->rqcfg.src_inc = 1;
+ 		ch->rqcfg.dst_inc = 0;
+ 		break;
++	case S3C_DMA_MEM2MEM:
++		ch->req[0].rqtype = MEMTOMEM;
++		ch->req[1].rqtype = MEMTOMEM;
++		ch->rqcfg.src_inc = 1;
++		ch->rqcfg.dst_inc = 1;
++		break;
++	case S3C_DMA_MEM2MEM_SET:
++		ch->req[0].rqtype = MEMTOMEM;
++		ch->req[1].rqtype = MEMTOMEM;
++		ch->rqcfg.src_inc = 0;
++		ch->rqcfg.dst_inc = 1;
++		break;
++	case S3C_DMA_MEM2MEM_NOBARRIER:
++		ch->req[0].rqtype = MEMTOMEM_NOBARRIER;
++		ch->req[1].rqtype = MEMTOMEM_NOBARRIER;
++		ch->rqcfg.src_inc = 1;
++		ch->rqcfg.dst_inc = 1;
++		break;
+ 	default:
+ 		ret = -EINVAL;
+ 		goto devcfg_exit;
+@@ -1030,6 +1136,7 @@
+ 	struct s3c_pl330_platdata *pl330pd;
+ 	struct pl330_info *pl330_info;
+ 	struct resource *res;
++	struct clk *dmaclk;
+ 	int i, ret, irq;
+ 
+ 	pl330pd = pdev->dev.platform_data;
+@@ -1053,6 +1160,15 @@
+ 		goto probe_err1;
+ 	}
+ 
++	dmaclk = clk_get(&pdev->dev, "dma");
++	if (dmaclk == NULL) {
++		dev_err(&pdev->dev, "failed to find dma clock source\n");
++		ret = -ENODEV;
++		goto probe_err1;
++	}
++
++	clk_enable(dmaclk);
++
+ 	request_mem_region(res->start, resource_size(res), pdev->name);
+ 
+ 	pl330_info->base = ioremap(res->start, resource_size(res));
+@@ -1083,6 +1199,9 @@
+ 		goto probe_err6;
+ 	}
+ 
++	/* Clock */
++	s3c_pl330_dmac->dmaclk = dmaclk;
++
+ 	/* Hook the info */
+ 	s3c_pl330_dmac->pi = pl330_info;
+ 
+@@ -1118,6 +1237,7 @@
+ 		pl330_info->pcfg.data_bus_width / 8, pl330_info->pcfg.num_chan,
+ 		pl330_info->pcfg.num_peri, pl330_info->pcfg.num_events);
+ 
++	clk_disable(dmaclk);
+ 	return 0;
+ 
+ probe_err7:
+@@ -1131,6 +1251,8 @@
+ 	iounmap(pl330_info->base);
+ probe_err2:
+ 	release_mem_region(res->start, resource_size(res));
++	clk_disable(dmaclk);
++	clk_put(dmaclk);
+ probe_err1:
+ 	kfree(pl330_info);
+ 
+@@ -1140,7 +1262,7 @@
+ static int pl330_remove(struct platform_device *pdev)
+ {
+ 	struct s3c_pl330_dmac *dmac, *d;
+-	struct s3c_pl330_chan *ch;
++	struct s3c_pl330_chan *ch, *cht;
+ 	unsigned long flags;
+ 	int del, found;
+ 
+@@ -1164,7 +1286,7 @@
+ 	dmac = d;
+ 
+ 	/* Remove all Channels that are managed only by this DMAC */
+-	list_for_each_entry(ch, &chan_list, node) {
++	list_for_each_entry_safe(ch, cht, &chan_list, node) {
+ 
+ 		/* Only channels that are handled by this DMAC */
+ 		if (iface_of_dmac(dmac, ch->id))
+@@ -1190,6 +1312,7 @@
+ 
+ 	/* Remove the DMAC */
+ 	list_del(&dmac->node);
++	clk_put(dmac->dmaclk);
+ 	kfree(dmac);
+ 
+ 	spin_unlock_irqrestore(&res_lock, flags);
+--- linux-2.6.35.7/arch/arm/plat-samsung/time.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-samsung/time.c	2011-08-08 12:52:05.000000000 +0800
+@@ -132,7 +132,9 @@
+ static irqreturn_t
+ s3c2410_timer_interrupt(int irq, void *dev_id)
+ {
++#ifndef CONFIG_GENERIC_CLOCKEVENTS
+ 	timer_tick();
++#endif
+ 	return IRQ_HANDLED;
+ }
+ 

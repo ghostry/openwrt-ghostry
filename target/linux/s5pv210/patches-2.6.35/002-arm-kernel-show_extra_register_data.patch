@@ -1,0 +1,178 @@
+diff -Nur linux-2.6.35.7/arch/arm/kernel/debug.S tiny210/arch/arm/kernel/debug.S
+--- linux-2.6.35.7/arch/arm/kernel/debug.S	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/kernel/debug.S	2011-08-08 12:52:06.000000000 +0800
+@@ -22,7 +22,7 @@
+ #if defined(CONFIG_DEBUG_ICEDCC)
+ 		@@ debug using ARM EmbeddedICE DCC channel
+ 
+-#if defined(CONFIG_CPU_V6)
++#if defined(CONFIG_CPU_V6) || defined(CONFIG_CPU_V7)
+ 
+ 		.macro	addruart, rx, tmp
+ 		.endm
+diff -Nur linux-2.6.35.7/arch/arm/kernel/entry-armv.S tiny210/arch/arm/kernel/entry-armv.S
+--- linux-2.6.35.7/arch/arm/kernel/entry-armv.S	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/kernel/entry-armv.S	2011-08-08 12:52:06.000000000 +0800
+@@ -737,10 +737,11 @@
+ #endif
+ #if defined(CONFIG_HAS_TLS_REG)
+ 	mcr	p15, 0, r3, c13, c0, 3		@ set TLS register
+-#elif !defined(CONFIG_TLS_REG_EMUL)
++//#elif !defined(CONFIG_TLS_REG_EMUL)
++#endif
+ 	mov	r4, #0xffff0fff
+ 	str	r3, [r4, #-15]			@ TLS val at 0xffff0ff0
+-#endif
++//#endif
+ #ifdef CONFIG_MMU
+ 	mcr	p15, 0, r6, c3, c0, 0		@ Set domain register
+ #endif
+diff -Nur linux-2.6.35.7/arch/arm/kernel/process.c tiny210/arch/arm/kernel/process.c
+--- linux-2.6.35.7/arch/arm/kernel/process.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/kernel/process.c	2011-08-08 12:52:06.000000000 +0800
+@@ -205,6 +205,77 @@
+ 	arm_pm_restart(reboot_mode, cmd);
+ }
+ 
++/*
++ * dump a block of kernel memory from around the given address
++ */
++static void show_data(unsigned long addr, int nbytes, const char *name)
++{
++	int	i, j;
++	int	nlines;
++	u32	*p;
++
++	/*
++	 * don't attempt to dump non-kernel addresses or
++	 * values that are probably just small negative numbers
++	 */
++	if (addr < PAGE_OFFSET || addr > -256UL)
++		return;
++
++	printk("\n%s: %#lx:\n", name, addr);
++
++	/*
++	 * round address down to a 32 bit boundary
++	 * and always dump a multiple of 32 bytes
++	 */
++	p = (u32 *)(addr & ~(sizeof(u32) - 1));
++	nbytes += (addr & (sizeof(u32) - 1));
++	nlines = (nbytes + 31) / 32;
++
++
++	for (i = 0; i < nlines; i++) {
++		/*
++		 * just display low 16 bits of address to keep
++		 * each line of the dump < 80 characters
++		 */
++		printk("%04lx ", (unsigned long)p & 0xffff);
++		for (j = 0; j < 8; j++) {
++			u32	data;
++			if (probe_kernel_address(p, data)) {
++				printk(" ********");
++			} else {
++				printk(" %08x", data);
++			}
++			++p;
++		}
++		printk("\n");
++	}
++}
++
++static void show_extra_register_data(struct pt_regs *regs, int nbytes)
++{
++	mm_segment_t fs;
++
++	fs = get_fs();
++	set_fs(KERNEL_DS);
++	show_data(regs->ARM_pc - nbytes, nbytes * 2, "PC");
++	show_data(regs->ARM_lr - nbytes, nbytes * 2, "LR");
++	show_data(regs->ARM_sp - nbytes, nbytes * 2, "SP");
++	show_data(regs->ARM_ip - nbytes, nbytes * 2, "IP");
++	show_data(regs->ARM_fp - nbytes, nbytes * 2, "FP");
++	show_data(regs->ARM_r0 - nbytes, nbytes * 2, "R0");
++	show_data(regs->ARM_r1 - nbytes, nbytes * 2, "R1");
++	show_data(regs->ARM_r2 - nbytes, nbytes * 2, "R2");
++	show_data(regs->ARM_r3 - nbytes, nbytes * 2, "R3");
++	show_data(regs->ARM_r4 - nbytes, nbytes * 2, "R4");
++	show_data(regs->ARM_r5 - nbytes, nbytes * 2, "R5");
++	show_data(regs->ARM_r6 - nbytes, nbytes * 2, "R6");
++	show_data(regs->ARM_r7 - nbytes, nbytes * 2, "R7");
++	show_data(regs->ARM_r8 - nbytes, nbytes * 2, "R8");
++	show_data(regs->ARM_r9 - nbytes, nbytes * 2, "R9");
++	show_data(regs->ARM_r10 - nbytes, nbytes * 2, "R10");
++	set_fs(fs);
++}
++
+ void __show_regs(struct pt_regs *regs)
+ {
+ 	unsigned long flags;
+@@ -264,6 +335,8 @@
+ 		printk("Control: %08x%s\n", ctrl, buf);
+ 	}
+ #endif
++
++	show_extra_register_data(regs, 128);
+ }
+ 
+ void show_regs(struct pt_regs * regs)
+diff -Nur linux-2.6.35.7/arch/arm/kernel/signal.c tiny210/arch/arm/kernel/signal.c
+--- linux-2.6.35.7/arch/arm/kernel/signal.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/kernel/signal.c	2011-08-08 12:52:06.000000000 +0800
+@@ -602,6 +602,14 @@
+ 
+ static inline void setup_syscall_restart(struct pt_regs *regs)
+ {
++	if (regs->ARM_ORIG_r0 == -ERESTARTNOHAND ||
++	    regs->ARM_ORIG_r0 == -ERESTARTSYS ||
++	    regs->ARM_ORIG_r0 == -ERESTARTNOINTR ||
++	    regs->ARM_ORIG_r0 == -ERESTART_RESTARTBLOCK) {
++		/* the syscall cannot be safely restarted, return -EINTR instead */
++		regs->ARM_r0 = -EINTR;
++		return;
++	}
+ 	regs->ARM_r0 = regs->ARM_ORIG_r0;
+ 	regs->ARM_pc -= thumb_mode(regs) ? 2 : 4;
+ }
+@@ -734,6 +742,7 @@
+ 	 */
+ 	if (syscall) {
+ 		if (regs->ARM_r0 == -ERESTART_RESTARTBLOCK) {
++			regs->ARM_r0 = -EAGAIN; /* prevent multiple restarts */
+ 			if (thumb_mode(regs)) {
+ 				regs->ARM_r7 = __NR_restart_syscall - __NR_SYSCALL_BASE;
+ 				regs->ARM_pc -= 2;
+diff -Nur linux-2.6.35.7/arch/arm/kernel/traps.c tiny210/arch/arm/kernel/traps.c
+--- linux-2.6.35.7/arch/arm/kernel/traps.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/kernel/traps.c	2011-08-08 12:52:06.000000000 +0800
+@@ -453,7 +453,9 @@
+ 		if (end > vma->vm_end)
+ 			end = vma->vm_end;
+ 
+-		flush_cache_user_range(vma, start, end);
++		up_read(&mm->mmap_sem);
++		flush_cache_user_range(start, end);
++		return;
+ 	}
+ 	up_read(&mm->mmap_sem);
+ }
+@@ -520,7 +522,8 @@
+ 		thread->tp_value = regs->ARM_r0;
+ #if defined(CONFIG_HAS_TLS_REG)
+ 		asm ("mcr p15, 0, %0, c13, c0, 3" : : "r" (regs->ARM_r0) );
+-#elif !defined(CONFIG_TLS_REG_EMUL)
++//#elif !defined(CONFIG_TLS_REG_EMUL)
++#endif
+ 		/*
+ 		 * User space must never try to access this directly.
+ 		 * Expect your app to break eventually if you do so.
+@@ -528,7 +531,7 @@
+ 		 * (see entry-armv.S for details)
+ 		 */
+ 		*((unsigned int *)0xffff0ff0) = regs->ARM_r0;
+-#endif
++//#endif
+ 		return 0;
+ 
+ #ifdef CONFIG_NEEDS_SYSCALL_FOR_CMPXCHG

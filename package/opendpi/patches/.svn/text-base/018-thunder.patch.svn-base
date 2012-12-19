@@ -1,0 +1,103 @@
+--- a/src/lib/protocols/thunder.c	
++++ b/src/lib/protocols/thunder.c	
+@@ -47,8 +47,8 @@
+ {
+ 	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
+ 	struct ipoque_flow_struct *flow = ipoque_struct->flow;
+-//      struct ipoque_id_struct         *src=ipoque_struct->src;
+-//      struct ipoque_id_struct         *dst=ipoque_struct->dst;
++  //      struct ipoque_id_struct         *src=ipoque_struct->src;
++ //       struct ipoque_id_struct         *dst=ipoque_struct->dst;
+ 
+ 	if (packet->payload_packet_len > 8 && packet->payload[0] >= 0x30
+ 		&& packet->payload[0] < 0x40 && packet->payload[1] == 0 && packet->payload[2] == 0 && packet->payload[3] == 0) {
+@@ -63,11 +63,35 @@
+ 				"maybe thunder udp packet detected, stage increased to %u\n", flow->thunder_stage);
+ 		return;
+ 	}
++	if (packet->payload_packet_len > 8 && packet->payload[0] == 0x02 && packet->payload[1] == 0 && packet->payload[2] == 0 && packet->payload[3] == 0) {
++		if (flow->thunder_stage == 3) {
++			IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG, "THUNDER udp detected\n");
++			ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++			return;
++		}
+ 
+-	IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
+-			"excluding thunder udp at stage %u\n", flow->thunder_stage);
++		flow->thunder_stage++;
++		IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
++				"maybe thunder udp packet detected, stage increased to %u\n", flow->thunder_stage);
++		return;
++	}
++/*
++	if (flow->packet_counter > 20 && ntohs(packet->udp->dest) == 8000 && ntohs(packet->udp->source) != 4000 && ntohs(packet->udp->source) != 4001 && ntohs(packet->udp->source) != 4002 && ntohs(packet->udp->source) != 4003){
++		IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG, "THUNDER udp detected\n");
++		ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++		return;	
++		}	
+ 
+-	IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_THUNDER);
++/*	if ( packet->payload_packet_len >= 40 && packet->payload_packet_len <= 43){
++		flow->thunder_stage_load = 1;
++		IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG, "Maybe THUNDER udp load.\n");
++	}
++	if ()
++*/
++//	IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
++//			"excluding thunder udp at stage %u\n", flow->thunder_stage);
++
++//	IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_THUNDER);
+ }
+ 
+ static inline void ipoque_int_search_thunder_tcp(struct ipoque_detection_module_struct
+@@ -115,6 +139,20 @@
+ 			ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_CORRELATED_PROTOCOL);
+ 			return;
+ 		}
++		if (packet->empty_line_position_set != 0 &&
++			packet->content_line.ptr != NULL &&
++			packet->content_line.len == 24 &&
++			ipq_mem_cmp(packet->content_line.ptr, "application/octet-stream",
++						24) == 0 && packet->empty_line_position_set < (packet->payload_packet_len - 8)
++			&& packet->payload[packet->empty_line_position + 2] == 0x02
++			&& packet->payload[packet->empty_line_position + 3] == 0x00
++			&& packet->payload[packet->empty_line_position + 4] == 0x00
++			&& packet->payload[packet->empty_line_position + 5] == 0x00) {
++			IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
++					"maybe thunder http POST packet application does match\n");
++			ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_CORRELATED_PROTOCOL);
++			return;
++		}
+ 	}
+ 	IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
+ 			"excluding thunder tcp at stage %u\n", flow->thunder_stage);
+@@ -171,6 +209,29 @@
+ 			ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_CORRELATED_PROTOCOL);
+ 		}
+ 	}
++/*	if (packet->payload_packet_len > 5
++		&& memcmp(packet->payload, "POST /", 6) == 0 && IPQ_SRC_OR_DST_HAS_PROTOCOL(src, dst, IPOQUE_PROTOCOL_THUNDER)) {
++		IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG, "HTTP packet detected.\n");
++		ipq_parse_packet_line_info(ipoque_struct);
++
++		if (packet->parsed_lines >= 7
++			&& packet->parsed_lines < 11
++			&& packet->line[1].len > 10
++			&& ipq_mem_cmp(packet->line[1].ptr, "Host ", 5) == 0
++			&& packet->line[2].len > 35
++			&& ipq_mem_cmp(packet->line[2].ptr, "Content-type: application/octet-stream",38) == 0 
++			&& packet->line[3].len > 15
++			&& ipq_mem_cmp(packet->line[3].ptr, "Content-Length: ", 16) == 0
++			&& packet->line[4].len > 20
++			&& ipq_mem_cmp(packet->line[4].ptr, "Connection: Keep-Alive", 22) == 0
++			&& packet->line[5].ptr == NULL
++			&& packet->user_agent_line.ptr == NULL) {
++			IPQ_LOG(IPOQUE_PROTOCOL_THUNDER, ipoque_struct, IPQ_LOG_DEBUG,
++					"Thunder HTTP download detected, adding flow.\n");
++			ipoque_int_thunder_add_connection(ipoque_struct, IPOQUE_CORRELATED_PROTOCOL);
++		}
++	}
++*/
+ }
+ 
+ void ipoque_search_thunder(struct ipoque_detection_module_struct *ipoque_struct)

@@ -1,0 +1,59 @@
+--- linux-2.6.32.27/arch/mips/bcm63xx/boards/board_bcm963xx.c.orig	2011-09-24 20:48:42.077392325 +0800
++++ linux-2.6.32.27/arch/mips/bcm63xx/boards/board_bcm963xx.c	2011-09-25 00:45:05.413393823 +0800
+@@ -599,26 +599,48 @@
+ 
+ 	.leds = {
+ 		{
+-			.name		= "adsl",
++			.name		= "power",
++			.gpio		= 4,
++//			.active_low	= 1,
++			.default_trigger = "default-on",
++		},
++		{
++			.name		= "db120:power",
++			.gpio		= 5,
++//			.active_low	= 1,
++			.default_trigger = "default-on",
++		},
++		{
++			.name		= "dsl",
+ 			.gpio		= 22,
+ 			.active_low	= 1,
+ 		},
+ 		{
+-			.name		= "ppp-fail",
+-			.gpio		= 23,
++			.name		= "internet",
++			.gpio		= 8,
++			.active_low	= 1,
+ 		},
+ 		{
+-			.name		= "power",
+-			.gpio		= 5,
++			.name		= "usb",
++			.gpio		= 0,
+ 			.active_low	= 1,
+-			.default_trigger = "default-on",
+ 		},
+ 		{
+-			.name		= "stop",
+-			.gpio		= 4,
++			.name		= "wps",
++			.gpio		= 24,
+ 			.active_low	= 1,
+ 		},
+ 	},
++	.reset_buttons = {
++		{
++			.desc		= "reset",
++			.gpio		= 36,
++			.active_low	= 1,
++			.type		= EV_KEY,
++			.code		= BTN_0,
++			.threshold	= 3,
++		},
++	}
+ };
+ 
+ static struct board_info __initdata board_AGPFS0 = {

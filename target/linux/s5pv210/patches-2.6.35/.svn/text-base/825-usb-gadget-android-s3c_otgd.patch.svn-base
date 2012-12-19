@@ -1,0 +1,1079 @@
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/composite.c tiny210/drivers/usb/gadget/composite.c
+--- linux-2.6.35.7/drivers/usb/gadget/composite.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/composite.c	2011-08-08 12:52:21.000000000 +0800
+@@ -71,6 +71,59 @@
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++static ssize_t enable_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	struct usb_function *f = dev_get_drvdata(dev);
++	return sprintf(buf, "%d\n", !f->disabled);
++}
++
++static ssize_t enable_store(
++		struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t size)
++{
++	struct usb_function *f = dev_get_drvdata(dev);
++	struct usb_composite_driver	*driver = f->config->cdev->driver;
++	int value;
++
++	sscanf(buf, "%d", &value);
++	if (driver->enable_function)
++		driver->enable_function(f, value);
++	else
++		usb_function_set_enabled(f, value);
++
++	return size;
++}
++
++static DEVICE_ATTR(enable, S_IRUGO | S_IWUSR, enable_show, enable_store);
++
++void usb_function_set_enabled(struct usb_function *f, int enabled)
++{
++	f->disabled = !enabled;
++	kobject_uevent(&f->dev->kobj, KOBJ_CHANGE);
++}
++
++
++void usb_composite_force_reset(struct usb_composite_dev *cdev)
++{
++	unsigned long			flags;
++
++	spin_lock_irqsave(&cdev->lock, flags);
++	/* force reenumeration */
++	if (cdev && cdev->gadget &&
++			cdev->gadget->speed != USB_SPEED_UNKNOWN) {
++		/* avoid sending a disconnect switch event until after we disconnect */
++		cdev->mute_switch = 1;
++		spin_unlock_irqrestore(&cdev->lock, flags);
++
++		usb_gadget_disconnect(cdev->gadget);
++		msleep(10);
++		usb_gadget_connect(cdev->gadget);
++	} else {
++		spin_unlock_irqrestore(&cdev->lock, flags);
++	}
++}
++
+ /**
+  * usb_add_function() - add a function to a configuration
+  * @config: the configuration
+@@ -88,15 +141,30 @@
+ int usb_add_function(struct usb_configuration *config,
+ 		struct usb_function *function)
+ {
++	struct usb_composite_dev	*cdev = config->cdev;
+ 	int	value = -EINVAL;
++	int index;
+ 
+-	DBG(config->cdev, "adding '%s'/%p to config '%s'/%p\n",
++	DBG(cdev, "adding '%s'/%p to config '%s'/%p\n",
+ 			function->name, function,
+ 			config->label, config);
+ 
+ 	if (!function->set_alt || !function->disable)
+ 		goto done;
+ 
++	index = atomic_inc_return(&cdev->driver->function_count);
++	function->dev = device_create(cdev->driver->class, NULL,
++		MKDEV(0, index), NULL, function->name);
++	if (IS_ERR(function->dev))
++		return PTR_ERR(function->dev);
++
++	value = device_create_file(function->dev, &dev_attr_enable);
++	if (value < 0) {
++		device_destroy(cdev->driver->class, MKDEV(0, index));
++		return value;
++	}
++	dev_set_drvdata(function->dev, function);
++
+ 	function->config = config;
+ 	list_add_tail(&function->list, &config->functions);
+ 
+@@ -122,7 +190,7 @@
+ 
+ done:
+ 	if (value)
+-		DBG(config->cdev, "adding '%s'/%p --> %d\n",
++		DBG(cdev, "adding '%s'/%p --> %d\n",
+ 				function->name, function, value);
+ 	return value;
+ }
+@@ -232,17 +300,19 @@
+ 		enum usb_device_speed speed, void *buf, u8 type)
+ {
+ 	struct usb_config_descriptor	*c = buf;
++	struct usb_interface_descriptor *intf;
+ 	void				*next = buf + USB_DT_CONFIG_SIZE;
+ 	int				len = USB_BUFSIZ - USB_DT_CONFIG_SIZE;
+ 	struct usb_function		*f;
+ 	int				status;
++	int				interfaceCount = 0;
++	u8 *dest;
+ 
+ 	/* write the config descriptor */
+ 	c = buf;
+ 	c->bLength = USB_DT_CONFIG_SIZE;
+ 	c->bDescriptorType = type;
+-	/* wTotalLength is written later */
+-	c->bNumInterfaces = config->next_interface_id;
++	/* wTotalLength and bNumInterfaces are written later */
+ 	c->bConfigurationValue = config->bConfigurationValue;
+ 	c->iConfiguration = config->iConfiguration;
+ 	c->bmAttributes = USB_CONFIG_ATT_ONE | config->bmAttributes;
+@@ -261,23 +331,40 @@
+ 	/* add each function's descriptors */
+ 	list_for_each_entry(f, &config->functions, list) {
+ 		struct usb_descriptor_header **descriptors;
++		struct usb_descriptor_header *descriptor;
+ 
+ 		if (speed == USB_SPEED_HIGH)
+ 			descriptors = f->hs_descriptors;
+ 		else
+ 			descriptors = f->descriptors;
+-		if (!descriptors)
++		if (f->disabled || !descriptors || descriptors[0] == NULL)
+ 			continue;
+ 		status = usb_descriptor_fillbuf(next, len,
+ 			(const struct usb_descriptor_header **) descriptors);
+ 		if (status < 0)
+ 			return status;
++
++		/* set interface numbers dynamically */
++		dest = next;
++		while ((descriptor = *descriptors++) != NULL) {
++			intf = (struct usb_interface_descriptor *)dest;
++			if (intf->bDescriptorType == USB_DT_INTERFACE) {
++				/* don't increment bInterfaceNumber for alternate settings */
++				if (intf->bAlternateSetting == 0)
++					intf->bInterfaceNumber = interfaceCount++;
++				else
++					intf->bInterfaceNumber = interfaceCount - 1;
++			}
++			dest += intf->bLength;
++		}
++
+ 		len -= status;
+ 		next += status;
+ 	}
+ 
+ 	len = next - buf;
+ 	c->wTotalLength = cpu_to_le16(len);
++	c->bNumInterfaces = interfaceCount;
+ 	return len;
+ }
+ 
+@@ -424,6 +511,8 @@
+ 
+ 		if (!f)
+ 			break;
++		if (f->disabled)
++			continue;
+ 
+ 		/*
+ 		 * Record which endpoints are used by the function. This is used
+@@ -463,6 +552,8 @@
+ 	power = c->bMaxPower ? (2 * c->bMaxPower) : CONFIG_USB_GADGET_VBUS_DRAW;
+ done:
+ 	usb_gadget_vbus_draw(gadget, power);
++
++	schedule_work(&cdev->switch_work);
+ 	return result;
+ }
+ 
+@@ -759,6 +850,21 @@
+ 		case USB_DT_STRING:
+ 			value = get_string(cdev, req->buf,
+ 					w_index, w_value & 0xff);
++
++			/* Allow functions to handle USB_DT_STRING.
++			 * This is required for MTP.
++			 */
++			if (value < 0) {
++				struct usb_configuration        *cfg;
++				list_for_each_entry(cfg, &cdev->configs, list) {
++					if (cfg && cfg->setup) {
++						value = cfg->setup(cfg, ctrl);
++						if (value >= 0)
++							break;
++					}
++				}
++			}
++
+ 			if (value >= 0)
+ 				value = min(w_length, (u16) value);
+ 			break;
+@@ -784,11 +890,11 @@
+ 	case USB_REQ_GET_CONFIGURATION:
+ 		if (ctrl->bRequestType != USB_DIR_IN)
+ 			goto unknown;
+-		if (cdev->config)
++		if (cdev->config) {
+ 			*(u8 *)req->buf = cdev->config->bConfigurationValue;
+-		else
++			value = min(w_length, (u16) 1);
++		} else
+ 			*(u8 *)req->buf = 0;
+-		value = min(w_length, (u16) 1);
+ 		break;
+ 
+ 	/* function drivers must handle get/set altsetting; if there's
+@@ -838,6 +944,9 @@
+ 		 */
+ 		switch (ctrl->bRequestType & USB_RECIP_MASK) {
+ 		case USB_RECIP_INTERFACE:
++			if (cdev->config == NULL)
++				return value;
++
+ 			f = cdev->config->interface[intf];
+ 			break;
+ 
+@@ -862,6 +971,25 @@
+ 				value = c->setup(c, ctrl);
+ 		}
+ 
++		/* If the vendor request is not processed (value < 0),
++		 * call all device registered configure setup callbacks
++		 * to process it.
++		 * This is used to handle the following cases:
++		 * - vendor request is for the device and arrives before
++		 * setconfiguration.
++		 * - Some devices are required to handle vendor request before
++		 * setconfiguration such as MTP, USBNET.
++		 */
++
++		if (value < 0) {
++			struct usb_configuration        *cfg;
++
++			list_for_each_entry(cfg, &cdev->configs, list) {
++			if (cfg && cfg->setup)
++				value = cfg->setup(cfg, ctrl);
++			}
++		}
++
+ 		goto done;
+ 	}
+ 
+@@ -893,6 +1021,11 @@
+ 	spin_lock_irqsave(&cdev->lock, flags);
+ 	if (cdev->config)
+ 		reset_config(cdev);
++
++	if (cdev->mute_switch)
++		cdev->mute_switch = 0;
++	else
++		schedule_work(&cdev->switch_work);
+ 	spin_unlock_irqrestore(&cdev->lock, flags);
+ }
+ 
+@@ -954,6 +1087,8 @@
+ 		kfree(cdev->req->buf);
+ 		usb_ep_free_request(gadget->ep0, cdev->req);
+ 	}
++
++	switch_dev_unregister(&cdev->sdev);
+ 	kfree(cdev);
+ 	set_gadget_data(gadget, NULL);
+ 	device_remove_file(&gadget->dev, &dev_attr_suspended);
+@@ -982,6 +1117,19 @@
+ 	}
+ }
+ 
++static void
++composite_switch_work(struct work_struct *data)
++{
++	struct usb_composite_dev	*cdev =
++		container_of(data, struct usb_composite_dev, switch_work);
++	struct usb_configuration *config = cdev->config;
++
++	if (config)
++		switch_set_state(&cdev->sdev, config->bConfigurationValue);
++	else
++		switch_set_state(&cdev->sdev, 0);
++}
++
+ static int composite_bind(struct usb_gadget *gadget)
+ {
+ 	struct usb_composite_dev	*cdev;
+@@ -1033,6 +1181,12 @@
+ 	if (status < 0)
+ 		goto fail;
+ 
++	cdev->sdev.name = "usb_configuration";
++	status = switch_dev_register(&cdev->sdev);
++	if (status < 0)
++		goto fail;
++	INIT_WORK(&cdev->switch_work, composite_switch_work);
++
+ 	cdev->desc = *composite->dev;
+ 	cdev->desc.bMaxPacketSize0 = gadget->ep0->maxpacket;
+ 
+@@ -1107,6 +1261,23 @@
+ 	cdev->suspended = 0;
+ }
+ 
++static int
++composite_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct usb_function *f = dev_get_drvdata(dev);
++
++	if (!f) {
++		/* this happens when the device is first created */
++		return 0;
++	}
++
++	if (add_uevent_var(env, "FUNCTION=%s", f->name))
++		return -ENOMEM;
++	if (add_uevent_var(env, "ENABLED=%d", !f->disabled))
++		return -ENOMEM;
++	return 0;
++}
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static struct usb_gadget_driver composite_driver = {
+@@ -1152,6 +1323,11 @@
+ 	composite_driver.driver.name = driver->name;
+ 	composite = driver;
+ 
++	driver->class = class_create(THIS_MODULE, "usb_composite");
++	if (IS_ERR(driver->class))
++		return PTR_ERR(driver->class);
++	driver->class->dev_uevent = composite_uevent;
++
+ 	return usb_gadget_register_driver(&composite_driver);
+ }
+ 
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/epautoconf.c tiny210/drivers/usb/gadget/epautoconf.c
+--- linux-2.6.35.7/drivers/usb/gadget/epautoconf.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/epautoconf.c	2011-08-08 12:52:21.000000000 +0800
+@@ -283,6 +283,60 @@
+ 		if (ep && ep_matches (gadget, ep, desc))
+ 			return ep;
+ #endif
++	} else if (gadget_is_s3c(gadget)) {
++		if (USB_ENDPOINT_XFER_INT == type) {
++			/* single buffering is enough */
++			ep = find_ep (gadget, "ep3-int");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep6-int");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep9-int");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep12-int");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++		} else if (USB_ENDPOINT_XFER_BULK == type
++				&& (USB_DIR_IN & desc->bEndpointAddress)) {
++			ep = find_ep (gadget, "ep2-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep5-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep8-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep11-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep14-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++		} else if (USB_ENDPOINT_XFER_BULK == type
++				&& !(USB_DIR_IN & desc->bEndpointAddress)) {
++			ep = find_ep (gadget, "ep1-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep4-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep7-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep10-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			ep = find_ep (gadget, "ep13-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			/* mtp uses two bulk-out ep */
++			ep = find_ep (gadget, "ep15-bulk");
++			if (ep && ep_matches (gadget, ep, desc))
++				return ep;
++			}
+ 	}
+ 
+ 	/* Second, look at endpoints until an unclaimed one looks usable */
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/f_acm.c tiny210/drivers/usb/gadget/f_acm.c
+--- linux-2.6.35.7/drivers/usb/gadget/f_acm.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/f_acm.c	2011-08-08 12:52:21.000000000 +0800
+@@ -17,6 +17,7 @@
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+ #include <linux/device.h>
++#include <linux/usb/android_composite.h>
+ 
+ #include "u_serial.h"
+ #include "gadget_chips.h"
+@@ -405,10 +406,10 @@
+ 			usb_ep_disable(acm->notify);
+ 		} else {
+ 			VDBG(cdev, "init acm ctrl interface %d\n", intf);
+-			acm->notify_desc = ep_choose(cdev->gadget,
+-					acm->hs.notify,
+-					acm->fs.notify);
+ 		}
++		acm->notify_desc = ep_choose(cdev->gadget,
++				acm->hs.notify,
++				acm->fs.notify);
+ 		usb_ep_enable(acm->notify, acm->notify_desc);
+ 		acm->notify->driver_data = acm;
+ 
+@@ -418,11 +419,11 @@
+ 			gserial_disconnect(&acm->port);
+ 		} else {
+ 			DBG(cdev, "activate acm ttyGS%d\n", acm->port_num);
+-			acm->port.in_desc = ep_choose(cdev->gadget,
+-					acm->hs.in, acm->fs.in);
+-			acm->port.out_desc = ep_choose(cdev->gadget,
+-					acm->hs.out, acm->fs.out);
+ 		}
++		acm->port.in_desc = ep_choose(cdev->gadget,
++				acm->hs.in, acm->fs.in);
++		acm->port.out_desc = ep_choose(cdev->gadget,
++				acm->hs.out, acm->fs.out);
+ 		gserial_connect(&acm->port, acm->port_num);
+ 
+ 	} else
+@@ -777,8 +778,38 @@
+ 	acm->port.func.setup = acm_setup;
+ 	acm->port.func.disable = acm_disable;
+ 
++#ifdef CONFIG_USB_ANDROID_ACM
++	/* start disabled */
++	acm->port.func.disabled = 1;
++#endif
++
+ 	status = usb_add_function(c, &acm->port.func);
+ 	if (status)
+ 		kfree(acm);
+ 	return status;
+ }
++
++#ifdef CONFIG_USB_ANDROID_ACM
++
++int acm_function_bind_config(struct usb_configuration *c)
++{
++	int ret = acm_bind_config(c, 0);
++	if (ret == 0)
++		gserial_setup(c->cdev->gadget, 1);
++	return ret;
++}
++
++static struct android_usb_function acm_function = {
++	.name = "acm",
++	.bind_config = acm_function_bind_config,
++};
++
++static int __init init(void)
++{
++	printk(KERN_INFO "f_acm init\n");
++	android_register_function(&acm_function);
++	return 0;
++}
++module_init(init);
++
++#endif /* CONFIG_USB_ANDROID_ACM */
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/f_mass_storage.c tiny210/drivers/usb/gadget/f_mass_storage.c
+--- linux-2.6.35.7/drivers/usb/gadget/f_mass_storage.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/f_mass_storage.c	2011-08-08 12:52:21.000000000 +0800
+@@ -295,7 +295,12 @@
+ 
+ #include "gadget_chips.h"
+ 
++#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
++#include <linux/usb/android_composite.h>
++#include <linux/platform_device.h>
+ 
++#define FUNCTION_NAME		"usb_mass_storage"
++#endif
+ 
+ /*------------------------------------------------------------------------*/
+ 
+@@ -408,6 +413,10 @@
+ 	u16 release;
+ 
+ 	char			can_stall;
++
++#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
++	struct platform_device *pdev;
++#endif
+ };
+ 
+ 
+@@ -872,11 +881,13 @@
+ 			curlun->sense_data = SS_INVALID_FIELD_IN_CDB;
+ 			return -EINVAL;
+ 		}
++#ifndef CONFIG_USB_ANDROID_MASS_STORAGE
+ 		if (common->cmnd[1] & 0x08) {	/* FUA */
+ 			spin_lock(&curlun->filp->f_lock);
+ 			curlun->filp->f_flags |= O_SYNC;
+ 			spin_unlock(&curlun->filp->f_lock);
+ 		}
++#endif
+ 	}
+ 	if (lba >= curlun->num_sectors) {
+ 		curlun->sense_data = SS_LOGICAL_BLOCK_ADDRESS_OUT_OF_RANGE;
+@@ -2717,7 +2728,13 @@
+ 		curlun->ro = lcfg->cdrom || lcfg->ro;
+ 		curlun->removable = lcfg->removable;
+ 		curlun->dev.release = fsg_lun_release;
++
++#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
++		/* use "usb_mass_storage" platform device as parent */
++		curlun->dev.parent = &cfg->pdev->dev;
++#else
+ 		curlun->dev.parent = &gadget->dev;
++#endif
+ 		/* curlun->dev.driver = &fsg_driver.driver; XXX */
+ 		dev_set_drvdata(&curlun->dev, &common->filesem);
+ 		dev_set_name(&curlun->dev,
+@@ -3001,7 +3018,11 @@
+ 	if (unlikely(!fsg))
+ 		return -ENOMEM;
+ 
++#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
++	fsg->function.name        = FUNCTION_NAME;
++#else
+ 	fsg->function.name        = FSG_DRIVER_DESC;
++#endif
+ 	fsg->function.strings     = fsg_strings_array;
+ 	fsg->function.bind        = fsg_bind;
+ 	fsg->function.unbind      = fsg_unbind;
+@@ -3118,3 +3139,63 @@
+ 	return fsg_common_init(common, cdev, &cfg);
+ }
+ 
++#ifdef CONFIG_USB_ANDROID_MASS_STORAGE
++
++static struct fsg_config fsg_cfg;
++
++static int fsg_probe(struct platform_device *pdev)
++{
++	struct usb_mass_storage_platform_data *pdata = pdev->dev.platform_data;
++	int i, nluns;
++
++	printk(KERN_INFO "fsg_probe pdev: %p, pdata: %p\n", pdev, pdata);
++	if (!pdata)
++		return -1;
++
++	nluns = pdata->nluns;
++	if (nluns > FSG_MAX_LUNS)
++		nluns = FSG_MAX_LUNS;
++	fsg_cfg.nluns = nluns;
++	for (i = 0; i < nluns; i++)
++		fsg_cfg.luns[i].removable = 1;
++
++	fsg_cfg.vendor_name = pdata->vendor;
++	fsg_cfg.product_name = pdata->product;
++	fsg_cfg.release = pdata->release;
++	fsg_cfg.can_stall = 0;
++	fsg_cfg.pdev = pdev;
++
++	return 0;
++}
++
++static struct platform_driver fsg_platform_driver = {
++	.driver = { .name = FUNCTION_NAME, },
++	.probe = fsg_probe,
++};
++
++int mass_storage_bind_config(struct usb_configuration *c)
++{
++	struct fsg_common *common = fsg_common_init(NULL, c->cdev, &fsg_cfg);
++	if (IS_ERR(common))
++		return -1;
++	return fsg_add(c->cdev, c, common);
++}
++
++static struct android_usb_function mass_storage_function = {
++	.name = FUNCTION_NAME,
++	.bind_config = mass_storage_bind_config,
++};
++
++static int __init init(void)
++{
++	int		rc;
++	printk(KERN_INFO "f_mass_storage init\n");
++	rc = platform_driver_register(&fsg_platform_driver);
++	if (rc != 0)
++		return rc;
++	android_register_function(&mass_storage_function);
++	return 0;
++}module_init(init);
++
++#endif /* CONFIG_USB_ANDROID_MASS_STORAGE */
++
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/f_rndis.c tiny210/drivers/usb/gadget/f_rndis.c
+--- linux-2.6.35.7/drivers/usb/gadget/f_rndis.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/f_rndis.c	2011-08-08 12:52:21.000000000 +0800
+@@ -26,8 +26,9 @@
+ 
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+-#include <linux/device.h>
++#include <linux/platform_device.h>
+ #include <linux/etherdevice.h>
++#include <linux/usb/android_composite.h>
+ 
+ #include <asm/atomic.h>
+ 
+@@ -129,9 +130,16 @@
+ 	/* .bInterfaceNumber = DYNAMIC */
+ 	/* status endpoint is optional; this could be patched later */
+ 	.bNumEndpoints =	1,
++#ifdef CONFIG_USB_ANDROID_RNDIS_WCEIS
++	/* "Wireless" RNDIS; auto-detected by Windows */
++	.bInterfaceClass =	USB_CLASS_WIRELESS_CONTROLLER,
++	.bInterfaceSubClass = 1,
++	.bInterfaceProtocol =	3,
++#else
+ 	.bInterfaceClass =	USB_CLASS_COMM,
+ 	.bInterfaceSubClass =   USB_CDC_SUBCLASS_ACM,
+ 	.bInterfaceProtocol =   USB_CDC_ACM_PROTO_VENDOR,
++#endif
+ 	/* .iInterface = DYNAMIC */
+ };
+ 
+@@ -304,6 +312,10 @@
+ 	NULL,
+ };
+ 
++#ifdef CONFIG_USB_ANDROID_RNDIS
++static struct usb_ether_platform_data *rndis_pdata;
++#endif
++
+ /*-------------------------------------------------------------------------*/
+ 
+ static struct sk_buff *rndis_add_header(struct gether *port,
+@@ -487,10 +499,10 @@
+ 			usb_ep_disable(rndis->notify);
+ 		} else {
+ 			VDBG(cdev, "init rndis ctrl %d\n", intf);
+-			rndis->notify_desc = ep_choose(cdev->gadget,
+-					rndis->hs.notify,
+-					rndis->fs.notify);
+ 		}
++		rndis->notify_desc = ep_choose(cdev->gadget,
++				rndis->hs.notify,
++				rndis->fs.notify);
+ 		usb_ep_enable(rndis->notify, rndis->notify_desc);
+ 		rndis->notify->driver_data = rndis;
+ 
+@@ -504,11 +516,11 @@
+ 
+ 		if (!rndis->port.in) {
+ 			DBG(cdev, "init rndis\n");
+-			rndis->port.in = ep_choose(cdev->gadget,
+-					rndis->hs.in, rndis->fs.in);
+-			rndis->port.out = ep_choose(cdev->gadget,
+-					rndis->hs.out, rndis->fs.out);
+ 		}
++		rndis->port.in = ep_choose(cdev->gadget,
++				rndis->hs.in, rndis->fs.in);
++		rndis->port.out = ep_choose(cdev->gadget,
++				rndis->hs.out, rndis->fs.out);
+ 
+ 		/* Avoid ZLPs; they can be troublesome. */
+ 		rndis->port.is_zlp_ok = false;
+@@ -707,11 +719,12 @@
+ 	rndis_set_param_medium(rndis->config, NDIS_MEDIUM_802_3, 0);
+ 	rndis_set_host_mac(rndis->config, rndis->ethaddr);
+ 
+-#if 0
+-// FIXME
+-	if (rndis_set_param_vendor(rndis->config, vendorID,
+-				manufacturer))
+-		goto fail0;
++#ifdef CONFIG_USB_ANDROID_RNDIS
++	if (rndis_pdata) {
++		if (rndis_set_param_vendor(rndis->config, rndis_pdata->vendorID,
++					rndis_pdata->vendorDescr))
++			goto fail;
++	}
+ #endif
+ 
+ 	/* NOTE:  all that is done without knowing or caring about
+@@ -850,6 +863,11 @@
+ 	rndis->port.func.setup = rndis_setup;
+ 	rndis->port.func.disable = rndis_disable;
+ 
++#ifdef CONFIG_USB_ANDROID_RNDIS
++	/* start disabled */
++	rndis->port.func.disabled = 1;
++#endif
++
+ 	status = usb_add_function(c, &rndis->port.func);
+ 	if (status) {
+ 		kfree(rndis);
+@@ -858,3 +876,54 @@
+ 	}
+ 	return status;
+ }
++
++#ifdef CONFIG_USB_ANDROID_RNDIS
++#include "rndis.c"
++
++static int rndis_probe(struct platform_device *pdev)
++{
++	rndis_pdata = pdev->dev.platform_data;
++	return 0;
++}
++
++static struct platform_driver rndis_platform_driver = {
++	.driver = { .name = "rndis", },
++	.probe = rndis_probe,
++};
++
++int rndis_function_bind_config(struct usb_configuration *c)
++{
++	int ret;
++
++	if (!rndis_pdata) {
++		printk(KERN_ERR "rndis_pdata null in rndis_function_bind_config\n");
++		return -1;
++	}
++
++	printk(KERN_INFO
++		"rndis_function_bind_config MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
++		rndis_pdata->ethaddr[0], rndis_pdata->ethaddr[1],
++		rndis_pdata->ethaddr[2], rndis_pdata->ethaddr[3],
++		rndis_pdata->ethaddr[4], rndis_pdata->ethaddr[5]);
++
++	ret = gether_setup(c->cdev->gadget, rndis_pdata->ethaddr);
++	if (ret == 0)
++		ret = rndis_bind_config(c, rndis_pdata->ethaddr);
++	return ret;
++}
++
++static struct android_usb_function rndis_function = {
++	.name = "rndis",
++	.bind_config = rndis_function_bind_config,
++};
++
++static int __init init(void)
++{
++	printk(KERN_INFO "f_rndis init\n");
++	platform_driver_register(&rndis_platform_driver);
++	android_register_function(&rndis_function);
++	return 0;
++}
++module_init(init);
++
++#endif /* CONFIG_USB_ANDROID_RNDIS */
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/gadget_chips.h tiny210/drivers/usb/gadget/gadget_chips.h
+--- linux-2.6.35.7/drivers/usb/gadget/gadget_chips.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/gadget_chips.h	2011-08-08 12:52:21.000000000 +0800
+@@ -76,6 +76,12 @@
+ #define gadget_is_s3c2410(g)    0
+ #endif
+ 
++#if CONFIG_USB_GADGET_S3C_OTGD
++#define gadget_is_s3c(g)    !strcmp("s3c-udc", (g)->name)
++#else
++#define gadget_is_s3c(g)    0
++#endif
++
+ #ifdef CONFIG_USB_GADGET_AT91
+ #define gadget_is_at91(g)	!strcmp("at91_udc", (g)->name)
+ #else
+@@ -200,6 +206,8 @@
+ 		return 0x25;
+ 	else if (gadget_is_s3c_hsotg(gadget))
+ 		return 0x26;
++	else if (gadget_is_s3c(gadget))
++		return 0x27;
+ 	return -ENOENT;
+ }
+ 
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/Kconfig tiny210/drivers/usb/gadget/Kconfig
+--- linux-2.6.35.7/drivers/usb/gadget/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/Kconfig	2011-08-08 12:52:21.000000000 +0800
+@@ -112,6 +112,7 @@
+ choice
+ 	prompt "USB Peripheral Controller"
+ 	depends on USB_GADGET
++	default USB_GADGET_S3C_OTGD if (ARCH_S5PV210)
+ 	help
+ 	   A USB device uses a controller to talk to its host.
+ 	   Systems should have only one such upstream link.
+@@ -348,6 +349,20 @@
+ 	boolean "S3C2410 udc debug messages"
+ 	depends on USB_GADGET_S3C2410
+ 
++config USB_GADGET_S3C_OTGD
++	boolean "S3C HS USB OTG Device"
++	depends on (ARCH_S5PV210) && !(USB_S3C_OTG_HOST)
++	help
++	  Samsung's S3C64XX processors include high speed USB OTG2.0
++	  controller. It has 15 configurable endpoints, as well as
++	  endpoint zero (for control transfers).
++
++	  This driver has been tested on the S3C6410, S5P6440, S5PC100 processor.
++
++          Say "y" to link the driver statically, or "m" to build a
++          dynamically linked module called "s3c-udc-otg" and force all
++          gadget drivers to also be dynamically linked.
++
+ #
+ # Controllers available in both integrated and discrete versions
+ #
+@@ -544,6 +559,43 @@
+ 
+ endchoice
+ 
++comment "NOTE: S3C OTG device role enables the controller driver below"
++	depends on USB_GADGET_S3C_OTGD
++
++config USB_S3C_OTGD
++	tristate "S3C high speed(2.0, dual-speed) USB OTG device"
++	depends on USB_GADGET && USB_GADGET_S3C_OTGD && !(USB_S3C_OTG_HOST)
++	default y
++	default USB_GADGET
++	select USB_GADGET_SELECTED
++	select USB_GADGET_DUALSPEED
++        help
++           Say "y" to link the driver statically, or "m" to build a
++           dynamically linked module called "s3c-udc-otg-hs" and force all
++           gadget drivers to also be dynamically linked.
++
++choice
++	prompt "S3C OTGD transfer mode"
++	depends on USB_S3C_OTGD
++	default y
++	help
++	   S3C USB OTG conteroller supports DMA mode and Slave mode
++	   for the dat transfer. You must slect one for the core
++	   operation mode.
++
++config USB_GADGET_S3C_OTGD_DMA_MODE
++	bool "enabled DMA MODE"
++	depends on USB_GADGET_S3C_OTGD
++	help
++	   S3C USB OTG core operates in DMA mode.
++
++config USB_GADGET_S3C_OTGD_SLAVE_MODE
++	bool "enabled Slave MODE"
++	depends on USB_GADGET_S3C_OTGD
++	help
++	   S3C USB OTG core operates in Slave mode.
++endchoice
++
+ config USB_GADGET_DUALSPEED
+ 	bool
+ 	depends on USB_GADGET
+@@ -836,6 +888,60 @@
+ 	  For more information, see Documentation/usb/gadget_printer.txt
+ 	  which includes sample code for accessing the device file.
+ 
++config USB_ANDROID
++	boolean "Android Gadget"
++	depends on SWITCH
++	help
++	  The Android gadget driver supports multiple USB functions.
++	  The functions can be configured via a board file and may be
++	  enabled and disabled dynamically.
++
++config USB_ANDROID_ACM
++	boolean "Android gadget ACM serial function"
++	depends on USB_ANDROID
++	help
++	  Provides ACM serial function for android gadget driver.
++
++config USB_ANDROID_ADB
++	boolean "Android gadget adb function"
++	depends on USB_ANDROID
++	help
++	  Provides adb function for android gadget driver.
++
++config USB_ANDROID_MASS_STORAGE
++	boolean "Android gadget mass storage function"
++	depends on USB_ANDROID && SWITCH
++	help
++	  Provides USB mass storage function for android gadget driver.
++
++config USB_ANDROID_MTP
++	boolean "Android MTP function"
++	depends on USB_ANDROID
++	help
++	  Provides Media Transfer Protocol (MTP) support for android gadget driver.
++
++config USB_ANDROID_RNDIS
++	boolean "Android gadget RNDIS ethernet function"
++	depends on USB_ANDROID
++	help
++	  Provides RNDIS ethernet function for android gadget driver.
++
++config USB_ANDROID_RNDIS_WCEIS
++        boolean "Use Windows Internet Sharing Class/SubClass/Protocol"
++        depends on USB_ANDROID_RNDIS
++        help
++         Causes the driver to look like a Windows-compatible Internet
++         Sharing device, so Windows auto-detects it.
++
++         If you enable this option, the device is no longer CDC ethernet
++         compatible.
++
++config USB_ANDROID_RNDIS_DWORD_ALIGNED
++        boolean "Use double word aligned"
++        depends on USB_ANDROID_RNDIS
++        help
++	  Provides dword aligned for DMA controller.
++
+ config USB_CDC_COMPOSITE
+ 	tristate "CDC Composite Device (Ethernet and ACM)"
+ 	depends on NET
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/Makefile tiny210/drivers/usb/gadget/Makefile
+--- linux-2.6.35.7/drivers/usb/gadget/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/Makefile	2011-08-08 12:52:21.000000000 +0800
+@@ -15,6 +15,7 @@
+ obj-$(CONFIG_USB_OMAP)		+= omap_udc.o
+ obj-$(CONFIG_USB_LH7A40X)	+= lh7a40x_udc.o
+ obj-$(CONFIG_USB_S3C2410)	+= s3c2410_udc.o
++obj-$(CONFIG_USB_S3C_OTGD)	+= s3c_udc_otg.o
+ obj-$(CONFIG_USB_AT91)		+= at91_udc.o
+ obj-$(CONFIG_USB_ATMEL_USBA)	+= atmel_usba_udc.o
+ obj-$(CONFIG_USB_FSL_USB2)	+= fsl_usb2_udc.o
+@@ -63,4 +64,9 @@
+ obj-$(CONFIG_USB_G_MULTI)	+= g_multi.o
+ obj-$(CONFIG_USB_G_NOKIA)	+= g_nokia.o
+ obj-$(CONFIG_USB_G_WEBCAM)	+= g_webcam.o
+-
++obj-$(CONFIG_USB_ANDROID)	+= android.o
++obj-$(CONFIG_USB_ANDROID_ACM)	+= f_acm.o u_serial.o
++obj-$(CONFIG_USB_ANDROID_ADB)	+= f_adb.o
++obj-$(CONFIG_USB_ANDROID_MASS_STORAGE)	+= f_mass_storage.o
++obj-$(CONFIG_USB_ANDROID_MTP)	+= f_mtp.o
++obj-$(CONFIG_USB_ANDROID_RNDIS)	+= f_rndis.o u_ether.o
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/rndis.c tiny210/drivers/usb/gadget/rndis.c
+--- linux-2.6.35.7/drivers/usb/gadget/rndis.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/rndis.c	2011-08-08 12:52:21.000000000 +0800
+@@ -820,8 +820,6 @@
+ 	/* For USB: responses may take up to 10 seconds */
+ 	switch (MsgType) {
+ 	case REMOTE_NDIS_INITIALIZE_MSG:
+-		pr_debug("%s: REMOTE_NDIS_INITIALIZE_MSG\n",
+-			__func__ );
+ 		params->state = RNDIS_INITIALIZED;
+ 		return  rndis_init_response (configNr,
+ 					(rndis_init_msg_type *) buf);
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/storage_common.c tiny210/drivers/usb/gadget/storage_common.c
+--- linux-2.6.35.7/drivers/usb/gadget/storage_common.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/storage_common.c	2011-08-08 12:52:21.000000000 +0800
+@@ -750,10 +750,16 @@
+ 	struct rw_semaphore	*filesem = dev_get_drvdata(dev);
+ 	int		rc = 0;
+ 
++
++#ifndef CONFIG_USB_ANDROID_MASS_STORAGE
++	/* disabled in android because we need to allow closing the backing file
++	 * if the media was removed
++	 */
+ 	if (curlun->prevent_medium_removal && fsg_lun_is_open(curlun)) {
+ 		LDBG(curlun, "eject attempt prevented\n");
+ 		return -EBUSY;				/* "Door is locked" */
+ 	}
++#endif
+ 
+ 	/* Remove a trailing newline */
+ 	if (count > 0 && buf[count-1] == '\n')
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/u_ether.c tiny210/drivers/usb/gadget/u_ether.c
+--- linux-2.6.35.7/drivers/usb/gadget/u_ether.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/u_ether.c	2011-08-08 12:52:21.000000000 +0800
+@@ -246,11 +246,13 @@
+ 		goto enomem;
+ 	}
+ 
++#ifndef CONFIG_USB_ANDROID_RNDIS_DWORD_ALIGNED
+ 	/* Some platforms perform better when IP packets are aligned,
+ 	 * but on at least one, checksumming fails otherwise.  Note:
+ 	 * RNDIS headers involve variable numbers of LE32 values.
+ 	 */
+ 	skb_reserve(skb, NET_IP_ALIGN);
++#endif
+ 
+ 	req->buf = skb->data;
+ 	req->length = size;
+@@ -480,7 +482,10 @@
+ 	list_add(&req->list, &dev->tx_reqs);
+ 	spin_unlock(&dev->req_lock);
+ 	dev_kfree_skb_any(skb);
+-
++#ifdef CONFIG_USB_ANDROID_RNDIS_DWORD_ALIGNED
++	if (req->buf != skb->data)
++		kfree(req->buf);
++#endif
+ 	atomic_dec(&dev->tx_qlen);
+ 	if (netif_carrier_ok(dev->net))
+ 		netif_wake_queue(dev->net);
+@@ -574,7 +579,21 @@
+ 
+ 		length = skb->len;
+ 	}
++
++#ifdef CONFIG_USB_ANDROID_RNDIS_DWORD_ALIGNED
++    if ((int)skb->data & 3) {
++		req->buf = kmalloc(skb->len, GFP_ATOMIC);
++		if (!req->buf)
++			goto drop;
++		memcpy((void *)req->buf, (void *)skb->data, skb->len);
++	}
++	else {
++		req->buf = skb->data;
++	}
++#else
+ 	req->buf = skb->data;
++#endif
++
+ 	req->context = skb;
+ 	req->complete = tx_complete;
+ 
+@@ -608,6 +627,10 @@
+ 		dev_kfree_skb_any(skb);
+ drop:
+ 		dev->net->stats.tx_dropped++;
++#ifdef CONFIG_USB_ANDROID_RNDIS_DWORD_ALIGNED
++		if (req->buf != skb->data)
++			kfree(req->buf);
++#endif
+ 		spin_lock_irqsave(&dev->req_lock, flags);
+ 		if (list_empty(&dev->tx_reqs))
+ 			netif_start_queue(net);
+@@ -947,7 +970,6 @@
+ 	struct eth_dev		*dev = link->ioport;
+ 	struct usb_request	*req;
+ 
+-	WARN_ON(!dev);
+ 	if (!dev)
+ 		return;
+ 
+diff -Nur linux-2.6.35.7/drivers/usb/gadget/u_ether.h tiny210/drivers/usb/gadget/u_ether.h
+--- linux-2.6.35.7/drivers/usb/gadget/u_ether.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/usb/gadget/u_ether.h	2011-08-08 12:52:21.000000000 +0800
+@@ -105,7 +105,7 @@
+ int ecm_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN]);
+ int eem_bind_config(struct usb_configuration *c);
+ 
+-#ifdef USB_ETH_RNDIS
++#if defined(USB_ETH_RNDIS) || defined(CONFIG_USB_ANDROID_RNDIS)
+ 
+ int rndis_bind_config(struct usb_configuration *c, u8 ethaddr[ETH_ALEN]);
+ 

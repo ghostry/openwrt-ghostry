@@ -1,0 +1,18 @@
+diff -Nur linux-2.6.35.7/drivers/w1/w1.c tiny210/drivers/w1/w1.c
+--- linux-2.6.35.7/drivers/w1/w1.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/w1/w1.c	2011-08-08 12:52:26.000000000 +0800
+@@ -517,10 +517,10 @@
+ static W1_MASTER_ATTR_RO(attempts, S_IRUGO);
+ static W1_MASTER_ATTR_RO(timeout, S_IRUGO);
+ static W1_MASTER_ATTR_RO(pointer, S_IRUGO);
+-static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUGO);
+-static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUGO);
++static W1_MASTER_ATTR_RW(search, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(pullup, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(add, S_IRUGO | S_IWUSR | S_IWGRP);
++static W1_MASTER_ATTR_RW(remove, S_IRUGO | S_IWUSR | S_IWGRP);
+ 
+ static struct attribute *w1_master_default_attrs[] = {
+ 	&w1_master_attribute_name.attr,

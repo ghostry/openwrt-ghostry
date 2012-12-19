@@ -1,0 +1,86 @@
+--- /den/null
++++ b/src/lib/protocols/pptv.c	
+@@ -0,0 +1,83 @@
++/*
++ * PPTV.c
++ * Copyright (C) 2009-2011 by ipoque GmbH
++ * 
++ * This file is part of OpenDPI, an open source deep packet inspection
++ * library based on the PACE technology by ipoque GmbH
++ * 
++ * OpenDPI is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU Lesser General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ * 
++ * OpenDPI is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU Lesser General Public License for more details.
++ * 
++ * You should have received a copy of the GNU Lesser General Public License
++ * along with OpenDPI.  If not, see <http://www.gnu.org/licenses/>.
++ * 
++ */
++
++
++#include "ipq_protocols.h"
++#ifdef IPOQUE_PROTOCOL_PPTV
++/*static inline u8 ipoque_is_valid_pptv_ft_packet(const struct ipoque_packet_struct *packet)
++{
++
++
++｝
++*/
++
++static void ipoque_int_pptv_add_connection(struct ipoque_detection_module_struct
++											   *ipoque_struct)
++{
++	ipoque_int_add_connection(ipoque_struct, IPOQUE_PROTOCOL_PPTV, IPOQUE_REAL_PROTOCOL);
++}
++
++void ipoque_int_search_pptv_udp(struct ipoque_detection_module_struct
++							*ipoque_struct)
++{
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++	struct ipoque_flow_struct *flow = ipoque_struct->flow;
++
++	// struct ipoque_id_struct *src=ipoque_struct->src;
++	// struct ipoque_id_struct *dst=ipoque_struct->dst;
++
++	if ((ntohs(get_u16(packet->payload, 8)) == 0x0005 || ntohs(get_u16(packet->payload, 8)) == 0x0006 || ntohs(get_u16(packet->payload, 8)) == 0x0007) && ntohs(get_u16(packet->payload, 10)) == 0x0100)
++		{
++		if ((packet->payload_packet_len == 37 || packet->payload_packet_len == 41 || packet->payload_packet_len == 45 || packet->payload_packet_len == 49 || packet->payload_packet_len == 53 ||  packet->payload_packet_len == 57) &&  ntohs(packet->payload[packet->payload_packet_len - 2]) == 0x3200){
++		
++			IPQ_LOG(IPOQUE_PROTOCOL_PPTV, ipoque_struct, IPQ_LOG_DEBUG,
++					"found pptv.\n");
++			ipoque_int_pptv_add_connection(ipoque_struct);
++			return;
++			}
++		if ((packet->payload_packet_len == 1075 || packet->payload_packet_len == 63 || packet->payload_packet_len == 75 || packet->payload_packet_len == 94) && ntohs(get_u16(packet->payload, 8)) == 0x0007 ){
++			IPQ_LOG(IPOQUE_PROTOCOL_PPTV, ipoque_struct, IPQ_LOG_DEBUG,
++					"found pptv.\n");
++			ipoque_int_pptv_add_connection(ipoque_struct);
++			return;
++			}
++		}
++	if (flow->packet_counter > 10)
++		{
++		IPQ_LOG(IPOQUE_PROTOCOL_PPTV, ipoque_struct, IPQ_LOG_DEBUG, "exclude pptv.\n");
++		IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_PPTV);
++		}
++}
++
++
++void ipoque_search_pptv(struct ipoque_detection_module_struct *ipoque_struct)
++{
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++	//struct ipoque_flow_struct *flow = ipoque_struct->flow;
++	//struct ipoque_id_struct *src = ipoque_struct->src;
++	//struct ipoque_id_struct *dst = ipoque_struct->dst;
++	
++	if (packet->udp != NULL) {
++		ipoque_int_search_pptv_udp(ipoque_struct);
++	}
++}
++#endif

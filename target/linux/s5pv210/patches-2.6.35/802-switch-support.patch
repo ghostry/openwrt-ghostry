@@ -1,0 +1,70 @@
+--- linux-2.6.35.7/drivers/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/Kconfig	2011-08-08 12:52:17.000000000 +0800
+@@ -90,6 +90,8 @@
+ 
+ source "drivers/leds/Kconfig"
+ 
++source "drivers/switch/Kconfig"
++
+ source "drivers/accessibility/Kconfig"
+ 
+ source "drivers/infiniband/Kconfig"
+--- linux-2.6.35.7/drivers/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/Makefile	2011-08-08 12:52:17.000000000 +0800
+@@ -95,6 +95,7 @@
+ obj-$(CONFIG_MMC)		+= mmc/
+ obj-$(CONFIG_MEMSTICK)		+= memstick/
+ obj-$(CONFIG_NEW_LEDS)		+= leds/
++obj-$(CONFIG_SWITCH)		+= switch/
+ obj-$(CONFIG_INFINIBAND)	+= infiniband/
+ obj-$(CONFIG_SGI_SN)		+= sn/
+ obj-y				+= firmware/
+--- linux-2.6.35.7/include/linux/switch.h.orig	2012-04-03 03:02:34.851330272 +0800
++++ linux-2.6.35.7/include/linux/switch.h	2012-04-03 03:11:44.255330525 +0800
+@@ -166,6 +166,15 @@
+ 
+ 	spinlock_t lock;
+ 	struct switch_port *portbuf;
++
++	/* for fitting for android? add by richardnee */
++	struct device   *dev;
++	int             index;
++	int             state;
++
++	ssize_t (*print_name)(struct switch_dev *sdev, char *buf);
++	ssize_t (*print_state)(struct switch_dev *sdev, char *buf);
++	/* end. richardnee */
+ };
+ 
+ struct switch_port {
+@@ -199,6 +208,30 @@
+ 	int max;
+ };
+ 
++/* added by richardnee */
++struct gpio_switch_platform_data {
++	const char *name;
++	unsigned        gpio;
++
++	/* if NULL, switch_dev.name will be printed */
++	const char *name_on;
++	const char *name_off;
++	/* if NULL, "0" or "1" will be printed */
++	const char *state_on;
++	const char *state_off;
++};
++
++extern int switch_dev_register(struct switch_dev *sdev);
++extern void switch_dev_unregister(struct switch_dev *sdev);
++
++static inline int switch_get_state(struct switch_dev *sdev)
++{
++	return sdev->state;
++}
++
++extern void switch_set_state(struct switch_dev *sdev, int state);
++/* end. richardnee */
++
+ #endif
+ 
+ #endif

@@ -1,0 +1,286 @@
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/diskonchip.c tiny210/drivers/mtd/nand/diskonchip.c
+--- linux-2.6.35.7/drivers/mtd/nand/diskonchip.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/diskonchip.c	2011-08-08 12:52:25.000000000 +0800
+@@ -29,7 +29,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/doc2000.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/mtd/partitions.h>
+ #include <linux/mtd/inftl.h>
+ 
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/Kconfig tiny210/drivers/mtd/nand/Kconfig
+--- linux-2.6.35.7/drivers/mtd/nand/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/Kconfig	2011-08-08 12:52:25.000000000 +0800
+@@ -1,3 +1,10 @@
++config MTD_NAND_IDS
++	tristate "Include chip ids for known NAND devices."
++	depends on MTD
++	help
++	  Useful for NAND drivers that do not use the NAND subsystem but
++	  still like to take advantage of the known chip information.
++
+ config MTD_NAND_ECC
+ 	tristate
+ 
+@@ -122,9 +129,6 @@
+ 	 or in DMA interrupt mode.
+ 	 Say y for DMA mode or MPU mode will be used
+ 
+-config MTD_NAND_IDS
+-	tristate
+-
+ config MTD_NAND_RICOH
+ 	tristate "Ricoh xD card reader"
+ 	default n
+@@ -234,6 +238,34 @@
+ 	  when the is NAND chip selected or released, but will save
+ 	  approximately 5mA of power when there is nothing happening.
+ 
++config MTD_NAND_S3C
++	tristate "NAND Flash support for S3C SoC"
++		depends on MTD_NAND && (ARCH_S5PC1XX || ARCH_S5PC11X || ARCH_S5PV2XX || ARCH_S5PV210)
++	help
++	  This enables the NAND flash controller on the S3C.
++
++	  No board specfic support is done by this driver, each board
++	  must advertise a platform_device for the driver to attach.
++
++config MTD_NAND_S3C_DEBUG
++	bool "S3C NAND driver debug"
++	depends on MTD_NAND_S3C
++	help
++	  Enable debugging of the S3C NAND driver
++
++config MTD_NAND_S3C_HWECC
++	bool "S3C NAND Hardware ECC"
++	depends on MTD_NAND_S3C
++	help
++	  Enable the use of the S3C's internal ECC generator when
++	  using NAND. Early versions of the chip have had problems with
++	  incorrect ECC generation, and if using these, the default of
++	  software ECC is preferable.
++
++	  If you lay down a device with the hardware ECC, then you will
++	  currently not be able to switch to software, as there is no
++	  implementation for ECC method used by the S3C
++
+ config MTD_NAND_BCM_UMI
+ 	tristate "NAND Flash support for BCM Reference Boards"
+ 	depends on ARCH_BCMRING && MTD_NAND
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/Makefile tiny210/drivers/mtd/nand/Makefile
+--- linux-2.6.35.7/drivers/mtd/nand/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/Makefile	2012-02-22 17:47:32.000000000 +0800
+@@ -17,6 +17,7 @@
+ obj-$(CONFIG_MTD_NAND_BF5XX)		+= bf5xx_nand.o
+ obj-$(CONFIG_MTD_NAND_PPCHAMELEONEVB)	+= ppchameleonevb.o
+ obj-$(CONFIG_MTD_NAND_S3C2410)		+= s3c2410.o
++obj-$(CONFIG_MTD_NAND_S3C)		+= s3c_nand.o
+ obj-$(CONFIG_MTD_NAND_DAVINCI)		+= davinci_nand.o
+ obj-$(CONFIG_MTD_NAND_DISKONCHIP)	+= diskonchip.o
+ obj-$(CONFIG_MTD_NAND_H1900)		+= h1910.o
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/nand_base.c tiny210/drivers/mtd/nand/nand_base.c
+--- linux-2.6.35.7/drivers/mtd/nand/nand_base.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/nand_base.c	2012-02-22 17:47:31.000000000 +0800
+@@ -42,7 +42,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/nand_ecc.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/interrupt.h>
+ #include <linux/bitops.h>
+ #include <linux/leds.h>
+@@ -352,6 +351,8 @@
+ 
+ 	page = (int)(ofs >> chip->page_shift) & chip->pagemask;
+ 
++#if	0
++	/* Moved to nand_block_checkbad() for chip specify support */
+ 	if (getchip) {
+ 		chipnr = (int)(ofs >> chip->chip_shift);
+ 
+@@ -360,6 +361,7 @@
+ 		/* Select the NAND device */
+ 		chip->select_chip(mtd, chipnr);
+ 	}
++#endif
+ 
+ 	if (chip->options & NAND_BUSWIDTH_16) {
+ 		chip->cmdfunc(mtd, NAND_CMD_READOOB, chip->badblockpos & 0xFE,
+@@ -379,8 +381,10 @@
+ 	else
+ 		res = hweight8(bad) < chip->badblockbits;
+ 
++#if	0
+ 	if (getchip)
+ 		nand_release_device(mtd);
++#endif
+ 
+ 	return res;
+ }
+@@ -464,9 +468,26 @@
+ 			       int allowbbt)
+ {
+ 	struct nand_chip *chip = mtd->priv;
++	int chipnr, res = 0;
++
++	/* Chip specify block_bad() support */
++	if (!chip->bbt) {
++		if (getchip) {
++			chipnr = (int)(ofs >> chip->chip_shift);
+ 
+-	if (!chip->bbt)
+-		return chip->block_bad(mtd, ofs, getchip);
++			nand_get_device(chip, mtd, FL_READING);
++
++			/* Select the NAND device */
++			chip->select_chip(mtd, chipnr);
++		}
++
++		res = chip->block_bad(mtd, ofs, getchip);
++
++		if (getchip)
++			nand_release_device(mtd);
++
++		return res;
++	}
+ 
+ 	/* Return info from the table */
+ 	return nand_isbad_bbt(mtd, ofs, allowbbt);
+@@ -3021,6 +3042,44 @@
+ 	return 0;
+ }
+ 
++static void nand_panic_wait(struct mtd_info *mtd)
++{
++	struct nand_chip *chip = mtd->priv;
++	int i;
++
++	if (chip->state != FL_READY)
++		for (i = 0; i < 40; i++) {
++			if (chip->dev_ready(mtd))
++				break;
++			mdelay(10);
++		}
++	chip->state = FL_READY;
++}
++
++static int nand_panic_write(struct mtd_info *mtd, loff_t to, size_t len,
++			    size_t *retlen, const u_char *buf)
++{
++	struct nand_chip *chip = mtd->priv;
++	int ret;
++
++	/* Do not allow reads past end of device */
++	if ((to + len) > mtd->size)
++		return -EINVAL;
++	if (!len)
++		return 0;
++
++	nand_panic_wait(mtd);
++
++	chip->ops.len = len;
++	chip->ops.datbuf = (uint8_t *)buf;
++	chip->ops.oobbuf = NULL;
++
++	ret = nand_do_write_ops(mtd, to, &chip->ops);
++
++	*retlen = chip->ops.retlen;
++	return ret;
++}
++
+ 
+ /**
+  * nand_scan_tail - [NAND Interface] Scan for the NAND device
+@@ -3230,6 +3289,7 @@
+ 	mtd->panic_write = panic_nand_write;
+ 	mtd->read_oob = nand_read_oob;
+ 	mtd->write_oob = nand_write_oob;
++	mtd->panic_write = nand_panic_write;
+ 	mtd->sync = nand_sync;
+ 	mtd->lock = NULL;
+ 	mtd->unlock = NULL;
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/nand_bbt.c tiny210/drivers/mtd/nand/nand_bbt.c
+--- linux-2.6.35.7/drivers/mtd/nand/nand_bbt.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/nand_bbt.c	2011-08-08 12:52:25.000000000 +0800
+@@ -55,7 +55,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/nand_ecc.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/bitops.h>
+ #include <linux/delay.h>
+ #include <linux/vmalloc.h>
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/nand_ids.c tiny210/drivers/mtd/nand/nand_ids.c
+--- linux-2.6.35.7/drivers/mtd/nand/nand_ids.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/nand_ids.c	2012-02-21 18:25:21.000000000 +0800
+@@ -75,9 +75,13 @@
+ 
+ 	/*512 Megabit */
+ 	{"NAND 64MiB 1,8V 8-bit",	0xA2, 0,  64, 0, LP_OPTIONS},
++	{"NAND 64MiB 1,8V 8-bit",	0xA0, 0,  64, 0, LP_OPTIONS},
+ 	{"NAND 64MiB 3,3V 8-bit",	0xF2, 0,  64, 0, LP_OPTIONS},
++	{"NAND 64MiB 3,3V 8-bit",	0xD0, 0,  64, 0, LP_OPTIONS},
+ 	{"NAND 64MiB 1,8V 16-bit",	0xB2, 0,  64, 0, LP_OPTIONS16},
++	{"NAND 64MiB 1,8V 16-bit",	0xB0, 0,  64, 0, LP_OPTIONS16},
+ 	{"NAND 64MiB 3,3V 16-bit",	0xC2, 0,  64, 0, LP_OPTIONS16},
++	{"NAND 64MiB 3,3V 16-bit",	0xC0, 0,  64, 0, LP_OPTIONS16},
+ 
+ 	/* 1 Gigabit */
+ 	{"NAND 128MiB 1,8V 8-bit",	0xA1, 0, 128, 0, LP_OPTIONS},
+@@ -85,6 +89,7 @@
+ 	{"NAND 128MiB 3,3V 8-bit",	0xD1, 0, 128, 0, LP_OPTIONS},
+ 	{"NAND 128MiB 1,8V 16-bit",	0xB1, 0, 128, 0, LP_OPTIONS16},
+ 	{"NAND 128MiB 3,3V 16-bit",	0xC1, 0, 128, 0, LP_OPTIONS16},
++	{"NAND 128MiB 1,8V 16-bit",     0xAD, 0, 128, 0, LP_OPTIONS16},
+ 
+ 	/* 2 Gigabit */
+ 	{"NAND 256MiB 1,8V 8-bit",	0xAA, 0, 256, 0, LP_OPTIONS},
+@@ -110,6 +115,36 @@
+ 	{"NAND 2GiB 1,8V 16-bit",	0xB5, 0, 2048, 0, LP_OPTIONS16},
+ 	{"NAND 2GiB 3,3V 16-bit",	0xC5, 0, 2048, 0, LP_OPTIONS16},
+ 
++	/* 32 Gigabit */
++	{"NAND 4GiB 1,8V 8-bit",	0xA7, 0, 4096, 0, LP_OPTIONS},
++	{"NAND 4GiB 3,3V 8-bit",	0xD7, 0, 4096, 0, LP_OPTIONS},
++	{"NAND 4GiB 1,8V 16-bit",	0xB7, 0, 4096, 0, LP_OPTIONS16},
++	{"NAND 4GiB 3,3V 16-bit",	0xC7, 0, 4096, 0, LP_OPTIONS16},
++
++	/* 64 Gigabit */
++	{"NAND 8GiB 1,8V 8-bit",	0xAE, 0, 8192, 0, LP_OPTIONS},
++	{"NAND 8GiB 3,3V 8-bit",	0xDE, 0, 8192, 0, LP_OPTIONS},
++	{"NAND 8GiB 1,8V 16-bit",	0xBE, 0, 8192, 0, LP_OPTIONS16},
++	{"NAND 8GiB 3,3V 16-bit",	0xCE, 0, 8192, 0, LP_OPTIONS16},
++
++	/* 128 Gigabit */
++	{"NAND 16GiB 1,8V 8-bit",	0x1A, 0, 16384, 0, LP_OPTIONS},
++	{"NAND 16GiB 3,3V 8-bit",	0x3A, 0, 16384, 0, LP_OPTIONS},
++	{"NAND 16GiB 1,8V 16-bit",	0x2A, 0, 16384, 0, LP_OPTIONS16},
++	{"NAND 16GiB 3,3V 16-bit",	0x4A, 0, 16384, 0, LP_OPTIONS16},
++
++	/* 256 Gigabit */
++	{"NAND 32GiB 1,8V 8-bit",	0x1C, 0, 32768, 0, LP_OPTIONS},
++	{"NAND 32GiB 3,3V 8-bit",	0x3C, 0, 32768, 0, LP_OPTIONS},
++	{"NAND 32GiB 1,8V 16-bit",	0x2C, 0, 32768, 0, LP_OPTIONS16},
++	{"NAND 32GiB 3,3V 16-bit",	0x4C, 0, 32768, 0, LP_OPTIONS16},
++
++	/* 512 Gigabit */
++	{"NAND 64GiB 1,8V 8-bit",	0x1E, 0, 65536, 0, LP_OPTIONS},
++	{"NAND 64GiB 3,3V 8-bit",	0x3E, 0, 65536, 0, LP_OPTIONS},
++	{"NAND 64GiB 1,8V 16-bit",	0x2E, 0, 65536, 0, LP_OPTIONS16},
++	{"NAND 64GiB 3,3V 16-bit",	0x4E, 0, 65536, 0, LP_OPTIONS16},
++
+ 	/*
+ 	 * Renesas AND 1 Gigabit. Those chips do not support extended id and
+ 	 * have a strange page/block layout !  The chosen minimum erasesize is
+diff -Nur linux-2.6.35.7/drivers/mtd/nand/rtc_from4.c tiny210/drivers/mtd/nand/rtc_from4.c
+--- linux-2.6.35.7/drivers/mtd/nand/rtc_from4.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/nand/rtc_from4.c	2011-08-08 12:52:25.000000000 +0800
+@@ -24,7 +24,6 @@
+ #include <linux/rslib.h>
+ #include <linux/bitrev.h>
+ #include <linux/module.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/partitions.h>

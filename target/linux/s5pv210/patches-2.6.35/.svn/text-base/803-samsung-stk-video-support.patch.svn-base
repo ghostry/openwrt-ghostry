@@ -1,0 +1,124 @@
+--- linux-2.6.35.7/drivers/media/video/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/media/video/Kconfig	2011-08-17 19:51:54.000000000 +0800
+@@ -37,6 +37,10 @@
+ 	depends on PCI
+ 	tristate
+ 
++config VIDEO_IR
++	tristate
++	depends on INPUT
++
+ config VIDEO_TVEEPROM
+ 	tristate
+ 	depends on I2C
+@@ -1126,6 +1126,60 @@
+ 	  This driver can be compiled as a module, called s2255drv.
+ 
+ endif # V4L_USB_DRIVERS
++
++config VIDEO_S5KA3DFX
++        tristate "S5KA3DFX Camera Sensor"
++        depends on I2C && VIDEO_V4L2
++        ---help---
++          This driver supports S5KA3DFX SoC camera module
++
++config VIDEO_S5K4ECGX
++        tristate "S5K4ECGX Camera Sensor"
++        depends on I2C && VIDEO_V4L2
++        ---help---
++          This driver supports S5K4ECGX SoC camera module
++
++config VIDEO_S5K4ECGX_DEBUG
++	bool "S5K4ECGX Camera Sensor Debugging"
++	depends on VIDEO_S5K4ECGX
++	default n
++	---help---
++	  Enable extra debug messages for S5K4ECGX camera driver
++
++config VIDEO_S5K4ECGX_V_1_0
++	bool "S5K4ECGX Camera Sensor Version 1.0 Support"
++	depends on VIDEO_S5K4ECGX
++	default y
++	---help---
++	  Enabled support for Rev 1.0 sensor
++
++config VIDEO_S5K4ECGX_V_1_1
++	bool "S5K4ECGX Camera Sensor Version 1.1 Support"
++	depends on VIDEO_S5K4ECGX
++	default y
++	---help---
++	  Enabled support for Rev 1.1 sensor
++
++config VIDEO_S5K4BA
++	tristate "S5K4BA Camera Sensor"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  This driver supports S5K4BA SoC camera module
++
++config VIDEO_S5K4EA
++	tristate "S5K4EA Camera Sensor"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  This driver supports S5K4EA SoC camera module
++
++config VIDEO_OV9650
++	tristate "OV9650 Camera Sensor"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  This driver supports OV9650 SoC camera module
++
++source "drivers/media/video/samsung/Kconfig"
++
+ endif # VIDEO_CAPTURE_DRIVERS
+ 
+ menuconfig V4L_MEM2MEM_DRIVERS
+--- linux-2.6.35.7/drivers/media/video/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/media/video/Makefile	2012-02-27 18:16:05.000000000 +0800
+@@ -55,7 +55,19 @@
+ obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
+ obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
+ obj-$(CONFIG_VIDEO_VINO) += indycam.o
++
++ifeq ($(CONFIG_MACH_MINI210),y)
++ifneq ($(wildcard drivers/media/video/tvp5150_tiny210.c),)
++ifeq ($(FA),1)
++obj-$(CONFIG_VIDEO_TVP5150) += tvp5150_tiny210.o
++else
++obj-m += tvp5150_tiny210.o
++endif  #FA
++endif
++else
+ obj-$(CONFIG_VIDEO_TVP5150) += tvp5150.o
++endif
++
+ obj-$(CONFIG_VIDEO_TVP514X) += tvp514x.o
+ obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_MSP3400) += msp3400.o
+@@ -84,6 +96,19 @@
+ obj-$(CONFIG_SOC_CAMERA_RJ54N1)		+= rj54n1cb0c.o
+ obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
+ 
++obj-$(CONFIG_VIDEO_S5KA3DFX) 	+= s5ka3dfx.o
++obj-$(CONFIG_VIDEO_S5K4ECGX) 	+= s5k4ecgx.o
++obj-$(CONFIG_VIDEO_S5K4BA)      += s5k4ba.o
++obj-$(CONFIG_VIDEO_S5K4EA) 	+= s5k4ea.o
++
++ifneq ($(wildcard drivers/media/video/ov9650.c),)
++ifeq ($(FA),1)
++obj-$(CONFIG_VIDEO_OV9650) 	+= ov9650.o
++else
++obj-m += ov9650.o
++endif  #FA
++endif
++
+ # And now the v4l2 drivers:
+ 
+ obj-$(CONFIG_VIDEO_BT848) += bt8xx/
+@@ -171,6 +196,7 @@
+ obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+ 
+ obj-$(CONFIG_VIDEO_AU0828) += au0828/
++obj-$(CONFIG_VIDEO_SAMSUNG) += samsung/
+ 
+ obj-$(CONFIG_USB_VIDEO_CLASS)	+= uvc/
+ obj-$(CONFIG_VIDEO_SAA7164)     += saa7164/

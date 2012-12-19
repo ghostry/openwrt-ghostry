@@ -1,0 +1,160 @@
+--- a/src/lib/protocols/qq.c	
++++ b/src/lib/protocols/qq.c	
+@@ -68,7 +68,7 @@
+ 	0x0d05, 0x0d51, 0x0d55, 0x0d61, 0x0e1b, 0x0e35, 0x0f15, 0x0f4b, 0x0f5f,
+ 	0x1105, 0x111b, 0x111d, 0x1131, 0x113f, 0x115b, 0x1203, 0x1205, 0x120b,
+ 	0x1251, 0x1412, 0x1441, 0x1501, 0x1549, 0x163a, 0x1801, 0x180d, 0x1c27,
+-	0x1e0d
++	0x1e0d, 0x2227, 0x2515 ,0x2107, 0x225d
+ };
+ 
+ /**
+@@ -110,7 +110,7 @@
+ 	}
+ 
+ 	/* check for known version id */
+-	for (ids = 0; ids < sizeof(ipoque_valid_qq_versions) / sizeof(ipoque_valid_qq_versions[0]); ids++) {
++/*	for (ids = 0; ids < sizeof(ipoque_valid_qq_versions) / sizeof(ipoque_valid_qq_versions[0]); ids++) {
+ 		if (version_id == ipoque_valid_qq_versions[ids]) {
+ 			found = 1;
+ 			break;
+@@ -119,25 +119,37 @@
+ 
+ 	if (!found)
+ 		return 0;
+-
++*/
+ 	command = ntohs(get_u16(packet->payload, real_start + 3));
+ 
+ 	/* these are some known commands, not all need to be checked
+ 	   since many are used with already established connections */
+ 
+ 	switch (command) {
++	case 0x0001:
++	case 0x0002:				/*Heart Message*/
++	case 0x0017:				/*Receive message*/
++	case 0x001d:				/*Request Key*/
++	case 0x0022:
++	case 0x0027:				/*Get friend online*/
++	case 0x0029:
++	case 0x0030:
++	case 0x003c:				/*Group name operation*/
++	case 0x003e:				/*MEMO operation*/
++	case 0x0058:				/*Download group friend*/
++	case 0x0059:				/*out?*/
++	case 0x005c:				/*Get level*/
++	case 0x0062:
++	case 0x0065:				/*Request extra information*/
++	case 0x0081:				/*Get status of friend*/
+ 	case 0x0091:				/* get server */
++	case 0x00a4:
++	case 0x00b5:				/*Get friend's status of group*/
+ 	case 0x00ba:				/* login token */
++	case 0x00c6:				/*  */
+ 	case 0x00dd:				/* password verify */
+ 	case 0x00e5:
+-	case 0x00a4:
+-	case 0x0030:
+-	case 0x001d:
+-	case 0x0001:
+-	case 0x0062:
+-	case 0x0002:
+-	case 0x0022:
+-	case 0x0029:
++	case 0x0114:				/**/
+ 		break;
+ 	default:
+ 		return 0;
+@@ -170,7 +182,7 @@
+ 
+ 	/* file transfer packets may start with 0x00 (control), 0x03 (data), 0x04 (agent) */
+ 
+-	if (packet->payload[0] != 0x04 && packet->payload[0] != 0x03 && packet->payload[0] != 0x00) {
++	if (packet->payload[0] != 0x04 && packet->payload[0] != 0x03 && packet->payload[0] != 0x00 && packet->payload[0] != 0x05) {
+ 		return 0;
+ 	}
+ 
+@@ -223,9 +235,9 @@
+ {
+ 	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
+ 	struct ipoque_flow_struct *flow = ipoque_struct->flow;
+-	static const u16 p8000_patt_02[12] =	// maybe version numbers
+-	{ 0x1549, 0x1801, 0x180d, 0x0961, 0x01501, 0x0e35, 0x113f, 0x0b37, 0x1131, 0x163a, 0x1e0d };
+-	u16 no_of_patterns = 11, index = 0;
++	static const u16 p8000_patt_02[14] =	// maybe version numbers
++	{ 0x1549, 0x1801, 0x180d, 0x0961, 0x1501, 0x0e35, 0x113f, 0x0b37, 0x1131, 0x163a, 0x1e0d, 0x2107, 0x2227, 0x2515 };
++	u16 no_of_patterns = 14, index = 0;
+ 
+ 
+ 	IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG, "search qq udp.\n");
+@@ -265,7 +277,7 @@
+ 			}
+ 			return;
+ 		}
+-		if (packet->payload_packet_len > 2 && (packet->payload[0] == 0x02 || packet->payload[0] == 0x04)) {
++/*		if (packet->payload_packet_len > 2 && (packet->payload[0] == 0x02 || packet->payload[0] == 0x04)) {
+ 			u16 pat = ntohs(get_u16(packet->payload, 1));
+ 			for (index = 0; index < no_of_patterns; index++) {
+ 				if (pat == p8000_patt_02[index] && packet->payload[packet->payload_packet_len - 1] == 0x03) {
+@@ -274,11 +286,7 @@
+ 					if (flow->qq_stage == 3) {
+ 						IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG,
+ 								"found qq udp pattern 02 ... 03 four times.\n");
+-						/*
+-						   if (packet->payload[0] == 0x04) {
+-						   ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
+-						   return;
+-						   } */
++
+ 						ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
+ 						return;
+ 					}
+@@ -286,6 +294,7 @@
+ 				}
+ 			}
+ 		}
++*/
+ 		if (packet->payload_packet_len == 84 && (packet->payload[0] == 0 || packet->payload[0] == 0x03)) {
+ 			u16 pat = ntohs(get_u16(packet->payload, 1));
+ 			for (index = 0; index < no_of_patterns; index++) {
+@@ -306,6 +315,40 @@
+ 				}
+ 			}
+ 		}
++		if ((packet->payload_packet_len == 18 || packet->payload_packet_len == 19) && packet->payload[0] == 0x03 && packet->payload[packet->payload_packet_len - 1] == 0x01) {
++			u16 pat = ntohs(get_u16(packet->payload, 1));
++			for (index = 0; index < no_of_patterns; index++) {
++				if (pat == p8000_patt_02[index]) {
++					flow->qq_stage++;
++					/*
++					   if (flow->qq_stage == 3 && flow->packet_direction_counter[0] > 0 &&
++					   flow->packet_direction_counter[1] > 0) {
++					   IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG, "found qq udp pattern four times.\n");
++					   ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++					   return;
++					   } else */ if (flow->qq_stage == 3) {
++						IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG, "found qq udp pattern four times.\n");
++						ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++						return;
++					}
++					return;
++				}
++			}
++		}
++		if ((packet->payload_packet_len == 14 || packet->payload_packet_len == 26 || packet->payload_packet_len == 37 || (packet->payload_packet_len > 70 && packet->payload_packet_len < 210) || packet->payload_packet_len == 782) && packet->payload[0] == 0x05 && ntohs(get_u16(packet->payload, 3)) == 0x002d) {
++					flow->qq_stage++;
++					/*
++					   if (flow->qq_stage == 3 && flow->packet_direction_counter[0] > 0 &&
++					   flow->packet_direction_counter[1] > 0) {
++					   IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG, "found qq udp pattern four times.\n");
++					   ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++					   return;
++					   } else */ if (flow->qq_stage == 3) {
++						IPQ_LOG(IPOQUE_PROTOCOL_QQ, ipoque_struct, IPQ_LOG_DEBUG, "found qq udp pattern four times.\n");
++						ipoque_int_qq_add_connection(ipoque_struct, IPOQUE_REAL_PROTOCOL);
++						return;
++				}
++		}
+ 		if (packet->payload_packet_len > 2 && packet->payload[0] == 0x04
+ 			&& ((ntohs(get_u16(packet->payload, 1)) == 0x1549
+ 				 || ntohs(get_u16(packet->payload, 1)) == 0x1801 || ntohs(get_u16(packet->payload, 1)) == 0x0961)

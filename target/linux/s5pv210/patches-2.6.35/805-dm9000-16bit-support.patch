@@ -1,0 +1,144 @@
+--- linux-2.6.35.7/drivers/net/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/net/Makefile	2011-08-08 12:52:26.000000000 +0800
+@@ -162,6 +162,8 @@
+ obj-$(CONFIG_PPP_MPPE) += ppp_mppe.o
+ obj-$(CONFIG_PPPOE) += pppox.o pppoe.o
+ obj-$(CONFIG_PPPOL2TP) += pppox.o
++obj-$(CONFIG_PPPOLAC) += pppox.o pppolac.o
++obj-$(CONFIG_PPPOPNS) += pppox.o pppopns.o
+ 
+ obj-$(CONFIG_SLIP) += slip.o
+ obj-$(CONFIG_SLHC) += slhc.o
+--- linux-2.6.35.7/drivers/net/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/net/Kconfig	2011-08-08 12:52:26.000000000 +0800
+@@ -958,6 +958,13 @@
+ 	  To compile this driver as a module, choose M here.  The module
+ 	  will be called dm9000.
+ 
++config DM9000_16BIT
++	bool "DM9000 16-bit"
++	depends on DM9000
++	default n
++	help
++	  Support DM9000 ethernet controller with 16bit data bus
++
+ config DM9000_DEBUGLEVEL
+ 	int "DM9000 maximum debug level"
+ 	depends on DM9000
+@@ -3184,6 +3191,23 @@
+ 	  used by ISPs and enterprises to tunnel PPP traffic over UDP
+ 	  tunnels. L2TP is replacing PPTP for VPN uses.
+ 
++config PPPOLAC
++	tristate "PPP on L2TP Access Concentrator"
++	depends on PPP && INET
++	help
++	  L2TP (RFC 2661) is a tunneling protocol widely used in virtual private
++	  networks. This driver handles L2TP data packets between a UDP socket
++	  and a PPP channel, but only permits one session per socket. Thus it is
++	  fairly simple and suited for clients.
++
++config PPPOPNS
++	tristate "PPP on PPTP Network Server"
++	depends on PPP && INET
++	help
++	  PPTP (RFC 2637) is a tunneling protocol widely used in virtual private
++	  networks. This driver handles PPTP data packets between a RAW socket
++	  and a PPP channel. It is fairly simple and easy to use.
++
+ config SLIP
+ 	tristate "SLIP (serial line) support"
+ 	---help---
+--- linux-2.6.35.7/drivers/net/dm9000.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/net/dm9000.c	2011-08-11 12:03:17.000000000 +0800
+@@ -152,18 +152,6 @@
+ 
+ /* DM9000 network board routine ---------------------------- */
+ 
+-static void
+-dm9000_reset(board_info_t * db)
+-{
+-	dev_dbg(db->dev, "resetting device\n");
+-
+-	/* RESET device */
+-	writeb(DM9000_NCR, db->io_addr);
+-	udelay(200);
+-	writeb(NCR_RST, db->io_data);
+-	udelay(200);
+-}
+-
+ /*
+  *   Read a byte from I/O port
+  */
+@@ -185,6 +173,43 @@
+ 	writeb(value, db->io_data);
+ }
+ 
++#if defined(CONFIG_DM9000_16BIT)
++static void dm9000_reset(board_info_t *db)
++{
++	dev_dbg(db->dev, "resetting device\n");
++
++	iow(db, DM9000_GPCR, 0x0f);
++	iow(db, DM9000_GPR, 0);
++	iow(db, DM9000_NCR, 3);
++
++	do {
++		udelay(100);
++	} while (ior(db, DM9000_NCR) & 0x1);
++
++	iow(db, DM9000_NCR, 0);
++	iow(db, DM9000_NCR, 3);
++
++	do {
++		udelay(100);
++	} while (ior(db, DM9000_NCR) & 0x1);
++
++	if ((ior(db, DM9000_PIDL) != 0) || (ior(db, DM9000_PIDH) != 0x90))
++		printk(KERN_INFO "ERROR : resetting ");
++}
++#else
++static void
++dm9000_reset(board_info_t * db)
++{
++	dev_dbg(db->dev, "resetting device\n");
++
++	/* RESET device */
++	writeb(DM9000_NCR, db->io_addr);
++	udelay(200);
++	writeb(NCR_RST, db->io_data);
++	udelay(200);
++}
++#endif
++
+ /* routines for sending block to chip */
+ 
+ static void dm9000_outblk_8bit(void __iomem *reg, void *data, int count)
+@@ -1579,19 +1604,24 @@
+ 	for (i = 0; i < 6; i += 2)
+ 		dm9000_read_eeprom(db, i / 2, ndev->dev_addr+i);
+ 
++	/* try MAC address passed by kernel command line */
+ 	if (!is_valid_ether_addr(ndev->dev_addr) && pdata != NULL) {
+-		mac_src = "platform data";
+-		memcpy(ndev->dev_addr, pdata->dev_addr, 6);
++		mac_src = "param data";
++		memcpy(ndev->dev_addr, pdata->param_addr, 6);
+ 	}
+ 
+ 	if (!is_valid_ether_addr(ndev->dev_addr)) {
+ 		/* try reading from mac */
+-		
+ 		mac_src = "chip";
+ 		for (i = 0; i < 6; i++)
+ 			ndev->dev_addr[i] = ior(db, i+DM9000_PAR);
+ 	}
+ 
++	if (!is_valid_ether_addr(ndev->dev_addr) && pdata != NULL) {
++		mac_src = "platform data";
++		memcpy(ndev->dev_addr, pdata->dev_addr, 6);
++	}
++
+ 	if (!is_valid_ether_addr(ndev->dev_addr))
+ 		dev_warn(db->dev, "%s: Invalid ethernet MAC address. Please "
+ 			 "set using ifconfig\n", ndev->name);

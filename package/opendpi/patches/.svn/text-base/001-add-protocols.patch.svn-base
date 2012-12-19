@@ -1,0 +1,258 @@
+--- a/src/include/ipq_protocols_osdpi.h	
++++ b/src/include/ipq_protocols_osdpi.h	
+@@ -156,9 +156,14 @@
+ #define IPOQUE_PROTOCOL_WARCRAFT3				116
+ #define IPOQUE_PROTOCOL_WORLD_OF_KUNG_FU		117
+ #define IPOQUE_PROTOCOL_MEEBO					118
++#define IPOQUE_PROTOCOL_HF					119
++#define IPOQUE_PROTOCOL_PT11					120
++#define IPOQUE_PROTOCOL_FUNSHION				121
++#define IPOQUE_PROTOCOL_PPTV					122
++#define IPOQUE_PROTOCOL_COUNTERSTRIKE					123
++#define IPOQUE_PROTOCOL_ALIWANGWANG					124
+ 
+-
+-#define IPOQUE_LAST_IMPLEMENTED_PROTOCOL        118
++#define IPOQUE_LAST_IMPLEMENTED_PROTOCOL        124
+ 
+ 
+ #define IPOQUE_MAX_SUPPORTED_PROTOCOLS IPOQUE_LAST_IMPLEMENTED_PROTOCOL
+@@ -173,7 +178,7 @@
+ 	"Second Life","Steam","Halflife2","World of Warcraft","Telnet","STUN","IPSEC","GRE","ICMP","IGMP","EGP","SCTP","OSPF",\
+ 	"IP in IP","RTP","RDP","VNC","PCAnywhere","SSL","SSH","USENET","MGCP","IAX","TFTP","AFP","StealthNet","Aimini","SIP","Truphone",\
+ 	"ICMPv6","DHCPv6","Armagetron","CrossFire","Dofus","Fiesta","Florensia","Guildwars","HTTP Application Activesync","Kerberos",\
+-	"LDAP","MapleStory","msSQL","PPTP","WARCRAFT3","World of Kung Fu","MEEBO"
++	"LDAP","MapleStory","msSQL","PPTP","WARCRAFT3","World of Kung Fu","MEEBO","HF","PT11","FUNSHION","PPTV","COUNTERSTRIKE","ALIWANGWANG"
+ #define IPOQUE_PROTOCOL_SHORT_STRING "ukn","ftp","pop","smtp","imap","dns","ipp","http","mdns","ntp","netbios","nfs","ssdp",\
+ 	"bgp","snmp","xdmcp","smb","syslog","dhcp","postgres","mysql","tds","ddl","i23v5","apple","directconnect","socrates","winmx",\
+ 	"manolito","pando","filetopia","iMESH","kontiki","openft","fasttrack","gnutella","edonkey","bittorrent","off","avi",\
+@@ -182,7 +187,8 @@
+ 	"popo","jabber","msn","oscar","yahoo","battlefield","quake","secondlife","steam","hl2","worldofwarcraft","telnet","stun",\
+ 	"ipsec","gre","icmp","igmp","egp","sctp","ospf","ipip","rtp","rdp","vnc","pcanywhere","ssl","ssh","usenet","mgcp","iax",\
+ 	"tftp","afp","stealthnet","aimini","sip","truphone","icmpv6","dhcpv6","armagetron","crossfire","dofus","fiesta","florensia",\
+-	"guildwars","httpactivesync","kerberos","ldap","maplestory","mssql","pptp","warcraft3","wokf","meebo"
++	"guildwars","httpactivesync","kerberos","ldap","maplestory","mssql","pptp","warcraft3","wokf","meebo","hf","pt11","funshion",\
++	"pptv","counterstrike","aliwangwang"
+ 
+ #ifdef __cplusplus
+ }
+--- a/src/lib/ipq_main.c	
++++ b/src/lib/ipq_main.c	
+@@ -324,7 +324,7 @@
+ #ifdef IPOQUE_PROTOCOL_BITTORRENT
+ 	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_BITTORRENT) != 0) {
+ 		ipoque_struct->callback_buffer[a].func = ipoque_search_bittorrent;
+-		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_TCP_OR_UDP_WITH_PAYLOAD;
+ 
+ 		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
+ 		IPOQUE_ADD_PROTOCOL_TO_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_BITTORRENT);
+@@ -1626,6 +1626,78 @@
+ 		a++;
+ 	}
+ #endif
++#ifdef IPOQUE_PROTOCOL_HF
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_HF) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_hf;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_HF);
++
++		a++;
++	}
++#endif
++#ifdef IPOQUE_PROTOCOL_PT11
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_PT11) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_pt11;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_PT11);
++
++		a++;
++	}
++#endif
++#ifdef IPOQUE_PROTOCOL_FUNSHION
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_FUNSHION) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_funshion;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_FUNSHION);
++
++		a++;
++	}
++#endif
++#ifdef IPOQUE_PROTOCOL_PPTV
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_PPTV) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_pptv;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_PPTV);
++
++		a++;
++	}
++#endif
++#ifdef IPOQUE_PROTOCOL_COUNTERSTRIKE
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_COUNTERSTRIKE) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_counterstrike;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_COUNTERSTRIKE);
++
++		a++;
++	}
++#endif
++#ifdef IPOQUE_PROTOCOL_ALIWANGWANG
++	if (IPOQUE_COMPARE_PROTOCOL_TO_BITMASK(*detection_bitmask, IPOQUE_PROTOCOL_ALIWANGWANG) != 0) {
++		ipoque_struct->callback_buffer[a].func = ipoque_search_aliwangwang;
++		ipoque_struct->callback_buffer[a].ipq_selection_bitmask = IPQ_SELECTION_BITMASK_PROTOCOL_V4_V6_TCP_OR_UDP_WITH_PAYLOAD;
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].detection_bitmask, IPOQUE_PROTOCOL_UNKNOWN);
++
++		IPOQUE_SAVE_AS_BITMASK(ipoque_struct->callback_buffer[a].excluded_protocol_bitmask, IPOQUE_PROTOCOL_ALIWANGWANG);
++
++		a++;
++	}
++#endif
+ 	ipoque_struct->callback_buffer_size = a;
+ 
+ 	IPQ_LOG(IPOQUE_PROTOCOL_UNKNOWN, ipoque_struct, IPQ_LOG_DEBUG,
+--- a/src/lib/ipq_protocols.h	
++++ b/src/lib/ipq_protocols.h	
+@@ -362,4 +362,10 @@
+ 
+ void ipoque_search_armagetron_udp(struct ipoque_detection_module_struct *ipoque_struct);
+ 
++void ipoque_search_hf(struct ipoque_detection_module_struct *ipoque_struct);
++void ipoque_search_pt11(struct ipoque_detection_module_struct *ipoque_struct);
++void ipoque_search_funshion(struct ipoque_detection_module_struct *ipoque_struct);
++void ipoque_search_pptv(struct ipoque_detection_module_struct *ipoque_struct);
++void ipoque_search_counterstrike(struct ipoque_detection_module_struct *ipoque_struct);
++void ipoque_search_aliwangwang(struct ipoque_detection_module_struct *ipoque_struct);
+ #endif							/* __IPOQUE_PROTOCOLS_INCLUDE_FILE__ */
+--- a/src/lib/ipq_structs.h	
++++ b/src/lib/ipq_structs.h	
+@@ -481,5 +481,8 @@
+ #ifdef IPOQUE_PROTOCOL_FLORENSIA
+ 	u32 florensia_stage:1;
+ #endif
++#ifdef IPOQUE_PROTOCOL_HF
++	u32 hf_stage:3;
++#endif
+ } ipoque_flow_struct_t;
+ #endif							/* __IPOQUE_STRUCTS_INCLUDE_FILE__ */
+--- a/src/lib/Makefile.in	
++++ b/src/lib/Makefile.in	
+@@ -90,7 +90,8 @@
+ 	steam.lo stun.lo syslog.lo tds.lo telnet.lo tftp.lo thunder.lo \
+ 	tvants.lo tvuplayer.lo usenet.lo veohtv.lo vnc.lo warcraft3.lo \
+ 	winmx.lo world_of_kung_fu.lo world_of_warcraft.lo xbox.lo \
+-	xdmcp.lo yahoo.lo zattoo.lo
++	xdmcp.lo yahoo.lo zattoo.lo hf.lo pt11.lo counterstrike.lo funshion.lo \
++	pptv.lo aliwangwang.lo
+ libopendpi_la_OBJECTS = $(am_libopendpi_la_OBJECTS)
+ libopendpi_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
+ 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+@@ -340,7 +341,13 @@
+ 			protocols/xbox.c \
+ 			protocols/xdmcp.c \
+ 			protocols/yahoo.c \
+-			protocols/zattoo.c
++			protocols/zattoo.c \
++			protocols/hf.c \
++			protocols/pt11.c \
++			protocols/funshion.c \
++			protocols/counterstrike.c \
++			protocols/pptv.c \
++			protocols/aliwangwang.c 
+ 
+ all: all-am
+ 
+@@ -517,6 +524,13 @@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/xdmcp.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/yahoo.Plo@am__quote@
+ @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/zattoo.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/hf.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pt11.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/funshion.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/counterstrike.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pptv.Plo@am__quote@
++@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/aliwangwang.Plo@am__quote@
++
+ 
+ .c.o:
+ @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
+@@ -1239,6 +1253,48 @@
+ @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+ @am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o zattoo.lo `test -f 'protocols/zattoo.c' || echo '$(srcdir)/'`protocols/zattoo.c
+ 
++hf.lo: protocols/hf.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT hf.lo -MD -MP -MF $(DEPDIR)/hf.Tpo -c -o hf.lo `test -f 'protocols/hf.c' || echo '$(srcdir)/'`protocols/hf.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/hf.Tpo $(DEPDIR)/hf.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/hf.c' object='hf.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o hf.lo `test -f 'protocols/hf.c' || echo '$(srcdir)/'`protocols/hf.c
++
++pt11.lo: protocols/pt11.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pt11.lo -MD -MP -MF $(DEPDIR)/pt11.Tpo -c -o pt11.lo `test -f 'protocols/pt11.c' || echo '$(srcdir)/'`protocols/pt11.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/pt11.Tpo $(DEPDIR)/pt11.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/pt11.c' object='pt11.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pt11.lo `test -f 'protocols/pt11.c' || echo '$(srcdir)/'`protocols/pt11.c
++
++funshion.lo: protocols/funshion.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT funshion.lo -MD -MP -MF $(DEPDIR)/funshion.Tpo -c -o funshion.lo `test -f 'protocols/funshion.c' || echo '$(srcdir)/'`protocols/funshion.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/funshion.Tpo $(DEPDIR)/funshion.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/funshion.c' object='funshion.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o funshion.lo `test -f 'protocols/funshion.c' || echo '$(srcdir)/'`protocols/funshion.c
++
++counterstrike.lo: protocols/counterstrike.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT counterstrike.lo -MD -MP -MF $(DEPDIR)/counterstrike.Tpo -c -o counterstrike.lo `test -f 'protocols/counterstrike.c' || echo '$(srcdir)/'`protocols/counterstrike.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/counterstrike.Tpo $(DEPDIR)/counterstrike.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/counterstrike.c' object='counterstrike.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o counterstrike.lo `test -f 'protocols/counterstrike.c' || echo '$(srcdir)/'`protocols/counterstrike.c
++
++pptv.lo: protocols/pptv.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT pptv.lo -MD -MP -MF $(DEPDIR)/pptv.Tpo -c -o pptv.lo `test -f 'protocols/pptv.c' || echo '$(srcdir)/'`protocols/pptv.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/pptv.Tpo $(DEPDIR)/pptv.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/pptv.c' object='pptv.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o pptv.lo `test -f 'protocols/pptv.c' || echo '$(srcdir)/'`protocols/pptv.c
++
++aliwangwang.lo: protocols/aliwangwang.c
++@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -MT aliwangwang.lo -MD -MP -MF $(DEPDIR)/aliwangwang.Tpo -c -o aliwangwang.lo `test -f 'protocols/aliwangwang.c' || echo '$(srcdir)/'`protocols/aliwangwang.c
++@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/aliwangwang.Tpo $(DEPDIR)/aliwangwang.Plo
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protocols/aliwangwang.c' object='aliwangwang.lo' libtool=yes @AMDEPBACKSLASH@
++@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
++@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -c -o aliwangwang.lo `test -f 'protocols/aliwangwang.c' || echo '$(srcdir)/'`protocols/aliwangwang.c
++
+ mostlyclean-libtool:
+ 	-rm -f *.lo
+
+--- a/src/lib/Makefile.am	
++++ b/src/lib/Makefile.am	
+@@ -117,5 +117,12 @@
+ 			protocols/xbox.c \
+ 			protocols/xdmcp.c \
+ 			protocols/yahoo.c \
+-			protocols/zattoo.c
++			protocols/zattoo.c \
++			protocols/hf.c \
++			protocols/pt11.c \
++			protocols/funshion.c \
++			protocols/counterstrike.c \
++			protocols/pptv.c \
++			protocols/aliwangwang.c 
++
+ 

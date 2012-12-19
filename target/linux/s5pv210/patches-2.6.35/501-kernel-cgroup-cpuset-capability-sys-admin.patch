@@ -1,0 +1,82 @@
+--- linux-2.6.35.7//kernel/cgroup.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//kernel/cgroup.c	2011-08-08 12:52:37.000000000 +0800
+@@ -58,6 +58,7 @@
+ #include <linux/vmalloc.h> /* TODO: replace with more sophisticated array */
+ #include <linux/eventfd.h>
+ #include <linux/poll.h>
++#include <linux/capability.h>
+ 
+ #include <asm/atomic.h>
+ 
+@@ -1721,6 +1722,15 @@
+ 				failed_ss = ss;
+ 				goto out;
+ 			}
++		} else if (!capable(CAP_SYS_ADMIN)) {
++			const struct cred *cred = current_cred(), *tcred;
++
++			/* No can_attach() - check perms generically */
++			tcred = __task_cred(tsk);
++			if (cred->euid != tcred->uid &&
++			    cred->euid != tcred->suid) {
++				return -EACCES;
++			}
+ 		}
+ 	}
+ 
+@@ -1795,7 +1805,6 @@
+ static int attach_task_by_pid(struct cgroup *cgrp, u64 pid)
+ {
+ 	struct task_struct *tsk;
+-	const struct cred *cred = current_cred(), *tcred;
+ 	int ret;
+ 
+ 	if (pid) {
+@@ -1805,14 +1814,6 @@
+ 			rcu_read_unlock();
+ 			return -ESRCH;
+ 		}
+-
+-		tcred = __task_cred(tsk);
+-		if (cred->euid &&
+-		    cred->euid != tcred->uid &&
+-		    cred->euid != tcred->suid) {
+-			rcu_read_unlock();
+-			return -EACCES;
+-		}
+ 		get_task_struct(tsk);
+ 		rcu_read_unlock();
+ 	} else {
+--- linux-2.6.35.7//kernel/cgroup_freezer.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//kernel/cgroup_freezer.c	2011-08-08 12:52:37.000000000 +0800
+@@ -172,6 +172,14 @@
+ {
+ 	struct freezer *freezer;
+ 
++	if ((current != task) && (!capable(CAP_SYS_ADMIN))) {
++		const struct cred *cred = current_cred(), *tcred;
++
++		tcred = __task_cred(task);
++		if (cred->euid != tcred->uid && cred->euid != tcred->suid)
++			return -EPERM;
++	}
++
+ 	/*
+ 	 * Anything frozen can't move or be moved to/from.
+ 	 *
+--- linux-2.6.35.7//kernel/cpuset.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//kernel/cpuset.c	2011-08-08 12:52:37.000000000 +0800
+@@ -1383,6 +1383,13 @@
+ 	int ret;
+ 	struct cpuset *cs = cgroup_cs(cont);
+ 
++	if ((current != task) && (!capable(CAP_SYS_ADMIN))) {
++		const struct cred *cred = current_cred(), *tcred;
++
++		if (cred->euid != tcred->uid && cred->euid != tcred->suid)
++			return -EPERM;
++	}
++ 
+ 	if (cpumask_empty(cs->cpus_allowed) || nodes_empty(cs->mems_allowed))
+ 		return -ENOSPC;
+ 

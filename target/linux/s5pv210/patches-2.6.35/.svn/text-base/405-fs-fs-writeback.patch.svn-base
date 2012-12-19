@@ -1,0 +1,11 @@
+--- linux-2.6.35.7//fs/fs-writeback.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/fs-writeback.c	2011-08-08 12:52:14.000000000 +0800
+@@ -910,7 +910,7 @@
+ 	if ((inode->i_state & flags) == flags)
+ 		return;
+ 
+-	if (unlikely(block_dump))
++	if (unlikely(block_dump > 1))
+ 		block_dump___mark_inode_dirty(inode);
+ 
+ 	spin_lock(&inode_lock);

@@ -1,0 +1,72 @@
+diff -Nur linux-2.6.35.7//fs/fat/dir.c tiny210//fs/fat/dir.c
+--- linux-2.6.35.7//fs/fat/dir.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/fat/dir.c	2011-08-08 12:52:16.000000000 +0800
+@@ -753,6 +753,13 @@
+ 	return ret;
+ }
+ 
++static int fat_ioctl_volume_id(struct inode *dir)
++{
++	struct super_block *sb = dir->i_sb;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	return sbi->vol_id;
++}
++
+ static long fat_dir_ioctl(struct file *filp, unsigned int cmd,
+ 			  unsigned long arg)
+ {
+@@ -769,6 +776,8 @@
+ 		short_only = 0;
+ 		both = 1;
+ 		break;
++	case VFAT_IOCTL_GET_VOLUME_ID:
++		return fat_ioctl_volume_id(inode);
+ 	default:
+ 		return fat_generic_ioctl(filp, cmd, arg);
+ 	}
+diff -Nur linux-2.6.35.7//fs/fat/fat.h tiny210//fs/fat/fat.h
+--- linux-2.6.35.7//fs/fat/fat.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/fat/fat.h	2011-08-08 12:52:16.000000000 +0800
+@@ -78,6 +78,7 @@
+ 	const void *dir_ops;		     /* Opaque; default directory operations */
+ 	int dir_per_block;	     /* dir entries per block */
+ 	int dir_per_block_bits;	     /* log2(dir_per_block) */
++	unsigned long vol_id;        /* volume ID */
+ 
+ 	int fatent_shift;
+ 	struct fatent_operations *fatent_ops;
+diff -Nur linux-2.6.35.7//fs/fat/inode.c tiny210//fs/fat/inode.c
+--- linux-2.6.35.7//fs/fat/inode.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/fat/inode.c	2011-08-08 12:52:16.000000000 +0800
+@@ -1249,6 +1249,7 @@
+ 	struct inode *root_inode = NULL, *fat_inode = NULL;
+ 	struct buffer_head *bh;
+ 	struct fat_boot_sector *b;
++	struct fat_boot_bsx *bsx;
+ 	struct msdos_sb_info *sbi;
+ 	u16 logical_sector_size;
+ 	u32 total_sectors, total_clusters, fat_clusters, rootdir_sectors;
+@@ -1393,6 +1394,8 @@
+ 			goto out_fail;
+ 		}
+ 
++		bsx = (struct fat_boot_bsx *)(bh->b_data + FAT32_BSX_OFFSET);
++
+ 		fsinfo = (struct fat_boot_fsinfo *)fsinfo_bh->b_data;
+ 		if (!IS_FSINFO(fsinfo)) {
+ 			printk(KERN_WARNING "FAT: Invalid FSINFO signature: "
+@@ -1408,8 +1411,14 @@
+ 		}
+ 
+ 		brelse(fsinfo_bh);
++	} else {
++		bsx = (struct fat_boot_bsx *)(bh->b_data + FAT16_BSX_OFFSET);
+ 	}
+ 
++	/* interpret volume ID as a little endian 32 bit integer */
++	sbi->vol_id = (((u32)bsx->vol_id[0]) | ((u32)bsx->vol_id[1] << 8) |
++		((u32)bsx->vol_id[2] << 16) | ((u32)bsx->vol_id[3] << 24));
++
+ 	sbi->dir_per_block = sb->s_blocksize / sizeof(struct msdos_dir_entry);
+ 	sbi->dir_per_block_bits = ffs(sbi->dir_per_block) - 1;
+ 

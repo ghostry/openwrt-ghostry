@@ -1,0 +1,24 @@
+--- linux-2.6.35.7//kernel/sysctl.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//kernel/sysctl.c	2011-08-08 12:52:37.000000000 +0800
+@@ -92,6 +92,7 @@
+ extern unsigned int core_pipe_limit;
+ extern int pid_max;
+ extern int min_free_kbytes;
++extern int min_free_order_shift;
+ extern int pid_max_min, pid_max_max;
+ extern int sysctl_drop_caches;
+ extern int percpu_pagelist_fraction;
+@@ -1155,6 +1156,13 @@
+ 		.extra1		= &zero,
+ 	},
+ 	{
++		.procname	= "min_free_order_shift",
++		.data		= &min_free_order_shift,
++		.maxlen		= sizeof(min_free_order_shift),
++		.mode		= 0644,
++		.proc_handler	= &proc_dointvec
++	},
++	{
+ 		.procname	= "percpu_pagelist_fraction",
+ 		.data		= &percpu_pagelist_fraction,
+ 		.maxlen		= sizeof(percpu_pagelist_fraction),

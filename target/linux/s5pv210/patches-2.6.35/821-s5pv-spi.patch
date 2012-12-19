@@ -1,0 +1,76 @@
+diff -Nur linux-2.6.35.7/drivers/spi/Kconfig tiny210/drivers/spi/Kconfig
+--- linux-2.6.35.7/drivers/spi/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/spi/Kconfig	2011-08-08 12:52:20.000000000 +0800
+@@ -282,11 +282,15 @@
+ 
+ config SPI_S3C64XX
+ 	tristate "Samsung S3C64XX series type SPI"
+-	depends on ARCH_S3C64XX && EXPERIMENTAL
++	depends on (ARCH_S3C64XX || ARCH_S5PV210 || ARCH_S5P6450 || ARCH_S5PV310) && EXPERIMENTAL
+ 	select S3C64XX_DMA
++	select S3C64XX_DEV_SPI
+ 	help
+ 	  SPI driver for Samsung S3C64XX and newer SoCs.
+ 
++config S3C64XX_DEV_SPI
++	depends on SPI_S3C64XX
++
+ config SPI_SH_MSIOF
+ 	tristate "SuperH MSIOF SPI controller"
+ 	depends on SUPERH && HAVE_CLK
+diff -Nur linux-2.6.35.7/drivers/spi/spi_bitbang.c tiny210/drivers/spi/spi_bitbang.c
+--- linux-2.6.35.7/drivers/spi/spi_bitbang.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/spi/spi_bitbang.c	2011-08-08 12:52:20.000000000 +0800
+@@ -292,7 +292,7 @@
+ 		cs_change = 1;
+ 		status = 0;
+ 
+-		list_for_each_entry (t, &m->transfers, transfer_list) {
++		list_for_each_entry(t, &m->transfers, transfer_list) {
+ 
+ 			/* override speed or wordsize? */
+ 			if (t->speed_hz || t->bits_per_word)
+@@ -452,7 +452,8 @@
+ 	INIT_LIST_HEAD(&bitbang->queue);
+ 
+ 	if (!bitbang->master->mode_bits)
+-		bitbang->master->mode_bits = SPI_CPOL | SPI_CPHA | bitbang->flags;
++		bitbang->master->mode_bits = SPI_CPOL | SPI_CPHA
++						      | bitbang->flags;
+ 
+ 	if (!bitbang->master->transfer)
+ 		bitbang->master->transfer = spi_bitbang_transfer;
+diff -Nur linux-2.6.35.7/drivers/spi/spi_s3c64xx.c tiny210/drivers/spi/spi_s3c64xx.c
+--- linux-2.6.35.7/drivers/spi/spi_s3c64xx.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/spi/spi_s3c64xx.c	2011-08-08 12:52:20.000000000 +0800
+@@ -221,6 +221,7 @@
+ 	val = readl(regs + S3C64XX_SPI_CH_CFG);
+ 	val &= ~(S3C64XX_SPI_CH_RXCH_ON | S3C64XX_SPI_CH_TXCH_ON);
+ 	writel(val, regs + S3C64XX_SPI_CH_CFG);
++	writel(S3C64XX_SPI_PND_TRAILING_CLR, regs + S3C64XX_SPI_PENDING_CLR);
+ }
+ 
+ static void enable_datapath(struct s3c64xx_spi_driver_data *sdd,
+@@ -326,10 +327,11 @@
+ 		val = msecs_to_jiffies(ms) + 10;
+ 		val = wait_for_completion_timeout(&sdd->xfer_completion, val);
+ 	} else {
++		u32 status;
+ 		val = msecs_to_loops(ms);
+ 		do {
+-			val = readl(regs + S3C64XX_SPI_STATUS);
+-		} while (RX_FIFO_LVL(val, sci) < xfer->len && --val);
++			status = readl(regs + S3C64XX_SPI_STATUS);
++		} while (RX_FIFO_LVL(status, sci) < xfer->len && --val);
+ 	}
+ 
+ 	if (!val)
+@@ -508,7 +510,7 @@
+ 	list_for_each_entry(xfer, &msg->transfers, transfer_list) {
+ 
+ 		if (xfer->tx_buf != NULL) {
+-			xfer->tx_dma = dma_map_single(dev, xfer->tx_buf,
++			xfer->tx_dma = dma_map_single(dev,(void *)xfer->tx_buf,
+ 						xfer->len, DMA_TO_DEVICE);
+ 			if (dma_mapping_error(dev, xfer->tx_dma)) {
+ 				dev_err(dev, "dma_map_single Tx failed\n");

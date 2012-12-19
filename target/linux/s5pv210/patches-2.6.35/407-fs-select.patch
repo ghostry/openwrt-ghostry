@@ -1,0 +1,29 @@
+--- linux-2.6.35.7//fs/select.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//fs/select.c	2011-08-08 12:52:14.000000000 +0800
+@@ -67,7 +67,7 @@
+ 	return slack;
+ }
+ 
+-static long estimate_accuracy(struct timespec *tv)
++long select_estimate_accuracy(struct timespec *tv)
+ {
+ 	unsigned long ret;
+ 	struct timespec now;
+@@ -417,7 +417,7 @@
+ 	}
+ 
+ 	if (end_time && !timed_out)
+-		slack = estimate_accuracy(end_time);
++		slack = select_estimate_accuracy(end_time);
+ 
+ 	retval = 0;
+ 	for (;;) {
+@@ -769,7 +769,7 @@
+ 	}
+ 
+ 	if (end_time && !timed_out)
+-		slack = estimate_accuracy(end_time);
++		slack = select_estimate_accuracy(end_time);
+ 
+ 	for (;;) {
+ 		struct poll_list *walk;

@@ -1,0 +1,11 @@
+--- linux-2.6.32.26/arch/arm/mach-s3c2440/mach-smdk2440.c.orig	2011-04-03 05:26:03.000000000 -0400
++++ linux-2.6.32.26/arch/arm/mach-s3c2440/mach-smdk2440.c	2011-04-03 05:26:03.000000000 -0400
+@@ -173,7 +173,7 @@
+ 	smdk_machine_init();
+ }
+ 
+-MACHINE_START(S3C2440, "SMDK2440")
++MACHINE_START(SMDK2440, "SMDK2440")
+ 	/* Maintainer: Ben Dooks <ben@fluff.org> */
+ 	.phys_io	= S3C2410_PA_UART,
+ 	.io_pg_offst	= (((u32)S3C24XX_VA_UART) >> 18) & 0xfffc,

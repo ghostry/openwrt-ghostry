@@ -1,0 +1,191 @@
+--- linux-2.6.35.7/arch/arm/common/pl330.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/common/pl330.c	2011-08-09 11:11:50.000000000 +0800
+@@ -985,6 +985,19 @@
+ 	return off;
+ }
+ 
++static inline int _ldst_memtomem_nobarrier(unsigned dry_run, u8 buf[],
++		const struct _xfer_spec *pxs, int cyc)
++{
++	int off = 0;
++
++	while (cyc--) {
++		off += _emit_LD(dry_run, &buf[off], ALWAYS);
++		off += _emit_ST(dry_run, &buf[off], ALWAYS);
++	}
++
++	return off;
++}
++
+ static inline int _ldst_devtomem(unsigned dry_run, u8 buf[],
+ 		const struct _xfer_spec *pxs, int cyc)
+ {
+@@ -1030,6 +1043,9 @@
+ 	case MEMTOMEM:
+ 		off += _ldst_memtomem(dry_run, &buf[off], pxs, cyc);
+ 		break;
++	case MEMTOMEM_NOBARRIER:
++		off += _ldst_memtomem_nobarrier(dry_run, &buf[off], pxs, cyc);
++		break;
+ 	default:
+ 		off += 0x40000000; /* Scare off the Client */
+ 		break;
+@@ -1117,6 +1133,57 @@
+ 	return off;
+ }
+ 
++/* Returns bytes consumed and updates bursts */
++static inline int _loop_ring(unsigned dry_run, u8 buf[],
++		unsigned long *bursts, const struct _xfer_spec *pxs, int ev)
++{
++	int cyc, off;
++	unsigned lcnt0, lcnt1, ljmp0, ljmp1, ljmpfe;
++	struct _arg_LPEND lpend;
++
++	off = 0;
++	ljmpfe = off;
++	int i, j;
++	lcnt1 = 256;
++	cyc = 1;
++
++	/* DMAMOV SAR, x->src_addr */
++	off += _emit_MOV(dry_run, &buf[off], SAR, pxs->x->src_addr);
++	/* DMAMOV DAR, x->dst_addr */
++	off += _emit_MOV(dry_run, &buf[off], DAR, pxs->x->dst_addr);
++
++	off += _emit_LP(dry_run, &buf[off], 0,  pxs->r->autoload);
++	ljmp0 = off;
++
++	for (i = 0; i < *bursts/256; i++) {
++		off += _emit_LP(dry_run, &buf[off], 1, lcnt1);
++		ljmp1 = off;
++
++		off += _bursts(dry_run, &buf[off], pxs, cyc);
++
++		lpend.cond = ALWAYS;
++		lpend.forever = false;
++		lpend.loop = 1;
++		lpend.bjump = off - ljmp1;
++		off += _emit_LPEND(dry_run, &buf[off], &lpend);
++	}
++	off +=_emit_SEV(dry_run, &buf[off], ev);
++
++	lpend.cond = ALWAYS;
++	lpend.forever = false;
++	lpend.loop = 0;
++	lpend.bjump = off - ljmp0;
++	off += _emit_LPEND(dry_run, &buf[off], &lpend);
++
++	lpend.cond = ALWAYS;
++	lpend.forever = true;
++	lpend.loop = 1;
++	lpend.bjump = off - ljmpfe;
++	off +=  _emit_LPEND(dry_run, &buf[off], &lpend);
++
++	return off;
++}
++
+ static inline int _setup_loops(unsigned dry_run, u8 buf[],
+ 		const struct _xfer_spec *pxs)
+ {
+@@ -1151,6 +1218,22 @@
+ 	return off;
+ }
+ 
++static inline int _setup_xfer_ring(unsigned dry_run, u8 buf[],
++		const struct _xfer_spec *pxs, int ev)
++{
++	struct pl330_xfer *x = pxs->x;
++	u32 ccr = pxs->ccr;
++	unsigned long c, bursts = BYTE_TO_BURST(x->bytes, ccr);
++	int off = 0;
++
++	/* Setup Loop(s) */
++	c = bursts;
++
++	off += _loop_ring(dry_run, &buf[off], &c, pxs, ev);
++
++	return off;
++}
++
+ /*
+  * A req is a sequence of one or more xfer units.
+  * Returns the number of bytes taken to setup the MC for the req.
+@@ -1169,6 +1252,8 @@
+ 	off += _emit_MOV(dry_run, &buf[off], CCR, pxs->ccr);
+ 
+ 	x = pxs->r->x;
++
++	if(!pxs->r->autoload) {
+ 	do {
+ 		/* Error if xfer length is not aligned at burst size */
+ 		if (x->bytes % (BRST_SIZE(pxs->ccr) * BRST_LEN(pxs->ccr)))
+@@ -1184,7 +1269,15 @@
+ 	off += _emit_SEV(dry_run, &buf[off], thrd->ev);
+ 	/* DMAEND */
+ 	off += _emit_END(dry_run, &buf[off]);
++	} else {
+ 
++		/* Error if xfer length is not aligned at burst size */
++		if (x->bytes % (BRST_SIZE(pxs->ccr) * BRST_LEN(pxs->ccr)))
++			return -EINVAL;
++
++		pxs->x = x;
++		off += _setup_xfer_ring(dry_run, &buf[off], pxs, thrd->ev);
++	}
+ 	return off;
+ }
+ 
+@@ -1268,7 +1361,8 @@
+ 	}
+ 
+ 	/* If request for non-existing peripheral */
+-	if (r->rqtype != MEMTOMEM && r->peri >= pi->pcfg.num_peri) {
++	if (r->rqtype != MEMTOMEM && r->rqtype != MEMTOMEM_NOBARRIER &&
++			r->peri >= pi->pcfg.num_peri) {
+ 		dev_info(thrd->dmac->pinfo->dev,
+ 				"%s:%d Invalid peripheral(%u)!\n",
+ 				__func__, __LINE__, r->peri);
+@@ -1282,17 +1376,17 @@
+ 		goto xfer_exit;
+ 	}
+ 
+-	/* Prefer Secure Channel */
+-	if (!_manager_ns(thrd))
+-		r->cfg->nonsecure = 0;
+-	else
+-		r->cfg->nonsecure = 1;
+-
+ 	/* Use last settings, if not provided */
+-	if (r->cfg)
++	if (r->cfg) {
++		/* Prefer Secure Channel */
++		if (!_manager_ns(thrd))
++			r->cfg->nonsecure = 0;
++		else
++			r->cfg->nonsecure = 1;
+ 		ccr = _prepare_ccr(r->cfg);
+-	else
++	} else {
+ 		ccr = readl(regs + CC(thrd->id));
++	}
+ 
+ 	/* If this req doesn't have valid xfer settings */
+ 	if (!_is_valid(ccr)) {
+@@ -1469,10 +1563,13 @@
+ 			active -= 1;
+ 
+ 			rqdone = &thrd->req[active];
+-			MARK_FREE(rqdone);
+ 
+-			/* Get going again ASAP */
+-			_start(thrd);
++			if(!rqdone->r->autoload) {
++				MARK_FREE(rqdone);
++
++				/* Get going again ASAP */
++				_start(thrd);
++			}
+ 
+ 			/* For now, just make a list of callbacks to be done */
+ 			list_add_tail(&rqdone->rqd, &pl330->req_done);

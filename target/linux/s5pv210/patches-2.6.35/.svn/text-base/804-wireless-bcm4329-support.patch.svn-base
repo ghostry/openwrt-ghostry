@@ -1,0 +1,18 @@
+--- linux-2.6.35.7/drivers/net/wireless/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/net/wireless/Kconfig	2011-08-08 12:52:28.000000000 +0800
+@@ -271,6 +271,7 @@
+ source "drivers/net/wireless/ath/Kconfig"
+ source "drivers/net/wireless/b43/Kconfig"
+ source "drivers/net/wireless/b43legacy/Kconfig"
++source "drivers/net/wireless/bcm4329/Kconfig"
+ source "drivers/net/wireless/hostap/Kconfig"
+ source "drivers/net/wireless/ipw2x00/Kconfig"
+ source "drivers/net/wireless/iwlwifi/Kconfig"
+--- linux-2.6.35.7/drivers/net/wireless/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/net/wireless/Makefile	2011-08-08 12:52:28.000000000 +0800
+@@ -52,3 +52,5 @@
+ obj-$(CONFIG_WL12XX)	+= wl12xx/
+ 
+ obj-$(CONFIG_IWM)	+= iwmc3200wifi/
++
++obj-$(CONFIG_BCM4329)	+= bcm4329/

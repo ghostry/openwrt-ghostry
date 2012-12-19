@@ -1,0 +1,225 @@
+--- linux-2.6.35.7/drivers/char/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/char/Kconfig	2011-10-19 12:18:25.000000000 +0800
+@@ -88,6 +88,19 @@
+ 	 information. For framebuffer console users, please refer to
+ 	 <file:Documentation/fb/fbcon.txt>.
+ 
++config DEVMEM
++	bool "Memory device driver"
++	default y
++	help
++	  The memory driver provides two character devices, mem and kmem, which
++	  provide access to the system's memory. The mem device is a view of
++	  physical memory, and each byte in the device corresponds to the
++	  matching physical address. The kmem device is the same as mem, but
++	  the addresses correspond to the kernel's virtual address space rather
++	  than physical memory. These devices are standard parts of a Linux
++	  system and most users should say Y here. You might say N if very
++	  security conscience or memory is tight.
++
+ config DEVKMEM
+ 	bool "/dev/kmem virtual device support"
+ 	default y
+@@ -97,6 +110,41 @@
+ 	  kind of kernel debugging operations.
+ 	  When in doubt, say "N".
+ 
++config MINI210_LEDS
++	tristate "LED Support for FriendlyARM Mini210 GPIO LEDs"
++	depends on MACH_MINI210
++	default y
++	help
++	  This option enables support for LEDs connected to GPIO lines
++	  on Mini210 boards.
++
++config MINI210_HELLO_MODULE
++	tristate "Mini210 module sample"
++	depends on CPU_S5PV210
++	help
++	  Mini210 module sample.
++
++config MINI210_BUTTONS
++	tristate "Buttons driver for FriendlyARM Mini210 development boards"
++	depends on CPU_S5PV210 && !KEYBOARD_GPIO
++	default y if !KEYBOARD_GPIO
++	help
++	  this is buttons driver for FriendlyARM Mini210 development boards
++
++config MINI210_BUZZER
++	tristate "Buzzer driver for FriendlyARM Mini210 development boards"
++	depends on MACH_MINI210
++	default y
++	help
++	  this is buzzer driver for FriendlyARM Mini210 development boards
++
++config MINI210_ADC
++	tristate "ADC driver for FriendlyARM Mini210 development boards"
++	depends on MACH_MINI210
++	default y
++	help
++	  this is ADC driver for FriendlyARM Mini210 development boards
++
+ config BFIN_JTAG_COMM
+ 	tristate "Blackfin JTAG Communication"
+ 	depends on BLACKFIN
+@@ -1127,6 +1175,10 @@
+ 	depends on ISA || PCI
+ 	default y
+ 
++config DCC_TTY
++	tristate "DCC tty driver"
++	depends on ARM
++
+ source "drivers/s390/char/Kconfig"
+ 
+ config RAMOOPS
+@@ -1137,5 +1189,10 @@
+ 	  This enables panic and oops messages to be logged to a circular
+ 	  buffer in RAM where it can be read back at some later point.
+ 
++config S3C_MEM
++	bool "Support for /dev/s3c-mem"
++	default y
++	help
++	  you do say Y here, you can allocate physically linear memory
+ endmenu
+ 
+--- linux-2.6.35.7/drivers/char/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/char/Makefile	2011-10-19 12:18:25.000000000 +0800
+@@ -108,12 +108,21 @@
+ obj-$(CONFIG_HANGCHECK_TIMER)	+= hangcheck-timer.o
+ obj-$(CONFIG_TCG_TPM)		+= tpm/
+ 
++obj-$(CONFIG_DCC_TTY)		+= dcc_tty.o
+ obj-$(CONFIG_PS3_FLASH)		+= ps3flash.o
+ obj-$(CONFIG_RAMOOPS)		+= ramoops.o
+ 
+ obj-$(CONFIG_JS_RTC)		+= js-rtc.o
+ js-rtc-y = rtc.o
+ 
++obj-$(CONFIG_S3C_MEM)		+= s3c_mem.o
++
++obj-$(CONFIG_MINI210_LEDS)	+= mini210_leds.o
++obj-$(CONFIG_MINI210_HELLO_MODULE)	+= mini210_hello_module.o
++obj-$(CONFIG_MINI210_BUTTONS)	+= mini210_buttons.o
++obj-$(CONFIG_MINI210_BUZZER)	+= mini210_pwm.o
++obj-$(CONFIG_MINI210_ADC)		+= mini210_adc.o
++
+ # Files generated that shall be removed upon make clean
+ clean-files := consolemap_deftbl.c defkeymap.c
+ 
+--- linux-2.6.35.7/drivers/char/mem.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/char/mem.c	2011-08-08 12:52:25.000000000 +0800
+@@ -59,6 +59,7 @@
+ }
+ #endif
+ 
++#if defined(CONFIG_DEVMEM) || defined(CONFIG_DEVKMEM)
+ #ifdef CONFIG_STRICT_DEVMEM
+ static inline int range_is_allowed(unsigned long pfn, unsigned long size)
+ {
+@@ -84,7 +85,9 @@
+ 	return 1;
+ }
+ #endif
++#endif
+ 
++#ifdef CONFIG_DEVMEM
+ void __weak unxlate_dev_mem_ptr(unsigned long phys, void *addr)
+ {
+ }
+@@ -211,6 +214,9 @@
+ 	*ppos += written;
+ 	return written;
+ }
++#endif	/* CONFIG_DEVMEM */
++
++#if defined(CONFIG_DEVMEM) || defined(CONFIG_DEVKMEM)
+ 
+ int __weak phys_mem_access_prot_allowed(struct file *file,
+ 	unsigned long pfn, unsigned long size, pgprot_t *vma_prot)
+@@ -332,6 +338,7 @@
+ 	}
+ 	return 0;
+ }
++#endif	/* CONFIG_DEVMEM */
+ 
+ #ifdef CONFIG_DEVKMEM
+ static int mmap_kmem(struct file *file, struct vm_area_struct *vma)
+@@ -696,6 +703,8 @@
+ 	return file->f_pos = 0;
+ }
+ 
++#if defined(CONFIG_DEVMEM) || defined(CONFIG_DEVKMEM) || defined(CONFIG_DEVPORT)
++
+ /*
+  * The memory devices use the full 32/64 bits of the offset, and so we cannot
+  * check against negative addresses: they are ok. The return value is weird,
+@@ -729,10 +738,14 @@
+ 	return ret;
+ }
+ 
++#endif
++
++#if defined(CONFIG_DEVMEM) || defined(CONFIG_DEVKMEM) || defined(CONFIG_DEVPORT)
+ static int open_port(struct inode * inode, struct file * filp)
+ {
+ 	return capable(CAP_SYS_RAWIO) ? 0 : -EPERM;
+ }
++#endif
+ 
+ #define zero_lseek	null_lseek
+ #define full_lseek      null_lseek
+@@ -742,6 +755,7 @@
+ #define open_kmem	open_mem
+ #define open_oldmem	open_mem
+ 
++#ifdef CONFIG_DEVMEM
+ static const struct file_operations mem_fops = {
+ 	.llseek		= memory_lseek,
+ 	.read		= read_mem,
+@@ -750,6 +764,7 @@
+ 	.open		= open_mem,
+ 	.get_unmapped_area = get_unmapped_area_mem,
+ };
++#endif
+ 
+ #ifdef CONFIG_DEVKMEM
+ static const struct file_operations kmem_fops = {
+@@ -808,6 +823,16 @@
+ };
+ #endif
+ 
++#ifdef CONFIG_S3C_MEM
++extern int s3c_mem_mmap(struct file* filp, struct vm_area_struct *vma);
++extern int s3c_mem_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg);
++
++static const struct file_operations s3c_mem_fops = {
++	.ioctl	= s3c_mem_ioctl,
++	.mmap	= s3c_mem_mmap,
++};
++#endif
++
+ static ssize_t kmsg_write(struct file *file, const char __user *buf,
+ 			  size_t count, loff_t *ppos)
+ {
+@@ -839,7 +864,9 @@
+ 	const struct file_operations *fops;
+ 	struct backing_dev_info *dev_info;
+ } devlist[] = {
++#ifdef CONFIG_DEVMEM
+ 	 [1] = { "mem", 0, &mem_fops, &directly_mappable_cdev_bdi },
++#endif
+ #ifdef CONFIG_DEVKMEM
+ 	 [2] = { "kmem", 0, &kmem_fops, &directly_mappable_cdev_bdi },
+ #endif
+@@ -855,6 +882,9 @@
+ #ifdef CONFIG_CRASH_DUMP
+ 	[12] = { "oldmem", 0, &oldmem_fops, NULL },
+ #endif
++#ifdef CONFIG_S3C_MEM
++	[13] = {"s3c-mem", S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH, &s3c_mem_fops},
++#endif
+ };
+ 
+ static int memory_open(struct inode *inode, struct file *filp)

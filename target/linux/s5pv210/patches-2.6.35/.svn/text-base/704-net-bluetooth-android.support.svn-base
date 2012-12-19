@@ -1,0 +1,723 @@
+diff -Nur linux-2.6.35.7/net/bluetooth/af_bluetooth.c tiny210/net/bluetooth/af_bluetooth.c
+--- linux-2.6.35.7/net/bluetooth/af_bluetooth.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/af_bluetooth.c	2011-08-08 12:52:36.000000000 +0800
+@@ -40,6 +40,15 @@
+ 
+ #include <net/bluetooth/bluetooth.h>
+ 
++#ifdef CONFIG_ANDROID_PARANOID_NETWORK
++#include <linux/android_aid.h>
++#endif
++
++#ifndef CONFIG_BT_SOCK_DEBUG
++#undef  BT_DBG
++#define BT_DBG(D...)
++#endif
++
+ #define VERSION "2.15"
+ 
+ /* Bluetooth sockets */
+@@ -125,11 +134,40 @@
+ }
+ EXPORT_SYMBOL(bt_sock_unregister);
+ 
++#ifdef CONFIG_ANDROID_PARANOID_NETWORK
++static inline int current_has_bt_admin(void)
++{
++	return (!current_euid() || in_egroup_p(AID_NET_BT_ADMIN));
++}
++
++static inline int current_has_bt(void)
++{
++	return (current_has_bt_admin() || in_egroup_p(AID_NET_BT));
++}
++# else
++static inline int current_has_bt_admin(void)
++{
++	return 1;
++}
++
++static inline int current_has_bt(void)
++{
++	return 1;
++}
++#endif
++
+ static int bt_sock_create(struct net *net, struct socket *sock, int proto,
+ 			  int kern)
+ {
+ 	int err;
+ 
++	if (proto == BTPROTO_RFCOMM || proto == BTPROTO_SCO ||
++			proto == BTPROTO_L2CAP) {
++		if (!current_has_bt())
++			return -EPERM;
++	} else if (!current_has_bt_admin())
++		return -EPERM;
++
+ 	if (net != &init_net)
+ 		return -EAFNOSUPPORT;
+ 
+diff -Nur linux-2.6.35.7/net/bluetooth/hci_conn.c tiny210/net/bluetooth/hci_conn.c
+--- linux-2.6.35.7/net/bluetooth/hci_conn.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/hci_conn.c	2011-08-08 12:52:36.000000000 +0800
+@@ -1,6 +1,6 @@
+ /*
+    BlueZ - Bluetooth protocol stack for Linux
+-   Copyright (C) 2000-2001 Qualcomm Incorporated
++   Copyright (c) 2000-2001, 2010, Code Aurora Forum. All rights reserved.
+ 
+    Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
+ 
+@@ -155,6 +155,27 @@
+ 	hci_send_cmd(hdev, HCI_OP_SETUP_SYNC_CONN, sizeof(cp), &cp);
+ }
+ 
++/* Device _must_ be locked */
++void hci_sco_setup(struct hci_conn *conn, __u8 status)
++{
++	struct hci_conn *sco = conn->link;
++
++	BT_DBG("%p", conn);
++
++	if (!sco)
++		return;
++
++	if (!status) {
++		if (lmp_esco_capable(conn->hdev))
++			hci_setup_sync(sco, conn->handle);
++		else
++			hci_add_sco(sco, conn->handle);
++	} else {
++		hci_proto_connect_cfm(sco, status);
++		hci_conn_del(sco);
++	}
++}
++
+ static void hci_conn_timeout(unsigned long arg)
+ {
+ 	struct hci_conn *conn = (void *) arg;
+@@ -196,7 +217,8 @@
+ 	hci_conn_enter_sniff_mode(conn);
+ }
+ 
+-struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type, bdaddr_t *dst)
++struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type,
++					__u16 pkt_type, bdaddr_t *dst)
+ {
+ 	struct hci_conn *conn;
+ 
+@@ -221,14 +243,22 @@
+ 		conn->pkt_type = hdev->pkt_type & ACL_PTYPE_MASK;
+ 		break;
+ 	case SCO_LINK:
+-		if (lmp_esco_capable(hdev))
+-			conn->pkt_type = (hdev->esco_type & SCO_ESCO_MASK) |
+-					(hdev->esco_type & EDR_ESCO_MASK);
+-		else
+-			conn->pkt_type = hdev->pkt_type & SCO_PTYPE_MASK;
+-		break;
++		if (!pkt_type)
++			pkt_type = SCO_ESCO_MASK;
+ 	case ESCO_LINK:
+-		conn->pkt_type = hdev->esco_type & ~EDR_ESCO_MASK;
++		if (!pkt_type)
++			pkt_type = ALL_ESCO_MASK;
++		if (lmp_esco_capable(hdev)) {
++			/* HCI Setup Synchronous Connection Command uses
++			   reverse logic on the EDR_ESCO_MASK bits */
++			conn->pkt_type = (pkt_type ^ EDR_ESCO_MASK) &
++					hdev->esco_type;
++		} else {
++			/* Legacy HCI Add Sco Connection Command uses a
++			   shifted bitmask */
++			conn->pkt_type = (pkt_type << 5) & hdev->pkt_type &
++					SCO_PTYPE_MASK;
++		}
+ 		break;
+ 	}
+ 
+@@ -340,7 +370,9 @@
+ 
+ /* Create SCO or ACL connection.
+  * Device _must_ be locked */
+-struct hci_conn *hci_connect(struct hci_dev *hdev, int type, bdaddr_t *dst, __u8 sec_level, __u8 auth_type)
++struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
++					__u16 pkt_type, bdaddr_t *dst,
++					__u8 sec_level, __u8 auth_type)
+ {
+ 	struct hci_conn *acl;
+ 	struct hci_conn *sco;
+@@ -348,7 +380,7 @@
+ 	BT_DBG("%s dst %s", hdev->name, batostr(dst));
+ 
+ 	if (!(acl = hci_conn_hash_lookup_ba(hdev, ACL_LINK, dst))) {
+-		if (!(acl = hci_conn_add(hdev, ACL_LINK, dst)))
++		if (!(acl = hci_conn_add(hdev, ACL_LINK, 0, dst)))
+ 			return NULL;
+ 	}
+ 
+@@ -369,7 +401,7 @@
+ 		return acl;
+ 
+ 	if (!(sco = hci_conn_hash_lookup_ba(hdev, type, dst))) {
+-		if (!(sco = hci_conn_add(hdev, type, dst))) {
++		if (!(sco = hci_conn_add(hdev, type, pkt_type, dst))) {
+ 			hci_conn_put(acl);
+ 			return NULL;
+ 		}
+@@ -385,10 +417,13 @@
+ 		acl->power_save = 1;
+ 		hci_conn_enter_active_mode(acl);
+ 
+-		if (lmp_esco_capable(hdev))
+-			hci_setup_sync(sco, acl->handle);
+-		else
+-			hci_add_sco(sco, acl->handle);
++		if (test_bit(HCI_CONN_MODE_CHANGE_PEND, &acl->pend)) {
++			/* defer SCO setup until mode change completed */
++			set_bit(HCI_CONN_SCO_SETUP_PEND, &acl->pend);
++			return sco;
++		}
++
++		hci_sco_setup(acl, 0x00);
+ 	}
+ 
+ 	return sco;
+@@ -505,7 +540,7 @@
+ 	if (test_bit(HCI_RAW, &hdev->flags))
+ 		return;
+ 
+-	if (conn->mode != HCI_CM_SNIFF || !conn->power_save)
++	if (conn->mode != HCI_CM_SNIFF /* || !conn->power_save */)
+ 		goto timer;
+ 
+ 	if (!test_and_set_bit(HCI_CONN_MODE_CHANGE_PEND, &conn->pend)) {
+@@ -644,6 +679,15 @@
+ 		(ci + n)->out   = c->out;
+ 		(ci + n)->state = c->state;
+ 		(ci + n)->link_mode = c->link_mode;
++		if (c->type == SCO_LINK) {
++			(ci + n)->mtu = hdev->sco_mtu;
++			(ci + n)->cnt = hdev->sco_cnt;
++			(ci + n)->pkts = hdev->sco_pkts;
++		} else {
++			(ci + n)->mtu = hdev->acl_mtu;
++			(ci + n)->cnt = hdev->acl_cnt;
++			(ci + n)->pkts = hdev->acl_pkts;
++		}
+ 		if (++n >= req.conn_num)
+ 			break;
+ 	}
+@@ -680,6 +724,15 @@
+ 		ci.out   = conn->out;
+ 		ci.state = conn->state;
+ 		ci.link_mode = conn->link_mode;
++		if (req.type == SCO_LINK) {
++			ci.mtu = hdev->sco_mtu;
++			ci.cnt = hdev->sco_cnt;
++			ci.pkts = hdev->sco_pkts;
++		} else {
++			ci.mtu = hdev->acl_mtu;
++			ci.cnt = hdev->acl_cnt;
++			ci.pkts = hdev->acl_pkts;
++		}
+ 	}
+ 	hci_dev_unlock_bh(hdev);
+ 
+diff -Nur linux-2.6.35.7/net/bluetooth/hci_core.c tiny210/net/bluetooth/hci_core.c
+--- linux-2.6.35.7/net/bluetooth/hci_core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/hci_core.c	2011-08-08 12:52:36.000000000 +0800
+@@ -1283,7 +1283,7 @@
+ 
+ 	skb->dev = (void *) hdev;
+ 	bt_cb(skb)->pkt_type = HCI_ACLDATA_PKT;
+-	hci_add_acl_hdr(skb, conn->handle, flags | ACL_START);
++	hci_add_acl_hdr(skb, conn->handle, flags);
+ 
+ 	if (!(list = skb_shinfo(skb)->frag_list)) {
+ 		/* Non fragmented */
+@@ -1300,12 +1300,14 @@
+ 		spin_lock_bh(&conn->data_q.lock);
+ 
+ 		__skb_queue_tail(&conn->data_q, skb);
++		flags &= ~ACL_PB_MASK;
++		flags |= ACL_CONT;
+ 		do {
+ 			skb = list; list = list->next;
+ 
+ 			skb->dev = (void *) hdev;
+ 			bt_cb(skb)->pkt_type = HCI_ACLDATA_PKT;
+-			hci_add_acl_hdr(skb, conn->handle, flags | ACL_CONT);
++			hci_add_acl_hdr(skb, conn->handle, flags);
+ 
+ 			BT_DBG("%s frag %p len %d", hdev->name, skb, skb->len);
+ 
+diff -Nur linux-2.6.35.7/net/bluetooth/hci_event.c tiny210/net/bluetooth/hci_event.c
+--- linux-2.6.35.7/net/bluetooth/hci_event.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/hci_event.c	2011-08-08 12:52:36.000000000 +0800
+@@ -1,6 +1,6 @@
+ /*
+    BlueZ - Bluetooth protocol stack for Linux
+-   Copyright (C) 2000-2001 Qualcomm Incorporated
++   Copyright (c) 2000-2001, 2010, Code Aurora Forum. All rights reserved.
+ 
+    Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
+ 
+@@ -579,7 +579,7 @@
+ 		}
+ 	} else {
+ 		if (!conn) {
+-			conn = hci_conn_add(hdev, ACL_LINK, &cp->bdaddr);
++			conn = hci_conn_add(hdev, ACL_LINK, 0, &cp->bdaddr);
+ 			if (conn) {
+ 				conn->out = 1;
+ 				conn->link_mode |= HCI_LM_MASTER;
+@@ -785,9 +785,13 @@
+ 	hci_dev_lock(hdev);
+ 
+ 	conn = hci_conn_hash_lookup_handle(hdev, __le16_to_cpu(cp->handle));
+-	if (conn)
++	if (conn) {
+ 		clear_bit(HCI_CONN_MODE_CHANGE_PEND, &conn->pend);
+ 
++		if (test_and_clear_bit(HCI_CONN_SCO_SETUP_PEND, &conn->pend))
++			hci_sco_setup(conn, status);
++	}
++
+ 	hci_dev_unlock(hdev);
+ }
+ 
+@@ -808,9 +812,13 @@
+ 	hci_dev_lock(hdev);
+ 
+ 	conn = hci_conn_hash_lookup_handle(hdev, __le16_to_cpu(cp->handle));
+-	if (conn)
++	if (conn) {
+ 		clear_bit(HCI_CONN_MODE_CHANGE_PEND, &conn->pend);
+ 
++		if (test_and_clear_bit(HCI_CONN_SCO_SETUP_PEND, &conn->pend))
++			hci_sco_setup(conn, status);
++	}
++
+ 	hci_dev_unlock(hdev);
+ }
+ 
+@@ -915,20 +923,8 @@
+ 	} else
+ 		conn->state = BT_CLOSED;
+ 
+-	if (conn->type == ACL_LINK) {
+-		struct hci_conn *sco = conn->link;
+-		if (sco) {
+-			if (!ev->status) {
+-				if (lmp_esco_capable(hdev))
+-					hci_setup_sync(sco, conn->handle);
+-				else
+-					hci_add_sco(sco, conn->handle);
+-			} else {
+-				hci_proto_connect_cfm(sco, ev->status);
+-				hci_conn_del(sco);
+-			}
+-		}
+-	}
++	if (conn->type == ACL_LINK)
++		hci_sco_setup(conn, ev->status);
+ 
+ 	if (ev->status) {
+ 		hci_proto_connect_cfm(conn, ev->status);
+@@ -964,7 +960,9 @@
+ 
+ 		conn = hci_conn_hash_lookup_ba(hdev, ev->link_type, &ev->bdaddr);
+ 		if (!conn) {
+-			if (!(conn = hci_conn_add(hdev, ev->link_type, &ev->bdaddr))) {
++			/* pkt_type not yet used for incoming connections */
++			if (!(conn = hci_conn_add(hdev, ev->link_type, 0,
++							&ev->bdaddr))) {
+ 				BT_ERR("No memmory for new connection");
+ 				hci_dev_unlock(hdev);
+ 				return;
+@@ -1481,6 +1479,9 @@
+ 			else
+ 				conn->power_save = 0;
+ 		}
++
++		if (test_and_clear_bit(HCI_CONN_SCO_SETUP_PEND, &conn->pend))
++			hci_sco_setup(conn, ev->status);
+ 	}
+ 
+ 	hci_dev_unlock(hdev);
+@@ -1700,6 +1701,7 @@
+ 		hci_conn_add_sysfs(conn);
+ 		break;
+ 
++	case 0x10:	/* Connection Accept Timeout */
+ 	case 0x11:	/* Unsupported Feature or Parameter Value */
+ 	case 0x1c:	/* SCO interval rejected */
+ 	case 0x1a:	/* Unsupported Remote Feature */
+diff -Nur linux-2.6.35.7/net/bluetooth/l2cap.c tiny210/net/bluetooth/l2cap.c
+--- linux-2.6.35.7/net/bluetooth/l2cap.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/l2cap.c	2011-08-08 12:52:36.000000000 +0800
+@@ -337,13 +337,19 @@
+ static inline void l2cap_send_cmd(struct l2cap_conn *conn, u8 ident, u8 code, u16 len, void *data)
+ {
+ 	struct sk_buff *skb = l2cap_build_cmd(conn, code, ident, len, data);
++	u8 flags;
+ 
+ 	BT_DBG("code 0x%2.2x", code);
+ 
+ 	if (!skb)
+ 		return;
+ 
+-	hci_send_acl(conn->hcon, skb, 0);
++	if (lmp_no_flush_capable(conn->hcon->hdev))
++		flags = ACL_START_NO_FLUSH;
++	else
++		flags = ACL_START;
++
++	hci_send_acl(conn->hcon, skb, flags);
+ }
+ 
+ static inline void l2cap_send_sframe(struct l2cap_pinfo *pi, u16 control)
+@@ -492,7 +498,8 @@
+ 					struct sock *parent = bt_sk(sk)->parent;
+ 					rsp.result = cpu_to_le16(L2CAP_CR_PEND);
+ 					rsp.status = cpu_to_le16(L2CAP_CS_AUTHOR_PEND);
+-					parent->sk_data_ready(parent, 0);
++					if (parent)
++						parent->sk_data_ready(parent, 0);
+ 
+ 				} else {
+ 					sk->sk_state = BT_CONFIG;
+@@ -809,6 +816,7 @@
+ 		pi->sec_level = l2cap_pi(parent)->sec_level;
+ 		pi->role_switch = l2cap_pi(parent)->role_switch;
+ 		pi->force_reliable = l2cap_pi(parent)->force_reliable;
++		pi->flushable = l2cap_pi(parent)->flushable;
+ 	} else {
+ 		pi->imtu = L2CAP_DEFAULT_MTU;
+ 		pi->omtu = 0;
+@@ -822,6 +830,7 @@
+ 		pi->sec_level = BT_SECURITY_LOW;
+ 		pi->role_switch = 0;
+ 		pi->force_reliable = 0;
++		pi->flushable = 0;
+ 	}
+ 
+ 	/* Default config options */
+@@ -999,7 +1008,7 @@
+ 		}
+ 	}
+ 
+-	hcon = hci_connect(hdev, ACL_LINK, dst,
++	hcon = hci_connect(hdev, ACL_LINK, 0, dst,
+ 					l2cap_pi(sk)->sec_level, auth_type);
+ 	if (!hcon)
+ 		goto done;
+@@ -1335,10 +1344,17 @@
+ static inline void l2cap_do_send(struct sock *sk, struct sk_buff *skb)
+ {
+ 	struct l2cap_pinfo *pi = l2cap_pi(sk);
++	struct hci_conn *hcon = pi->conn->hcon;
++	u16 flags;
+ 
+ 	BT_DBG("sk %p, skb %p len %d", sk, skb, skb->len);
+ 
+-	hci_send_acl(pi->conn->hcon, skb, 0);
++	if (lmp_no_flush_capable(hcon->hdev) && !l2cap_pi(sk)->flushable)
++		flags = ACL_START_NO_FLUSH;
++	else
++		flags = ACL_START;
++
++	hci_send_acl(hcon, skb, flags);
+ }
+ 
+ static int l2cap_streaming_send(struct sock *sk)
+@@ -1907,6 +1923,7 @@
+ 
+ 		l2cap_pi(sk)->role_switch    = (opt & L2CAP_LM_MASTER);
+ 		l2cap_pi(sk)->force_reliable = (opt & L2CAP_LM_RELIABLE);
++		l2cap_pi(sk)->flushable = (opt & L2CAP_LM_FLUSHABLE);
+ 		break;
+ 
+ 	default:
+@@ -2037,6 +2054,9 @@
+ 		if (l2cap_pi(sk)->force_reliable)
+ 			opt |= L2CAP_LM_RELIABLE;
+ 
++		if (l2cap_pi(sk)->flushable)
++			opt |= L2CAP_LM_FLUSHABLE;
++
+ 		if (put_user(opt, (u32 __user *) optval))
+ 			err = -EFAULT;
+ 		break;
+@@ -4457,7 +4477,7 @@
+ 
+ 	BT_DBG("conn %p len %d flags 0x%x", conn, skb->len, flags);
+ 
+-	if (flags & ACL_START) {
++	if (!(flags & ACL_CONT)) {
+ 		struct l2cap_hdr *hdr;
+ 		int len;
+ 
+diff -Nur linux-2.6.35.7/net/bluetooth/rfcomm/core.c tiny210/net/bluetooth/rfcomm/core.c
+--- linux-2.6.35.7/net/bluetooth/rfcomm/core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/rfcomm/core.c	2011-08-08 12:52:36.000000000 +0800
+@@ -248,32 +248,6 @@
+ 								auth_type);
+ }
+ 
+-static void rfcomm_session_timeout(unsigned long arg)
+-{
+-	struct rfcomm_session *s = (void *) arg;
+-
+-	BT_DBG("session %p state %ld", s, s->state);
+-
+-	set_bit(RFCOMM_TIMED_OUT, &s->flags);
+-	rfcomm_schedule(RFCOMM_SCHED_TIMEO);
+-}
+-
+-static void rfcomm_session_set_timer(struct rfcomm_session *s, long timeout)
+-{
+-	BT_DBG("session %p state %ld timeout %ld", s, s->state, timeout);
+-
+-	if (!mod_timer(&s->timer, jiffies + timeout))
+-		rfcomm_session_hold(s);
+-}
+-
+-static void rfcomm_session_clear_timer(struct rfcomm_session *s)
+-{
+-	BT_DBG("session %p state %ld", s, s->state);
+-
+-	if (timer_pending(&s->timer) && del_timer(&s->timer))
+-		rfcomm_session_put(s);
+-}
+-
+ /* ---- RFCOMM DLCs ---- */
+ static void rfcomm_dlc_timeout(unsigned long arg)
+ {
+@@ -350,7 +324,6 @@
+ 
+ 	rfcomm_session_hold(s);
+ 
+-	rfcomm_session_clear_timer(s);
+ 	rfcomm_dlc_hold(d);
+ 	list_add(&d->list, &s->dlcs);
+ 	d->session = s;
+@@ -366,9 +339,6 @@
+ 	d->session = NULL;
+ 	rfcomm_dlc_put(d);
+ 
+-	if (list_empty(&s->dlcs))
+-		rfcomm_session_set_timer(s, RFCOMM_IDLE_TIMEOUT);
+-
+ 	rfcomm_session_put(s);
+ }
+ 
+@@ -462,7 +432,6 @@
+ 
+ 	switch (d->state) {
+ 	case BT_CONNECT:
+-	case BT_CONFIG:
+ 		if (test_and_clear_bit(RFCOMM_DEFER_SETUP, &d->flags)) {
+ 			set_bit(RFCOMM_AUTH_REJECT, &d->flags);
+ 			rfcomm_schedule(RFCOMM_SCHED_AUTH);
+@@ -482,7 +451,6 @@
+ 		break;
+ 
+ 	case BT_OPEN:
+-	case BT_CONNECT2:
+ 		if (test_and_clear_bit(RFCOMM_DEFER_SETUP, &d->flags)) {
+ 			set_bit(RFCOMM_AUTH_REJECT, &d->flags);
+ 			rfcomm_schedule(RFCOMM_SCHED_AUTH);
+@@ -601,8 +569,6 @@
+ 
+ 	BT_DBG("session %p sock %p", s, sock);
+ 
+-	setup_timer(&s->timer, rfcomm_session_timeout, (unsigned long) s);
+-
+ 	INIT_LIST_HEAD(&s->dlcs);
+ 	s->state = state;
+ 	s->sock  = sock;
+@@ -634,7 +600,6 @@
+ 	if (state == BT_CONNECTED)
+ 		rfcomm_send_disc(s, 0);
+ 
+-	rfcomm_session_clear_timer(s);
+ 	sock_release(s->sock);
+ 	kfree(s);
+ 
+@@ -676,7 +641,6 @@
+ 		__rfcomm_dlc_close(d, err);
+ 	}
+ 
+-	rfcomm_session_clear_timer(s);
+ 	rfcomm_session_put(s);
+ }
+ 
+@@ -1238,8 +1202,6 @@
+ 
+ 	rfcomm_send_ua(d->session, d->dlci);
+ 
+-	rfcomm_dlc_clear_timer(d);
+-
+ 	rfcomm_dlc_lock(d);
+ 	d->state = BT_CONNECTED;
+ 	d->state_change(d, 0);
+@@ -1257,11 +1219,6 @@
+ 		if (d->defer_setup) {
+ 			set_bit(RFCOMM_DEFER_SETUP, &d->flags);
+ 			rfcomm_dlc_set_timer(d, RFCOMM_AUTH_TIMEOUT);
+-
+-			rfcomm_dlc_lock(d);
+-			d->state = BT_CONNECT2;
+-			d->state_change(d, 0);
+-			rfcomm_dlc_unlock(d);
+ 		} else
+ 			rfcomm_dlc_accept(d);
+ 	} else {
+@@ -1803,11 +1760,6 @@
+ 				if (d->defer_setup) {
+ 					set_bit(RFCOMM_DEFER_SETUP, &d->flags);
+ 					rfcomm_dlc_set_timer(d, RFCOMM_AUTH_TIMEOUT);
+-
+-					rfcomm_dlc_lock(d);
+-					d->state = BT_CONNECT2;
+-					d->state_change(d, 0);
+-					rfcomm_dlc_unlock(d);
+ 				} else
+ 					rfcomm_dlc_accept(d);
+ 			}
+@@ -1923,13 +1875,6 @@
+ 		struct rfcomm_session *s;
+ 		s = list_entry(p, struct rfcomm_session, list);
+ 
+-		if (test_and_clear_bit(RFCOMM_TIMED_OUT, &s->flags)) {
+-			s->state = BT_DISCONN;
+-			rfcomm_send_disc(s, 0);
+-			rfcomm_session_put(s);
+-			continue;
+-		}
+-
+ 		if (s->state == BT_LISTEN) {
+ 			rfcomm_accept_connection(s);
+ 			continue;
+diff -Nur linux-2.6.35.7/net/bluetooth/sco.c tiny210/net/bluetooth/sco.c
+--- linux-2.6.35.7/net/bluetooth/sco.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/bluetooth/sco.c	2011-08-08 12:52:36.000000000 +0800
+@@ -178,6 +178,7 @@
+ {
+ 	bdaddr_t *src = &bt_sk(sk)->src;
+ 	bdaddr_t *dst = &bt_sk(sk)->dst;
++	__u16 pkt_type = sco_pi(sk)->pkt_type;
+ 	struct sco_conn *conn;
+ 	struct hci_conn *hcon;
+ 	struct hci_dev  *hdev;
+@@ -194,10 +195,13 @@
+ 
+ 	if (lmp_esco_capable(hdev) && !disable_esco)
+ 		type = ESCO_LINK;
+-	else
++	else {
+ 		type = SCO_LINK;
++		pkt_type &= SCO_ESCO_MASK;
++	}
+ 
+-	hcon = hci_connect(hdev, type, dst, BT_SECURITY_LOW, HCI_AT_NO_BONDING);
++	hcon = hci_connect(hdev, type, pkt_type, dst,
++					BT_SECURITY_LOW, HCI_AT_NO_BONDING);
+ 	if (!hcon)
+ 		goto done;
+ 
+@@ -450,18 +454,22 @@
+ 	return 0;
+ }
+ 
+-static int sco_sock_bind(struct socket *sock, struct sockaddr *addr, int addr_len)
++static int sco_sock_bind(struct socket *sock, struct sockaddr *addr, int alen)
+ {
+-	struct sockaddr_sco *sa = (struct sockaddr_sco *) addr;
++	struct sockaddr_sco sa;
+ 	struct sock *sk = sock->sk;
+-	bdaddr_t *src = &sa->sco_bdaddr;
+-	int err = 0;
++	bdaddr_t *src = &sa.sco_bdaddr;
++	int len, err = 0;
+ 
+-	BT_DBG("sk %p %s", sk, batostr(&sa->sco_bdaddr));
++	BT_DBG("sk %p %s", sk, batostr(&sa.sco_bdaddr));
+ 
+ 	if (!addr || addr->sa_family != AF_BLUETOOTH)
+ 		return -EINVAL;
+ 
++	memset(&sa, 0, sizeof(sa));
++	len = min_t(unsigned int, sizeof(sa), alen);
++	memcpy(&sa, addr, len);
++
+ 	lock_sock(sk);
+ 
+ 	if (sk->sk_state != BT_OPEN) {
+@@ -475,7 +483,8 @@
+ 		err = -EADDRINUSE;
+ 	} else {
+ 		/* Save source address */
+-		bacpy(&bt_sk(sk)->src, &sa->sco_bdaddr);
++		bacpy(&bt_sk(sk)->src, &sa.sco_bdaddr);
++		sco_pi(sk)->pkt_type = sa.sco_pkt_type;
+ 		sk->sk_state = BT_BOUND;
+ 	}
+ 
+@@ -488,27 +497,34 @@
+ 
+ static int sco_sock_connect(struct socket *sock, struct sockaddr *addr, int alen, int flags)
+ {
+-	struct sockaddr_sco *sa = (struct sockaddr_sco *) addr;
+ 	struct sock *sk = sock->sk;
+-	int err = 0;
+-
++	struct sockaddr_sco sa;
++	int len, err = 0;
+ 
+ 	BT_DBG("sk %p", sk);
+ 
+-	if (alen < sizeof(struct sockaddr_sco) ||
+-	    addr->sa_family != AF_BLUETOOTH)
++	if (!addr || addr->sa_family != AF_BLUETOOTH)
+ 		return -EINVAL;
+ 
+-	if (sk->sk_state != BT_OPEN && sk->sk_state != BT_BOUND)
+-		return -EBADFD;
+-
+-	if (sk->sk_type != SOCK_SEQPACKET)
+-		return -EINVAL;
++	memset(&sa, 0, sizeof(sa));
++	len = min_t(unsigned int, sizeof(sa), alen);
++	memcpy(&sa, addr, len);
+ 
+ 	lock_sock(sk);
+ 
++	if (sk->sk_type != SOCK_SEQPACKET) {
++		err = -EINVAL;
++		goto done;
++	}
++
++	if (sk->sk_state != BT_OPEN && sk->sk_state != BT_BOUND) {
++		err = -EBADFD;
++		goto done;
++	}
++
+ 	/* Set destination address and psm */
+-	bacpy(&bt_sk(sk)->dst, &sa->sco_bdaddr);
++	bacpy(&bt_sk(sk)->dst, &sa.sco_bdaddr);
++	sco_pi(sk)->pkt_type = sa.sco_pkt_type;
+ 
+ 	if ((err = sco_connect(sk)))
+ 		goto done;
+@@ -614,6 +630,7 @@
+ 		bacpy(&sa->sco_bdaddr, &bt_sk(sk)->dst);
+ 	else
+ 		bacpy(&sa->sco_bdaddr, &bt_sk(sk)->src);
++	sa->sco_pkt_type = sco_pi(sk)->pkt_type;
+ 
+ 	return 0;
+ }

@@ -1,0 +1,58 @@
+config 'interface' 'wan'
+	option 'classgroup' 'Default'
+	option 'enabled' '0'
+	option 'overhead' '1'
+	option 'download' '20000'
+	option 'upload' '1024'
+
+
+#config 'default'
+#	option 'target' 'Priority'
+#	option 'proto' 'udp'
+#	option 'pktsize' '-100'
+
+#config 'default'
+#	option 'target' 'Express'
+#	option 'proto' 'udp'
+#	option 'pktsize' '-500'
+
+#config 'default'
+#	option 'target' 'Normal'
+#	option 'proto' 'udp'
+#	option 'pktsize' '0-1000'
+
+
+#config 'default'
+#	option 'target' 'Bulk'
+#	option 'portrange' '1024-65535'
+
+
+config 'classgroup' 'Default'
+	option 'classes' 'Priority Express Normal Bulk Bulk2'
+	option 'default' 'Bulk'
+
+config 'class' 'Priority'
+	option 'packetsize' '400'
+	option 'maxsize' '400'
+	option 'avgrate' '10'
+	option 'priority' '20'
+
+config 'class' 'Express'
+	option 'packetsize' '1000'
+	option 'maxsize' '800'
+	option 'avgrate' '50'
+	option 'priority' '10'
+
+config 'class' 'Normal'
+	option 'packetsize' '1500'
+	option 'packetdelay' '100'
+	option 'avgrate' '10'
+	option 'priority' '5'
+
+config 'class' 'Bulk'
+	option 'avgrate' '1'
+	option 'packetdelay' '200'
+
+config 'class' 'Bulk2'
+	option 'avgrate' '1'
+	option 'packetdelay' '300'

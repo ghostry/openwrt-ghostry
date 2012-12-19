@@ -1,0 +1,33 @@
+--- linux-2.6.30.10/arch/x86/boot/compressed/misc.c.orig	2009-12-04 01:00:07.000000000 -0500
++++ linux-2.6.30.10/arch/x86/boot/compressed/misc.c	2010-12-31 08:09:52.000000000 -0500
+@@ -31,7 +31,9 @@
+ #include <asm/page.h>
+ #include <asm/boot.h>
+ #include <asm/bootparam.h>
+-
++#ifdef CONFIG_MGB100
++#include <asm/mach-mgb100/early_serial.h>
++#endif
+ /* WARNING!!
+  * This code is compiled with -fPIC and it is relocated dynamically
+  * at run time, but no relocation processing is performed.
+@@ -341,11 +343,17 @@
+ #endif
+ #endif
+ 
+-	if (!quiet)
++	if (!quiet) 
++                early_serial_init(); //init serial
++                early_serial_write("early_serial_init...ok!\n\n", 512);
++
++	        early_serial_write("MGB100 Linux @ Lintel 2010\n\n", 512);
+ 		putstr("\nDecompressing Linux... ");
++                early_serial_write("Uncompressing Linux...", 512);
+ 	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
+ 	parse_elf(output);
+ 	if (!quiet)
+-		putstr("done.\nBooting the kernel.\n");
++		putstr("done.\nBooting the kernel!\n");
++                early_serial_write("Done,\n booting Kernel!\n\n", 512);
+ 	return;
+ }

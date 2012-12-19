@@ -1,0 +1,223 @@
+--- linux-2.6.35.7/arch/arm/plat-s5p/clock.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/clock.c	2011-08-08 12:52:05.000000000 +0800
+@@ -36,6 +36,13 @@
+ struct clk clk_xusbxti = {
+ 	.name		= "xusbxti",
+ 	.id		= -1,
++	.rate		= 24000000,
++};
++
++struct clk clk_xrtcxti = {
++	.name		= "xrtcxti",
++	.id		= -1,
++	.rate		= 32768,
+ };
+ 
+ struct clk s5p_clk_27m = {
+@@ -140,6 +147,8 @@
+ 
+ static struct clk *s5p_clks[] __initdata = {
+ 	&clk_ext_xtal_mux,
++	&clk_xrtcxti,
++	&clk_xusbxti,
+ 	&clk_48m,
+ 	&s5p_clk_27m,
+ 	&clk_fout_apll,
+@@ -148,7 +157,6 @@
+ 	&clk_fout_vpll,
+ 	&clk_arm,
+ 	&clk_vpll,
+-	&clk_xusbxti,
+ };
+ 
+ void __init s5p_register_clocks(unsigned long xtal_freq)
+--- linux-2.6.35.7/arch/arm/plat-s5p/irq.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/irq.c	2011-08-08 12:52:05.000000000 +0800
+@@ -24,6 +24,23 @@
+ #include <plat/cpu.h>
+ #include <plat/irq-vic-timer.h>
+ #include <plat/irq-uart.h>
++#include <plat/irq-pm.h>
++
++/* Wakeup source */
++static int wakeup_source[] = {
++	IRQ_RTC_ALARM,
++	IRQ_RTC_TIC,
++	IRQ_ADC,
++	IRQ_ADC1,
++	IRQ_KEYPAD,
++	IRQ_HSMMC0,
++	IRQ_HSMMC1,
++	IRQ_HSMMC2,
++	IRQ_MMC3,
++	IRQ_I2S0,
++	IRQ_SYSTIMER,
++	IRQ_CEC
++};
+ 
+ /*
+  * Note, we make use of the fact that the parent IRQs, IRQ_UART[0..3]
+@@ -56,6 +73,7 @@
+ 
+ void __init s5p_init_irq(u32 *vic, u32 num_vic)
+ {
++	struct irq_chip *chip;
+ 	int irq;
+ 
+ 	/* initialize the VICs */
+@@ -69,4 +87,10 @@
+ 	s3c_init_vic_timer_irq(IRQ_TIMER4_VIC, IRQ_TIMER4);
+ 
+ 	s3c_init_uart_irqs(uart_irqs, ARRAY_SIZE(uart_irqs));
++
++	/* Register wakeup source. */
++	for (irq = 0; irq < ARRAY_SIZE(wakeup_source); irq++) {
++		chip = get_irq_chip(wakeup_source[irq]);
++		chip->set_wake = s3c_irq_wake;
++	}
+ }
+--- linux-2.6.35.7/arch/arm/plat-s5p/irq-eint.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/irq-eint.c	2011-08-08 12:52:05.000000000 +0800
+@@ -37,20 +37,30 @@
+ 	__raw_writel(mask, S5P_EINT_MASK(EINT_REG_NR(irq)));
+ }
+ 
++static inline void s5p_irq_eint_ack(unsigned int irq)
++{
++	__raw_writel(eint_irq_to_bit(irq), S5P_EINT_PEND(EINT_REG_NR(irq)));
++}
++
+ static void s5p_irq_eint_unmask(unsigned int irq)
+ {
+ 	u32 mask;
+ 
++	/* for level triggered interrupts, masking doesn't prevent
++	 * the interrupt from becoming pending again.  by the time
++	 * the handler (either irq or thread) can do its thing to clear
++	 * the interrupt, it's too late because it could be pending
++	 * already.  we have to ack it here, after the handler runs,
++	 * or else we get a false interrupt.
++	 */
++	if (irq_to_desc(irq)->status & IRQ_LEVEL)
++		s5p_irq_eint_ack(irq);
++
+ 	mask = __raw_readl(S5P_EINT_MASK(EINT_REG_NR(irq)));
+ 	mask &= ~(eint_irq_to_bit(irq));
+ 	__raw_writel(mask, S5P_EINT_MASK(EINT_REG_NR(irq)));
+ }
+ 
+-static inline void s5p_irq_eint_ack(unsigned int irq)
+-{
+-	__raw_writel(eint_irq_to_bit(irq), S5P_EINT_PEND(EINT_REG_NR(irq)));
+-}
+-
+ static void s5p_irq_eint_maskack(unsigned int irq)
+ {
+ 	/* compiler should in-line these */
+@@ -64,6 +74,7 @@
+ 	int shift;
+ 	u32 ctrl, mask;
+ 	u32 newvalue = 0;
++	struct irq_desc *desc = irq_to_desc(irq);
+ 
+ 	switch (type) {
+ 	case IRQ_TYPE_EDGE_RISING:
+@@ -114,6 +125,11 @@
+ 	else
+ 		printk(KERN_ERR "No such irq number %d", offs);
+ 
++	if (type & IRQ_TYPE_EDGE_BOTH)
++		desc->handle_irq = handle_edge_irq;
++	else
++		desc->handle_irq = handle_level_irq;
++
+ 	return 0;
+ }
+ 
+--- linux-2.6.35.7/arch/arm/plat-s5p/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/Kconfig	2011-08-08 12:52:05.000000000 +0800
+@@ -25,8 +25,56 @@
+ 	help
+ 	  Base platform code for Samsung's S5P series SoC.
+ 
++config SYSTIMER_S5P
++	bool
++	depends on (ARCH_S5P6442 || ARCH_S5PV210)
++	default y
++	help
++	  Support System Timer for S5P Series
++
++
+ config S5P_EXT_INT
+ 	bool
+ 	help
+ 	  Use the external interrupts (other than GPIO interrupts.)
+ 	  Note: Do not choose this for S5P6440.
++
++# FB part
++config S5P_DEV_FB
++	bool
++	depends on FB_S3C
++	default y
++	help
++	  Compile in platform device definitions for FIMD controller
++
++config S5P_HIGH_RES_TIMERS
++	bool "HRtimer and Dynamic Tick support"
++	select GENERIC_TIME
++	select GENERIC_CLOCKEVENTS
++	select HIGH_RES_TIMERS
++	select HRT_RTC
++	select NO_HZ
++	default n
++	help
++	  Support for HRtimer and Dynamic Tick system.
++
++config HRT_RTC
++	bool
++	depends on S5P_HIGH_RES_TIMERS
++	default y
++	help
++	  RTC and System timer are used as HRT
++
++# MFC part
++config S5P_DEV_MFC
++	bool
++	default n
++	help
++	  Compile in platform device definitions for MFC
++
++config S5P_SETUP_MFC
++	bool
++	default n
++	help
++	  Common setup code for MFC
++
+--- linux-2.6.35.7/arch/arm/plat-s5p/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/Makefile	2011-08-08 12:52:05.000000000 +0800
+@@ -16,5 +16,24 @@
+ obj-y				+= cpu.o
+ obj-y				+= clock.o
+ obj-y				+= irq.o
+-obj-$(CONFIG_S5P_EXT_INT)	+= irq-eint.o
++obj-y				+= devs.o
++obj-y				+= bootmem.o
++obj-$(CONFIG_S5P_EXT_INT)	+= irq-eint.o irq-eint-group.o
+ 
++# PM support
++
++# PM support
++
++obj-$(CONFIG_PM)		+= pm.o
++obj-$(CONFIG_PM)		+= irq-pm.o
++
++ifndef CONFIG_S5P_HIGH_RES_TIMERS
++obj-$(CONFIG_SYSTIMER_S5P)	+= systimer-s5p.o
++else
++ifdef CONFIG_HRT_RTC
++obj-y				+= hr-time-rtc.o
++endif
++endif
++
++obj-$(CONFIG_S5P_DEV_MFC)	+= dev-mfc.o
++obj-$(CONFIG_S5P_SETUP_MFC)	+= setup-mfc.o

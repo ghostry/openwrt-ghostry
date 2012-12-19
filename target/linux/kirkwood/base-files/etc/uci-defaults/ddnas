@@ -1,0 +1,65 @@
+#!/bin/sh
+#
+# Copyright (C) 2010 OpenWrt.org
+#
+
+
+. /lib/kirkwood.sh
+
+board=$(kirkwood_board_name)
+
+ddnas_V1_set() {
+uci batch <<EOF
+
+          set system.@system[0].zonename=Asia/Shanghai
+          set system.@system[0].timezone=CST-8
+          set system.@system[0].hostname=DDNAS-V1
+
+          add system led
+          set system.@led[-1].name=internet
+          set system.@led[-1].sysfs=Ddnas:Internet
+          set system.@led[-1].default=1
+          set system.@led[-1].trigger=netdev
+          set system.@led[-1].dev=eth1
+          set system.@led[-1].mode="link tx rx"
+
+
+          add system led
+          set system.@led[-1]=led
+          set system.@led[-1].name=usb1
+          set system.@led[-1].sysfs=Ddnas:Usb
+          set system.@led[-1].trigger=usbdev
+          set system.@led[-1].dev=1-1
+
+          commit system
+EOF
+}
+
+ddnas_V2_set() {
+uci batch <<EOF
+
+          set system.@system[0].zonename=Asia/Shanghai
+          set system.@system[0].timezone=CST-8
+          set system.@system[0].hostname=DDNAS-V2
+
+          add system led
+          set system.@led[-1]=led
+          set system.@led[-1].name=usb1
+          set system.@led[-1].sysfs=Ddnas:Usb
+          set system.@led[-1].trigger=usbdev
+          set system.@led[-1].dev=1-1
+
+          commit system
+EOF
+}
+
+
+if [ "${board}" == "ddnasv1" ]; then
+	ddnas_V1_set
+fi
+
+if [ "${board}" == "ddnasv2" ]; then
+	ddnas_V2_set
+fi
+
+

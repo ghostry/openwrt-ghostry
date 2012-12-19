@@ -1,0 +1,39 @@
+#!/bin/sh
+
+# Copyright (C) 2009 OpenWrt.org
+# midfiy by zjhzzyf 2011 7 15 ddnas usb led
+
+qssgreen="/sys/devices/platform/leds-gpio/leds/Ddnas:Usb"
+case "$ACTION" in
+        add)
+sleep 2
+
+usbdevice_num=$(ls /sys/devices/platform/orion-ehci.0/usb1/1-1|grep -v 1.0| grep -c 1-1)
+
+echo " `data` add $usbdevice_num " >> /tmp/usbled1
+[ "$usbdevice_num" -ge "2" ]&&usb_device_name="1-1"
+[ "$usbdevice_num" == "1" ]&&usb_device_name=$(ls /sys/devices/platform/orion-ehci.0/usb1/1-1|grep -v 1.0| grep 1-1)
+
+
+        echo 255 > ${qssgreen}/brightness
+      echo usbdev > ${qssgreen}/trigger
+      echo $usb_device_name > ${qssgreen}/device_name 
+                # update LEDs
+                ;;
+        remove)
+sleep 2
+usbdevice_num=$(ls /sys/devices/platform/orion-ehci.0/usb1/1-1|grep -v 1.0| grep -c 1-1)
+echo " `data` remove $usbdevice_num" >> /tmp/usbled1
+[ "$usbdevice_num" == "1" ]&&{
+usb_device_name=$(ls /sys/devices/platform/orion-ehci.0/usb1/1-1|grep -v 1.0| grep 1-1)
+echo $usb_device_name > ${qssgreen}/device_name 
+}
+
+[ "$usbdevice_num" lt "1" ]&&{
+        echo 0 > ${qssgreen}/brightness
+        echo none > ${qssgreen}/trigger
+}
+
+                # update LEDs
+                ;;
+esac

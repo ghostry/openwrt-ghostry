@@ -1,0 +1,11 @@
+--- a/pptp.c
++++ b/pptp.c
+@@ -386,6 +386,8 @@
+     struct in_addr retval;
+     struct hostent *host = gethostbyname(name);
+     if (host == NULL) {
++	sleep(5);
++	log("sleep for 5 seconds for hostname '%s' can't resolve to ip", name);
+         if (h_errno == HOST_NOT_FOUND)
+             fatal("gethostbyname '%s': HOST NOT FOUND", name);
+         else if (h_errno == NO_ADDRESS)

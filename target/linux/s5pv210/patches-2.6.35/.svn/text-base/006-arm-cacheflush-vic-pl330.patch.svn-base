@@ -1,0 +1,41 @@
+--- linux-2.6.35.7/arch/arm/include/asm/cacheflush.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/include/asm/cacheflush.h	2011-08-08 12:52:05.000000000 +0800
+@@ -336,7 +336,7 @@
+  * Harvard caches are synchronised for the user space address range.
+  * This is used for the ARM private sys_cacheflush system call.
+  */
+-#define flush_cache_user_range(vma,start,end) \
++#define flush_cache_user_range(start,end) \
+ 	__cpuc_coherent_user_range((start) & PAGE_MASK, PAGE_ALIGN(end))
+ 
+ /*
+diff -Nur linux-2.6.35.7/arch/arm/include/asm/hardware/pl330.h tiny210/arch/arm/include/asm/hardware/pl330.h
+--- linux-2.6.35.7/arch/arm/include/asm/hardware/pl330.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/include/asm/hardware/pl330.h	2011-08-09 11:11:50.000000000 +0800
+@@ -150,6 +150,7 @@
+ 	MEMTODEV,
+ 	DEVTOMEM,
+ 	DEVTODEV,
++	MEMTOMEM_NOBARRIER,
+ };
+ 
+ /* A request defining Scatter-Gather List ending with NULL xfer. */
+@@ -165,6 +166,7 @@
+ 	struct pl330_reqcfg *cfg;
+ 	/* Pointer to first xfer in the request. */
+ 	struct pl330_xfer *x;
++	u32 autoload;
+ };
+ 
+ /*
+diff -Nur linux-2.6.35.7/arch/arm/include/asm/hardware/vic.h tiny210/arch/arm/include/asm/hardware/vic.h
+--- linux-2.6.35.7/arch/arm/include/asm/hardware/vic.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/include/asm/hardware/vic.h	2011-08-08 12:52:05.000000000 +0800
+@@ -42,6 +42,7 @@
+ 
+ #ifndef __ASSEMBLY__
+ void vic_init(void __iomem *base, unsigned int irq_start, u32 vic_sources, u32 resume_sources);
++int vic_set_fiq(unsigned int irq, bool enable);
+ #endif
+ 
+ #endif

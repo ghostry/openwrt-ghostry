@@ -1,0 +1,203 @@
+diff -Nur linux-2.6.35.7/drivers/i2c/busses/i2c-s3c2410.c tiny210/drivers/i2c/busses/i2c-s3c2410.c
+--- linux-2.6.35.7/drivers/i2c/busses/i2c-s3c2410.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/i2c/busses/i2c-s3c2410.c	2011-08-08 12:52:19.000000000 +0800
+@@ -249,12 +249,12 @@
+ 	return i2c->msg_ptr >= i2c->msg->len;
+ }
+ 
+-/* i2s_s3c_irq_nextbyte
++/* i2c_s3c_irq_nextbyte
+  *
+  * process an interrupt and work out what to do
+  */
+ 
+-static int i2s_s3c_irq_nextbyte(struct s3c24xx_i2c *i2c, unsigned long iicstat)
++static int i2c_s3c_irq_nextbyte(struct s3c24xx_i2c *i2c, unsigned long iicstat)
+ {
+ 	unsigned long tmp;
+ 	unsigned char byte;
+@@ -445,7 +445,7 @@
+ 	/* pretty much this leaves us with the fact that we've
+ 	 * transmitted or received whatever byte we last sent */
+ 
+-	i2s_s3c_irq_nextbyte(i2c, status);
++	i2c_s3c_irq_nextbyte(i2c, status);
+ 
+  out:
+ 	return IRQ_HANDLED;
+@@ -471,6 +471,10 @@
+ 		msleep(1);
+ 	}
+ 
++	writel(iicstat & ~S3C2410_IICSTAT_TXRXEN, i2c->regs + S3C2410_IICSTAT);
++	if (!(readl(i2c->regs + S3C2410_IICSTAT) & S3C2410_IICSTAT_BUSBUSY))
++		return 0;
++
+ 	return -ETIMEDOUT;
+ }
+ 
+@@ -482,8 +486,7 @@
+ static int s3c24xx_i2c_doxfer(struct s3c24xx_i2c *i2c,
+ 			      struct i2c_msg *msgs, int num)
+ {
+-	unsigned long iicstat, timeout;
+-	int spins = 20;
++	unsigned long timeout;
+ 	int ret;
+ 
+ 	if (i2c->suspended)
+@@ -522,21 +525,7 @@
+ 
+ 	/* ensure the stop has been through the bus */
+ 
+-	dev_dbg(i2c->dev, "waiting for bus idle\n");
+-
+-	/* first, try busy waiting briefly */
+-	do {
+-		iicstat = readl(i2c->regs + S3C2410_IICSTAT);
+-	} while ((iicstat & S3C2410_IICSTAT_START) && --spins);
+-
+-	/* if that timed out sleep */
+-	if (!spins) {
+-		msleep(1);
+-		iicstat = readl(i2c->regs + S3C2410_IICSTAT);
+-	}
+-
+-	if (iicstat & S3C2410_IICSTAT_START)
+-		dev_warn(i2c->dev, "timeout waiting for bus idle\n");
++	udelay(10);
+ 
+  out:
+ 	return ret;
+@@ -555,19 +544,24 @@
+ 	int retry;
+ 	int ret;
+ 
++	clk_enable(i2c->clk);
++
+ 	for (retry = 0; retry < adap->retries; retry++) {
+ 
+ 		ret = s3c24xx_i2c_doxfer(i2c, msgs, num);
+ 
+ 		if (ret != -EAGAIN)
+-			return ret;
++			goto out;
+ 
+ 		dev_dbg(i2c->dev, "Retrying transmission (%d)\n", retry);
+ 
+ 		udelay(100);
+ 	}
++	ret = -EREMOTEIO;
++out:
++	clk_disable(i2c->clk);
+ 
+-	return -EREMOTEIO;
++	return ret;
+ }
+ 
+ /* declare our i2c functionality */
+@@ -658,23 +652,6 @@
+ 
+ 	writel(iiccon, i2c->regs + S3C2410_IICCON);
+ 
+-	if (s3c24xx_i2c_is2440(i2c)) {
+-		unsigned long sda_delay;
+-
+-		if (pdata->sda_delay) {
+-			sda_delay = (freq / 1000) * pdata->sda_delay;
+-			sda_delay /= 1000000;
+-			sda_delay = DIV_ROUND_UP(sda_delay, 5);
+-			if (sda_delay > 3)
+-				sda_delay = 3;
+-			sda_delay |= S3C2410_IICLC_FILTER_ON;
+-		} else
+-			sda_delay = 0;
+-
+-		dev_dbg(i2c->dev, "IICLC=%08lx\n", sda_delay);
+-		writel(sda_delay, i2c->regs + S3C2440_IICLC);
+-	}
+-
+ 	return 0;
+ }
+ 
+@@ -691,6 +668,8 @@
+ 	int delta_f;
+ 	int ret;
+ 
++	clk_enable(i2c->clk);
++
+ 	delta_f = clk_get_rate(i2c->clk) - i2c->clkrate;
+ 
+ 	/* if we're post-change and the input clock has slowed down
+@@ -710,6 +689,8 @@
+ 			dev_info(i2c->dev, "setting freq %d\n", got);
+ 	}
+ 
++	clk_disable(i2c->clk);
++
+ 	return 0;
+ }
+ 
+@@ -762,7 +743,7 @@
+ 
+ 	writeb(pdata->slave_addr, i2c->regs + S3C2410_IICADD);
+ 
+-	dev_info(i2c->dev, "slave address 0x%02x\n", pdata->slave_addr);
++	dev_dbg(i2c->dev, "slave address 0x%02x\n", pdata->slave_addr);
+ 
+ 	writel(iicon, i2c->regs + S3C2410_IICCON);
+ 
+@@ -776,9 +757,12 @@
+ 
+ 	/* todo - check that the i2c lines aren't being dragged anywhere */
+ 
+-	dev_info(i2c->dev, "bus frequency set to %d KHz\n", freq);
++	dev_dbg(i2c->dev, "bus frequency set to %d KHz\n", freq);
+ 	dev_dbg(i2c->dev, "S3C2410_IICCON=0x%02lx\n", iicon);
+ 
++	dev_dbg(i2c->dev, "S3C2440_IICLC=%08x\n", pdata->sda_delay);
++	writel(pdata->sda_delay, i2c->regs + S3C2440_IICLC);
++
+ 	return 0;
+ }
+ 
+@@ -820,6 +804,7 @@
+ 
+ 	i2c->dev = &pdev->dev;
+ 	i2c->clk = clk_get(&pdev->dev, "i2c");
++
+ 	if (IS_ERR(i2c->clk)) {
+ 		dev_err(&pdev->dev, "cannot get clock\n");
+ 		ret = -ENOENT;
+@@ -910,6 +895,8 @@
+ 
+ 	platform_set_drvdata(pdev, i2c);
+ 
++	clk_disable(i2c->clk);
++
+ 	dev_info(&pdev->dev, "%s: S3C I2C adapter\n", dev_name(&i2c->adap.dev));
+ 	return 0;
+ 
+@@ -978,7 +965,10 @@
+ 	struct s3c24xx_i2c *i2c = platform_get_drvdata(pdev);
+ 
+ 	i2c->suspended = 0;
++
++	clk_enable(i2c->clk);
+ 	s3c24xx_i2c_init(i2c);
++	clk_disable(i2c->clk);
+ 
+ 	return 0;
+ }
+diff -Nur linux-2.6.35.7/drivers/i2c/busses/Kconfig tiny210/drivers/i2c/busses/Kconfig
+--- linux-2.6.35.7/drivers/i2c/busses/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/i2c/busses/Kconfig	2011-08-08 12:52:19.000000000 +0800
+@@ -523,7 +523,7 @@
+ 
+ config I2C_S3C2410
+ 	tristate "S3C2410 I2C Driver"
+-	depends on ARCH_S3C2410 || ARCH_S3C64XX
++	depends on ARCH_S3C2410 || ARCH_S3C64XX || ARCH_S5PV210
+ 	help
+ 	  Say Y here to include support for I2C controller in the
+ 	  Samsung S3C2410 based System-on-Chip devices.

@@ -1,0 +1,147 @@
+--- /dev/null	2011-05-18 12:43:03.817596999 +0800
++++ b/extensions/libipt_IPID.c	2011-05-18 15:43:13.061891016 +0800
+@@ -0,0 +1,121 @@
++/* Shared library add-on to iptables for the IPID target
++ * This program is distributed under the terms of GNU GPL
++ */
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
++#include <xtables.h>
++
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/ipt_IPID.h>
++
++#define IPT_IPID_USED	1
++
++static void IPID_help(void) 
++{
++	printf(
++		"IPID target options\n"
++		"--ipid-pace value\n"
++		"--ipid-chaotic value\n");
++
++}
++
++static int IPID_parse (int c, char **argv, int invert, unsigned int *flags,
++			const void *entry, struct xt_entry_target **target)
++
++{
++	struct ipt_IPID_info *info = (struct ipt_IPID_info *) (*target)->data;
++	unsigned int value;
++
++	if (*flags & IPT_IPID_USED) {
++		xtables_error(PARAMETER_PROBLEM, 
++				"Can't specify IPID option twice");
++	}
++	if (!optarg)
++		xtables_error(PARAMETER_PROBLEM,
++				"IPID: You must specify a value");
++	if (xtables_check_inverse(optarg,&invert,NULL,0, argv))
++		xtables_error(PARAMETER_PROBLEM,
++				"IPID: unexpected '!'");
++	if(!xtables_strtoui(optarg, NULL, &value, 0, 65535))
++		xtables_error(PARAMETER_PROBLEM,
++				"IPID: Expected value between 0 and 65535");
++	switch (c) {
++		case '1':
++			info->mode = IP_IPID_PACE;
++			info->ipid = value;
++			break;
++		case '2':
++			info->mode = IP_IPID_CHAOTIC;
++			break;
++	}
++	*flags |= IPT_IPID_USED;
++
++	return 1;
++}
++
++static void IPID_check(unsigned int flags)
++{
++	if (!(flags & IPT_IPID_USED))
++		xtables_error(PARAMETER_PROBLEM,
++				"IPID: You must specify an action");
++}
++
++static void IPID_save (const void *ip, const struct xt_entry_target *target)
++{
++	const struct ipt_IPID_info *info = 
++		(struct ipt_IPID_info *) target->data;
++	switch(info->mode){
++		case IP_IPID_PACE:
++			printf("--ipid-pace %u",info->ipid);
++			break;
++		case IP_IPID_CHAOTIC:
++			printf("--ipid-chaotic 0");
++			break;
++	}
++
++}
++
++static void IPID_print (const void *ip, const struct xt_entry_target *target,int numeric) 
++{
++	const struct ipt_IPID_info *info =
++		(struct ipt_IPID_info *) target->data;
++
++	printf("IPID ");
++	switch(info->mode){
++		case IP_IPID_PACE:
++			printf("pace is %u ", info->ipid);
++			break;
++		case IP_IPID_CHAOTIC:
++			printf("chaotic");
++			break;
++		default:
++			printf("chaotic");
++	}
++}
++
++static struct option IPID_opts[] = {
++	{ "ipid-pace",	1,	NULL, '1'	},
++	{ "ipid-chaotic",1,	NULL, '2'	},
++	{ .name=NULL	}	
++};
++
++static struct xtables_target ipid_tg_reg = {
++	.name		= "IPID",
++	.version	= XTABLES_VERSION,
++	.family         = NFPROTO_IPV4,
++	.size		= XT_ALIGN(sizeof(struct ipt_IPID_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct ipt_IPID_info)),
++	.help		= IPID_help,
++	.parse		= IPID_parse,
++	.final_check	= IPID_check,
++	.print		= IPID_print,
++	.save		= IPID_save,
++	.extra_opts	= IPID_opts, 
++};
++
++void _init(void)
++{
++	xtables_register_target(&ipid_tg_reg);
++}
+
+--- /dev/null	2011-05-18 12:43:03.817596999 +0800
++++ b/include/linux/ipt_IPID.h	2007-09-05 10:31:21.000000000 +0800
+@@ -0,0 +1,19 @@
++/* IPID modification module for IP tables */
++
++#ifndef _IPT_IPID_H
++#define _IPT_IPID_H
++
++//#define	IP_IPID_PACE  0
++//#define IP_IPID_CHAOTIC 1
++enum {
++	IP_IPID_PACE = 0,
++	IP_IPID_CHAOTIC
++}IP_IPID;
++
++struct ipt_IPID_info {
++	u_int8_t	mode;
++	u_int16_t	ipid;
++};
++
++
++#endif

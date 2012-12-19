@@ -1,0 +1,34 @@
+10
+
+dir
+557
+svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s5pv210/base-files/lib
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2012-04-20T06:14:47.291909Z
+427
+richard.nee.cn
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+preinit
+dir
+
+upgrade
+dir
+

@@ -1,0 +1,207 @@
+--- a/include/linux/netfilter/xt_recent.h	
++++ b/include/linux/netfilter/xt_recent.h	
+@@ -7,7 +7,7 @@
+ 	XT_RECENT_UPDATE   = 1 << 2,
+ 	XT_RECENT_REMOVE   = 1 << 3,
+ 	XT_RECENT_TTL      = 1 << 4,
+-
++	XT_RECENT_PORT     = 1 << 5,
+ 	XT_RECENT_SOURCE   = 0,
+ 	XT_RECENT_DEST     = 1,
+
+--- b/net/netfilter/xt_recent.c		
++++ b/net/netfilter/xt_recent.c	
+@@ -27,6 +27,8 @@
+ #include <linux/bitops.h>
+ #include <linux/skbuff.h>
+ #include <linux/inet.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
+ #include <net/net_namespace.h>
+ 
+ #include <linux/netfilter/x_tables.h>
+@@ -39,7 +41,7 @@
+ MODULE_ALIAS("ipt_recent");
+ MODULE_ALIAS("ip6t_recent");
+ 
+-static unsigned int ip_list_tot = 100;
++static unsigned int ip_list_tot = 1000;
+ static unsigned int ip_pkt_list_tot = 20;
+ static unsigned int ip_list_hash_size = 0;
+ static unsigned int ip_list_perms = 0644;
+@@ -62,6 +64,7 @@
+ 	struct list_head	list;
+ 	struct list_head	lru_list;
+ 	union nf_inet_addr	addr;
++	u_int16_t		port;
+ 	u_int16_t		family;
+ 	u_int8_t		ttl;
+ 	u_int8_t		index;
+@@ -93,13 +96,13 @@
+ static u_int32_t hash_rnd;
+ static bool hash_rnd_initted;
+ 
+-static unsigned int recent_entry_hash4(const union nf_inet_addr *addr)
++static unsigned int recent_entry_hash4(const union nf_inet_addr *addr,u_int16_t port)
+ {
+ 	if (!hash_rnd_initted) {
+ 		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
+ 		hash_rnd_initted = true;
+ 	}
+-	return jhash_1word((__force u32)addr->ip, hash_rnd) &
++	return jhash_2words((__force u32)addr->ip, (__force u32)port, hash_rnd) &
+ 	       (ip_list_hash_size - 1);
+ }
+ 
+@@ -116,20 +119,21 @@
+ static struct recent_entry *
+ recent_entry_lookup(const struct recent_table *table,
+ 		    const union nf_inet_addr *addrp, u_int16_t family,
+-		    u_int8_t ttl)
++		    u_int8_t ttl, u_int16_t port)
+ {
+ 	struct recent_entry *e;
+ 	unsigned int h;
+ 
+ 	if (family == NFPROTO_IPV4)
+-		h = recent_entry_hash4(addrp);
++		h = recent_entry_hash4(addrp, port);
+ 	else
+ 		h = recent_entry_hash6(addrp);
+ 
+ 	list_for_each_entry(e, &table->iphash[h], list)
+ 		if (e->family == family &&
+ 		    memcmp(&e->addr, addrp, sizeof(e->addr)) == 0 &&
+-		    (ttl == e->ttl || ttl == 0 || e->ttl == 0))
++		    (ttl == e->ttl || ttl == 0 || e->ttl == 0) &&
++		    (port == e->port || port == 0 || e->port == 0))
+ 			return e;
+ 	return NULL;
+ }
+@@ -144,7 +148,7 @@
+ 
+ static struct recent_entry *
+ recent_entry_init(struct recent_table *t, const union nf_inet_addr *addr,
+-		  u_int16_t family, u_int8_t ttl)
++		  u_int16_t family, u_int8_t ttl, u_int16_t port)
+ {
+ 	struct recent_entry *e;
+ 
+@@ -157,13 +161,14 @@
+ 	if (e == NULL)
+ 		return NULL;
+ 	memcpy(&e->addr, addr, sizeof(e->addr));
++	e->port      = port;
+ 	e->ttl       = ttl;
+ 	e->stamps[0] = jiffies;
+ 	e->nstamps   = 1;
+ 	e->index     = 1;
+ 	e->family    = family;
+ 	if (family == NFPROTO_IPV4)
+-		list_add_tail(&e->list, &t->iphash[recent_entry_hash4(addr)]);
++		list_add_tail(&e->list, &t->iphash[recent_entry_hash4(addr, port)]);
+ 	else
+ 		list_add_tail(&e->list, &t->iphash[recent_entry_hash6(addr)]);
+ 	list_add_tail(&e->lru_list, &t->lru_list);
+@@ -207,16 +212,38 @@
+ 	struct recent_table *t;
+ 	struct recent_entry *e;
+ 	union nf_inet_addr addr = {};
++	u_int16_t port;
+ 	u_int8_t ttl;
+ 	bool ret = info->invert;
+-
++	port = 0;
+ 	if (par->match->family == NFPROTO_IPV4) {
+ 		const struct iphdr *iph = ip_hdr(skb);
+-
+-		if (info->side == XT_RECENT_DEST)
++		if (info->side == XT_RECENT_DEST){
+ 			addr.ip = iph->daddr;
+-		else
++			if(iph->protocol == 6) {
++				const struct tcphdr _th, *th; 
++				th = skb_header_pointer(skb, iph->ihl * 4, sizeof(_th), &_th);
++				port = (__force u16)th->dest;
++				}
++			else if(iph->protocol == 0x11) {
++				const struct udphdr _uh, *uh; 
++				uh = skb_header_pointer(skb, iph->ihl * 4, sizeof(_uh), &_uh);
++				port = (__force u16)uh->dest;
++				}
++			}
++		else	{
+ 			addr.ip = iph->saddr;
++			if(iph->protocol == 6) {
++				const struct tcphdr _th, *th; 
++				th = skb_header_pointer(skb, iph->ihl * 4, sizeof(_th), &_th);
++				port = (__force u16)th->source;
++				}
++			else if(iph->protocol == 0x11) {
++				const struct udphdr _uh, *uh; 
++				uh = skb_header_pointer(skb, iph->ihl * 4, sizeof(_uh), &_uh);
++				port = (__force u16)uh->source;
++				}
++			}
+ 
+ 		ttl = iph->ttl;
+ 	} else {
+@@ -237,11 +264,11 @@
+ 	spin_lock_bh(&recent_lock);
+ 	t = recent_table_lookup(info->name);
+ 	e = recent_entry_lookup(t, &addr, par->match->family,
+-				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
++				(info->check_set & XT_RECENT_TTL) ? ttl : 0, (info->check_set & XT_RECENT_PORT) ? port : 0);
+ 	if (e == NULL) {
+ 		if (!(info->check_set & XT_RECENT_SET))
+ 			goto out;
+-		e = recent_entry_init(t, &addr, par->match->family, ttl);
++		e = recent_entry_init(t, &addr, par->match->family, ttl, port);
+ 		if (e == NULL)
+ 			*par->hotdrop = true;
+ 		ret = !ret;
+@@ -422,8 +449,8 @@
+ 
+ 	i = (e->index - 1) % ip_pkt_list_tot;
+ 	if (e->family == NFPROTO_IPV4)
+-		seq_printf(seq, "src=%pI4 ttl: %u last_seen: %lu oldest_pkt: %u",
+-			   &e->addr.ip, e->ttl, e->stamps[i], e->index);
++		seq_printf(seq, "src=%pI4 port=%lu ttl: %u last_seen: %lu oldest_pkt: %u",
++			   &e->addr.ip, e->port, e->ttl, e->stamps[i], e->index);
+ 	else
+ 		seq_printf(seq, "src=%pI6 ttl: %u last_seen: %lu oldest_pkt: %u",
+ 			   &e->addr.in6, e->ttl, e->stamps[i], e->index);
+@@ -509,10 +536,10 @@
+ 	addr.ip = in_aton(c);
+ 
+ 	spin_lock_bh(&recent_lock);
+-	e = recent_entry_lookup(t, &addr, NFPROTO_IPV4, 0);
++	e = recent_entry_lookup(t, &addr, NFPROTO_IPV4, 0, 0);
+ 	if (e == NULL) {
+ 		if (add)
+-			recent_entry_init(t, &addr, NFPROTO_IPV4, 0);
++			recent_entry_init(t, &addr, NFPROTO_IPV4, 0, 0);
+ 	} else {
+ 		if (add)
+ 			recent_entry_update(t, e);
+@@ -581,7 +608,6 @@
+ 		family = NFPROTO_IPV4;
+ 		succ   = in4_pton(c, size, (void *)&addr, '\n', NULL);
+ 	}
+-
+ 	if (!succ) {
+ 		printk(KERN_INFO KBUILD_MODNAME ": illegal address written "
+ 		       "to procfs\n");
+@@ -589,10 +615,10 @@
+ 	}
+ 
+ 	spin_lock_bh(&recent_lock);
+-	e = recent_entry_lookup(t, &addr, family, 0);
++	e = recent_entry_lookup(t, &addr, family, 0, 0);
+ 	if (e == NULL) {
+ 		if (add)
+-			recent_entry_init(t, &addr, family, 0);
++			recent_entry_init(t, &addr, family, 0, 0);
+ 	} else {
+ 		if (add)
+ 			recent_entry_update(t, e);

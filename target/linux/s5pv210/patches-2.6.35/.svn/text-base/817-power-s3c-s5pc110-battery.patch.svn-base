@@ -1,0 +1,303 @@
+diff -Nur linux-2.6.35.7/drivers/power/Kconfig tiny210/drivers/power/Kconfig
+--- linux-2.6.35.7/drivers/power/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/power/Kconfig	2011-08-08 12:52:19.000000000 +0800
+@@ -136,6 +136,18 @@
+ 	help
+ 	  Say Y to include support for the battery on the Zipit Z2.
+ 
++config BATTERY_S3C
++	tristate "S3C fake battery driver"
++	depends on ARCH_S5PV210 
++	help
++	  Say Y to enable support for batteries with s5pc110 chip.
++
++config BATTERY_S5PC110
++	tristate "Battery driver for CRESPO(S5PC110)"
++	depends on ARCH_S5PV210
++	help
++	  Say Y to enable support for batteries with s5pc110 chip.	  
++
+ config CHARGER_PCF50633
+ 	tristate "NXP PCF50633 MBC"
+ 	depends on MFD_PCF50633
+diff -Nur linux-2.6.35.7/drivers/power/Makefile tiny210/drivers/power/Makefile
+--- linux-2.6.35.7/drivers/power/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/power/Makefile	2011-08-08 12:52:19.000000000 +0800
+@@ -34,3 +34,7 @@
+ obj-$(CONFIG_BATTERY_MAX17040)	+= max17040_battery.o
+ obj-$(CONFIG_BATTERY_Z2)	+= z2_battery.o
+ obj-$(CONFIG_CHARGER_PCF50633)	+= pcf50633-charger.o
++
++
++obj-$(CONFIG_BATTERY_S5PC110)	+= s5pc110_battery.o
++obj-$(CONFIG_BATTERY_S3C)	+= s3c_fake_battery.o
+diff -Nur linux-2.6.35.7/drivers/power/max17040_battery.c tiny210/drivers/power/max17040_battery.c
+--- linux-2.6.35.7/drivers/power/max17040_battery.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/power/max17040_battery.c	2011-08-08 12:52:19.000000000 +0800
+@@ -20,6 +20,7 @@
+ #include <linux/power_supply.h>
+ #include <linux/max17040_battery.h>
+ #include <linux/slab.h>
++#include <linux/time.h>
+ 
+ #define MAX17040_VCELL_MSB	0x02
+ #define MAX17040_VCELL_LSB	0x03
+@@ -39,9 +40,9 @@
+ 
+ struct max17040_chip {
+ 	struct i2c_client		*client;
+-	struct delayed_work		work;
+ 	struct power_supply		battery;
+ 	struct max17040_platform_data	*pdata;
++	struct timespec			next_update_time;
+ 
+ 	/* State Of Connect */
+ 	int online;
+@@ -53,12 +54,20 @@
+ 	int status;
+ };
+ 
++static void max17040_update_values(struct max17040_chip *chip);
++
+ static int max17040_get_property(struct power_supply *psy,
+ 			    enum power_supply_property psp,
+ 			    union power_supply_propval *val)
+ {
+ 	struct max17040_chip *chip = container_of(psy,
+ 				struct max17040_chip, battery);
++	struct timespec now;
++
++	ktime_get_ts(&now);
++	monotonic_to_bootbased(&now);
++	if (timespec_compare(&now, &chip->next_update_time) >= 0)
++		max17040_update_values(chip);
+ 
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+@@ -68,7 +77,7 @@
+ 		val->intval = chip->online;
+ 		break;
+ 	case POWER_SUPPLY_PROP_VOLTAGE_NOW:
+-		val->intval = chip->vcell;
++		val->intval = chip->vcell * 1250;
+ 		break;
+ 	case POWER_SUPPLY_PROP_CAPACITY:
+ 		val->intval = chip->soc;
+@@ -103,12 +112,6 @@
+ 	return ret;
+ }
+ 
+-static void max17040_reset(struct i2c_client *client)
+-{
+-	max17040_write_reg(client, MAX17040_CMD_MSB, 0x54);
+-	max17040_write_reg(client, MAX17040_CMD_LSB, 0x00);
+-}
+-
+ static void max17040_get_vcell(struct i2c_client *client)
+ {
+ 	struct max17040_chip *chip = i2c_get_clientdata(client);
+@@ -130,7 +133,7 @@
+ 	msb = max17040_read_reg(client, MAX17040_SOC_MSB);
+ 	lsb = max17040_read_reg(client, MAX17040_SOC_LSB);
+ 
+-	chip->soc = msb;
++	chip->soc = min(msb, (u8)100);
+ }
+ 
+ static void max17040_get_version(struct i2c_client *client)
+@@ -148,7 +151,7 @@
+ {
+ 	struct max17040_chip *chip = i2c_get_clientdata(client);
+ 
+-	if (chip->pdata->battery_online)
++	if (chip->pdata && chip->pdata->battery_online)
+ 		chip->online = chip->pdata->battery_online();
+ 	else
+ 		chip->online = 1;
+@@ -158,7 +161,8 @@
+ {
+ 	struct max17040_chip *chip = i2c_get_clientdata(client);
+ 
+-	if (!chip->pdata->charger_online || !chip->pdata->charger_enable) {
++	if (!chip->pdata || !chip->pdata->charger_online ||
++		!chip->pdata->charger_enable) {
+ 		chip->status = POWER_SUPPLY_STATUS_UNKNOWN;
+ 		return;
+ 	}
+@@ -176,18 +180,17 @@
+ 		chip->status = POWER_SUPPLY_STATUS_FULL;
+ }
+ 
+-static void max17040_work(struct work_struct *work)
++static void max17040_update_values(struct max17040_chip *chip)
+ {
+-	struct max17040_chip *chip;
+-
+-	chip = container_of(work, struct max17040_chip, work.work);
+-
+ 	max17040_get_vcell(chip->client);
+ 	max17040_get_soc(chip->client);
+ 	max17040_get_online(chip->client);
+ 	max17040_get_status(chip->client);
+ 
+-	schedule_delayed_work(&chip->work, MAX17040_DELAY);
++	/* next update must be at least 1 second later */
++	ktime_get_ts(&chip->next_update_time);
++	monotonic_to_bootbased(&chip->next_update_time);
++	chip->next_update_time.tv_sec++;
+ }
+ 
+ static enum power_supply_property max17040_battery_props[] = {
+@@ -222,18 +225,23 @@
+ 	chip->battery.properties	= max17040_battery_props;
+ 	chip->battery.num_properties	= ARRAY_SIZE(max17040_battery_props);
+ 
+-	ret = power_supply_register(&client->dev, &chip->battery);
++	max17040_update_values(chip);
++
++	if (chip->pdata && chip->pdata->power_supply_register)
++		ret = chip->pdata->power_supply_register(&client->dev, &chip->battery);
++	else
++		ret = power_supply_register(&client->dev, &chip->battery);
+ 	if (ret) {
+ 		dev_err(&client->dev, "failed: power supply register\n");
+ 		kfree(chip);
+ 		return ret;
+ 	}
+ 
+-	max17040_reset(client);
+ 	max17040_get_version(client);
+ 
+-	INIT_DELAYED_WORK_DEFERRABLE(&chip->work, max17040_work);
+-	schedule_delayed_work(&chip->work, MAX17040_DELAY);
++	if (chip->pdata)
++		i2c_smbus_write_word_data(client, MAX17040_RCOMP_MSB,
++			swab16(chip->pdata->rcomp_value));
+ 
+ 	return 0;
+ }
+@@ -242,38 +250,14 @@
+ {
+ 	struct max17040_chip *chip = i2c_get_clientdata(client);
+ 
+-	power_supply_unregister(&chip->battery);
+-	cancel_delayed_work(&chip->work);
++	if (chip->pdata && chip->pdata->power_supply_unregister)
++		chip->pdata->power_supply_unregister(&chip->battery);
++	else
++		power_supply_unregister(&chip->battery);
+ 	kfree(chip);
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+-
+-static int max17040_suspend(struct i2c_client *client,
+-		pm_message_t state)
+-{
+-	struct max17040_chip *chip = i2c_get_clientdata(client);
+-
+-	cancel_delayed_work(&chip->work);
+-	return 0;
+-}
+-
+-static int max17040_resume(struct i2c_client *client)
+-{
+-	struct max17040_chip *chip = i2c_get_clientdata(client);
+-
+-	schedule_delayed_work(&chip->work, MAX17040_DELAY);
+-	return 0;
+-}
+-
+-#else
+-
+-#define max17040_suspend NULL
+-#define max17040_resume NULL
+-
+-#endif /* CONFIG_PM */
+-
+ static const struct i2c_device_id max17040_id[] = {
+ 	{ "max17040", 0 },
+ 	{ }
+@@ -286,8 +270,6 @@
+ 	},
+ 	.probe		= max17040_probe,
+ 	.remove		= __devexit_p(max17040_remove),
+-	.suspend	= max17040_suspend,
+-	.resume		= max17040_resume,
+ 	.id_table	= max17040_id,
+ };
+ 
+diff -Nur linux-2.6.35.7/drivers/power/power_supply_core.c tiny210/drivers/power/power_supply_core.c
+--- linux-2.6.35.7/drivers/power/power_supply_core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/power/power_supply_core.c	2011-08-08 12:52:19.000000000 +0800
+@@ -41,23 +41,40 @@
+ 
+ static void power_supply_changed_work(struct work_struct *work)
+ {
++	unsigned long flags;
+ 	struct power_supply *psy = container_of(work, struct power_supply,
+ 						changed_work);
+ 
+ 	dev_dbg(psy->dev, "%s\n", __func__);
+ 
+-	class_for_each_device(power_supply_class, NULL, psy,
+-			      __power_supply_changed_work);
++	spin_lock_irqsave(&psy->changed_lock, flags);
++	if (psy->changed) {
++		psy->changed = false;
++		spin_unlock_irqrestore(&psy->changed_lock, flags);
+ 
+-	power_supply_update_leds(psy);
++		class_for_each_device(power_supply_class, NULL, psy,
++				      __power_supply_changed_work);
+ 
+-	kobject_uevent(&psy->dev->kobj, KOBJ_CHANGE);
++		power_supply_update_leds(psy);
++
++		kobject_uevent(&psy->dev->kobj, KOBJ_CHANGE);
++		spin_lock_irqsave(&psy->changed_lock, flags);
++	}
++	if (!psy->changed)
++		wake_unlock(&psy->work_wake_lock);
++	spin_unlock_irqrestore(&psy->changed_lock, flags);
+ }
+ 
+ void power_supply_changed(struct power_supply *psy)
+ {
++	unsigned long flags;
++
+ 	dev_dbg(psy->dev, "%s\n", __func__);
+ 
++	spin_lock_irqsave(&psy->changed_lock, flags);
++	psy->changed = true;
++	wake_lock(&psy->work_wake_lock);
++	spin_unlock_irqrestore(&psy->changed_lock, flags);
+ 	schedule_work(&psy->changed_work);
+ }
+ EXPORT_SYMBOL_GPL(power_supply_changed);
+@@ -180,6 +197,8 @@
+ 		goto device_add_failed;
+ 
+ 	INIT_WORK(&psy->changed_work, power_supply_changed_work);
++	spin_lock_init(&psy->changed_lock);
++	wake_lock_init(&psy->work_wake_lock, WAKE_LOCK_SUSPEND, "power-supply");
+ 
+ 	rc = power_supply_create_triggers(psy);
+ 	if (rc)
+@@ -190,6 +209,7 @@
+ 	goto success;
+ 
+ create_triggers_failed:
++	wake_lock_destroy(&psy->work_wake_lock);
+ 	device_unregister(psy->dev);
+ kobject_set_name_failed:
+ device_add_failed:
+@@ -203,6 +223,7 @@
+ {
+ 	flush_scheduled_work();
+ 	power_supply_remove_triggers(psy);
++	wake_lock_destroy(&psy->work_wake_lock);
+ 	device_unregister(psy->dev);
+ }
+ EXPORT_SYMBOL_GPL(power_supply_unregister);

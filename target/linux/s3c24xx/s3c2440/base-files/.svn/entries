@@ -1,0 +1,34 @@
+10
+
+dir
+557
+svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/s3c2440/base-files
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+init.d
+dir
+
+etc
+dir
+

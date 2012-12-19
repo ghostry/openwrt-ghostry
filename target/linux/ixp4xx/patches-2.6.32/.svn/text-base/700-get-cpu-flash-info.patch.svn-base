@@ -1,0 +1,22 @@
+--- linux-2.6.32.58/arch/arm/kernel/setup.c.orig	2012-03-05 01:49:44.000000000 +0800
++++ linux-2.6.32.58/arch/arm/kernel/setup.c	2012-03-13 20:35:57.651418204 +0800
+@@ -804,6 +804,9 @@
+ 	NULL
+ };
+ 
++extern int getFlashSize;
++//extern unsigned long ixp4xx_cpu_clk;
++
+ static int c_show(struct seq_file *m, void *v)
+ {
+ 	int i;
+@@ -858,7 +861,8 @@
+ 	seq_printf(m, "CPU revision\t: %d\n", read_cpuid_id() & 15);
+ 
+ 	seq_puts(m, "\n");
+-
++	seq_printf(m, "FlashSize\t\t: %d\n",getFlashSize);
++	seq_printf(m, "CPUClock\t\t: %lu\n",loops_per_jiffy / (500000/HZ));
+ 	seq_printf(m, "Hardware\t: %s\n", machine_name);
+ 	seq_printf(m, "Revision\t: %04x\n", system_rev);
+ 	seq_printf(m, "Serial\t\t: %08x%08x\n",

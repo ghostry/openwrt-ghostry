@@ -1,0 +1,305 @@
+--- a/arch/arm/mach-kirkwood/ts219-setup.c	2010-12-10 05:29:45.000000000 +0800
++++ b/arch/arm/mach-kirkwood/ts219-setup.c	2011-06-13 15:54:36.000000000 +0800
+@@ -1,10 +1,7 @@
+ /*
+- *
+- * QNAP TS-119/TS-219 Turbo NAS Board Setup
+- *
++ * DDNAS Wireless NAS Board Setup
+  * Copyright (C) 2009  Martin Michlmayr <tbm@cyrius.com>
+  * Copyright (C) 2008  Byron Bradley <byron.bbradley@gmail.com>
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version
+@@ -23,6 +20,7 @@
+ #include <linux/ata_platform.h>
+ #include <linux/gpio_keys.h>
+ #include <linux/input.h>
++#include <linux/leds.h>
+ #include <linux/timex.h>
+ #include <linux/serial_reg.h>
+ #include <linux/pci.h>
+@@ -49,46 +47,38 @@
+  *
+  ***************************************************************************/
+ 
+-static struct mtd_partition qnap_ts219_partitions[] = {
++static struct mtd_partition ddnas_partitions[] = {
+ 	{
+-		.name		= "U-Boot",
+-		.size		= 0x00080000,
++		.name		= "u-boot",
++		.size		= 0x00100000,
+ 		.offset		= 0,
+ 		.mask_flags	= MTD_WRITEABLE,
+ 	}, {
+-		.name		= "Kernel",
++		.name		= "kernel",
+ 		.size		= 0x00200000,
+-		.offset		= 0x00200000,
+-	}, {
+-		.name		= "RootFS1",
+-		.size		= 0x00900000,
+-		.offset		= 0x00400000,
++		.offset		= 0x00100000,
+ 	}, {
+-		.name		= "RootFS2",
+-		.size		= 0x00300000,
+-		.offset		= 0x00d00000,
++		.name		= "rootfs",
++		.size		= 0x00d00000,
++		.offset		= 0x00300000,
+ 	}, {
+-		.name		= "U-Boot Config",
+-		.size		= 0x00040000,
+-		.offset		= 0x00080000,
+-	}, {
+-		.name		= "NAS Config",
+-		.size		= 0x00140000,
+-		.offset		= 0x000c0000,
+-	},
++		.name		= "firmware",
++		.size		= 0x00f00000,
++		.offset		= 0x00100000,
++	}, 
+ };
+ 
+-static const struct flash_platform_data qnap_ts219_flash = {
++static const struct flash_platform_data ddnas_flash = {
+ 	.type		= "m25p128",
+ 	.name		= "spi_flash",
+-	.parts		= qnap_ts219_partitions,
+-	.nr_parts	= ARRAY_SIZE(qnap_ts219_partitions),
++	.parts		= ddnas_partitions,
++	.nr_parts	= ARRAY_SIZE(ddnas_partitions),
+ };
+ 
+-static struct spi_board_info __initdata qnap_ts219_spi_slave_info[] = {
++static struct spi_board_info __initdata ddnas_spi_slave_info[] = {
+ 	{
+ 		.modalias	= "m25p80",
+-		.platform_data	= &qnap_ts219_flash,
++		.platform_data	= &ddnas_flash,
+ 		.irq		= -1,
+ 		.max_speed_hz	= 20000000,
+ 		.bus_num	= 0,
+@@ -96,48 +86,87 @@
+ 	},
+ };
+ 
+-static struct i2c_board_info __initdata qnap_ts219_i2c_rtc = {
+-	I2C_BOARD_INFO("s35390a", 0x30),
+-};
++//static struct i2c_board_info __initdata ddnas_i2c_rtc = {
++//	I2C_BOARD_INFO("s35390a", 0x30),
++//};
+ 
+-static struct mv643xx_eth_platform_data qnap_ts219_ge00_data = {
++static struct mv643xx_eth_platform_data ddnas_ge00_data = {
+ 	.phy_addr	= MV643XX_ETH_PHY_ADDR(8),
+ };
++static struct mv643xx_eth_platform_data ddnas_ge01_data = {
++	.phy_addr	= MV643XX_ETH_PHY_ADDR(24),
++};
+ 
+-static struct mv_sata_platform_data qnap_ts219_sata_data = {
++static struct mv_sata_platform_data ddnas_sata_data = {
+ 	.n_ports	= 2,
+ };
+ 
+-static struct gpio_keys_button qnap_ts219_buttons[] = {
++static struct gpio_led ddnas_led_pins[] = {
+ 	{
+-		.code		= KEY_COPY,
+-		.gpio		= 15,
+-		.desc		= "USB Copy",
+-		.active_low	= 1,
++		.name			= "Ddnas:Power",
++		.default_trigger	= "default-on",
++		.gpio			= 42,
+ 	},
+ 	{
+-		.code		= KEY_RESTART,
++		.name			= "Ddnas:Usb",
++		.gpio			= 37,
++	},
++	{
++		.name			= "Ddnas:Internet",
++		.gpio			= 43,
++	},
++	};
++
++static struct gpio_led_platform_data ddnas_led_data = {
++	.leds		= ddnas_led_pins,
++	.num_leds	= ARRAY_SIZE(ddnas_led_pins),
++};
++
++static struct platform_device ddnas_leds = {
++	.name	= "leds-gpio",
++	.id	= -1,
++	.dev	= {
++		.platform_data	= &ddnas_led_data,
++	}
++};
++
++
++static struct gpio_keys_button ddnas_buttons[] = {
++		{
++		.code		= BTN_0,
+ 		.gpio		= 16,
+-		.desc		= "Reset",
++		.type		= EV_KEY,
++		.desc		= "BTN_0",
+ 		.active_low	= 1,
+-	},
++		.debounce_interval = 100,
++		}, 
++		{
++		.code		= BTN_1,
++		.gpio		= 15,
++		.desc		= "BTN_1",
++		.type		= EV_KEY,
++		.active_low	= 1,
++		.debounce_interval = 100,
++		}, 
++		
+ };
+ 
+-static struct gpio_keys_platform_data qnap_ts219_button_data = {
+-	.buttons	= qnap_ts219_buttons,
+-	.nbuttons	= ARRAY_SIZE(qnap_ts219_buttons),
++
++static struct gpio_keys_platform_data ddnas_button_data = {
++	.buttons	= ddnas_buttons,
++	.nbuttons	= ARRAY_SIZE(ddnas_buttons),
+ };
+ 
+-static struct platform_device qnap_ts219_button_device = {
++static struct platform_device ddnas_button_device = {
+ 	.name		= "gpio-keys",
+ 	.id		= -1,
+ 	.num_resources	= 0,
+ 	.dev		= {
+-		.platform_data	= &qnap_ts219_button_data,
++		.platform_data	= &ddnas_button_data,
+ 	}
+ };
+ 
+-static unsigned int qnap_ts219_mpp_config[] __initdata = {
++static unsigned int ddnas_mpp_config[] __initdata = {
+ 	MPP0_SPI_SCn,
+ 	MPP1_SPI_MOSI,
+ 	MPP2_SPI_SCK,
+@@ -152,6 +181,15 @@
+ 	MPP14_UART1_RXD,	/* PIC controller */
+ 	MPP15_GPIO,		/* USB Copy button */
+ 	MPP16_GPIO,		/* Reset button */
++	MPP36_GPIO, 
++	MPP37_GPIO,		/*Input for OTB button*/
++	MPP42_GPIO,
++	MPP43_GPIO,
++	MPP44_GPIO,
++	MPP45_GPIO,
++	MPP46_GPIO,
++	MPP47_GPIO,
++	MPP48_GPIO,
+ 	0
+ };
+ 
+@@ -160,49 +198,55 @@
+  * QNAP TS-x19 specific power off method via UART1-attached PIC
+  ****************************************************************************/
+ 
+-#define UART1_REG(x)	(UART1_VIRT_BASE + ((UART_##x) << 2))
++//#define UART1_REG(x)	(UART1_VIRT_BASE + ((UART_##x) << 2))
+ 
+-void qnap_ts219_power_off(void)
+-{
++//void ddnas_power_off(void)
++//{
+ 	/* 19200 baud divisor */
+-	const unsigned divisor = ((kirkwood_tclk + (8 * 19200)) / (16 * 19200));
++//	const unsigned divisor = ((kirkwood_tclk + (8 * 19200)) / (16 * 19200));
+ 
+-	pr_info("%s: triggering power-off...\n", __func__);
++//	pr_info("%s: triggering power-off...\n", __func__);
+ 
+ 	/* hijack UART1 and reset into sane state (19200,8n1) */
+-	writel(0x83, UART1_REG(LCR));
+-	writel(divisor & 0xff, UART1_REG(DLL));
+-	writel((divisor >> 8) & 0xff, UART1_REG(DLM));
+-	writel(0x03, UART1_REG(LCR));
+-	writel(0x00, UART1_REG(IER));
+-	writel(0x00, UART1_REG(FCR));
+-	writel(0x00, UART1_REG(MCR));
++//	writel(0x83, UART1_REG(LCR));
++//	writel(divisor & 0xff, UART1_REG(DLL));
++//	writel((divisor >> 8) & 0xff, UART1_REG(DLM));
++//	writel(0x03, UART1_REG(LCR));
++//	writel(0x00, UART1_REG(IER));
++//	writel(0x00, UART1_REG(FCR));
++//	writel(0x00, UART1_REG(MCR));
+ 
+ 	/* send the power-off command 'A' to PIC */
+-	writel('A', UART1_REG(TX));
+-}
++//	writel('A', UART1_REG(TX));
++//}
+ 
+-static void __init qnap_ts219_init(void)
++static void __init ddnas_init(void)
+ {
++	u32 dev, rev;	
+ 	/*
+ 	 * Basic setup. Needs to be called early.
+ 	 */
+ 	kirkwood_init();
+-	kirkwood_mpp_conf(qnap_ts219_mpp_config);
++	kirkwood_mpp_conf(ddnas_mpp_config);
+ 
+ 	kirkwood_uart0_init();
+-	kirkwood_uart1_init(); /* A PIC controller is connected here. */
+-	spi_register_board_info(qnap_ts219_spi_slave_info,
+-				ARRAY_SIZE(qnap_ts219_spi_slave_info));
++//	kirkwood_uart1_init(); /* A PIC controller is connected here. */
++	spi_register_board_info(ddnas_spi_slave_info,
++				ARRAY_SIZE(ddnas_spi_slave_info));
+ 	kirkwood_spi_init();
+-	kirkwood_i2c_init();
+-	i2c_register_board_info(0, &qnap_ts219_i2c_rtc, 1);
+-	kirkwood_ge00_init(&qnap_ts219_ge00_data);
+-	kirkwood_sata_init(&qnap_ts219_sata_data);
++//	kirkwood_i2c_init();
++//	i2c_register_board_info(0, &ddnas_i2c_rtc, 1);
++	kirkwood_ge00_init(&ddnas_ge00_data);
++	kirkwood_ge01_init(&ddnas_ge01_data);
++	kirkwood_sata_init(&ddnas_sata_data);
+ 	kirkwood_ehci_init();
+-	platform_device_register(&qnap_ts219_button_device);
+ 
+-	pm_power_off = qnap_ts219_power_off;
++	kirkwood_pcie_id(&dev, &rev);
++
++	platform_device_register(&ddnas_leds);
++	platform_device_register(&ddnas_button_device);
++
++	//pm_power_off = ddnas_power_off;
+ 
+ }
+ 
+@@ -215,12 +259,12 @@
+ }
+ subsys_initcall(ts219_pci_init);
+ 
+-MACHINE_START(TS219, "QNAP TS-119/TS-219")
++MACHINE_START(TS219, "DDNAS Wireless V1")
+ 	/* Maintainer: Martin Michlmayr <tbm@cyrius.com> */
+ 	.phys_io	= KIRKWOOD_REGS_PHYS_BASE,
+ 	.io_pg_offst	= ((KIRKWOOD_REGS_VIRT_BASE) >> 18) & 0xfffc,
+ 	.boot_params	= 0x00000100,
+-	.init_machine	= qnap_ts219_init,
++	.init_machine	= ddnas_init,
+ 	.map_io		= kirkwood_map_io,
+ 	.init_irq	= kirkwood_init_irq,
+ 	.timer		= &kirkwood_timer,

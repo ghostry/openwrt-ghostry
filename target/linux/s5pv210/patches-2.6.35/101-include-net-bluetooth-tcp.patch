@@ -1,0 +1,170 @@
+diff -Nur linux-2.6.35.7//include/net/bluetooth/hci_core.h tiny210//include/net/bluetooth/hci_core.h
+--- linux-2.6.35.7//include/net/bluetooth/hci_core.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/bluetooth/hci_core.h	2011-08-08 12:52:14.000000000 +0800
+@@ -1,6 +1,6 @@
+ /* 
+    BlueZ - Bluetooth protocol stack for Linux
+-   Copyright (C) 2000-2001 Qualcomm Incorporated
++   Copyright (c) 2000-2001, 2010, Code Aurora Forum. All rights reserved.
+ 
+    Written 2000,2001 by Maxim Krasnyansky <maxk@qualcomm.com>
+ 
+@@ -250,6 +250,7 @@
+ 	HCI_CONN_ENCRYPT_PEND,
+ 	HCI_CONN_RSWITCH_PEND,
+ 	HCI_CONN_MODE_CHANGE_PEND,
++	HCI_CONN_SCO_SETUP_PEND,
+ };
+ 
+ static inline void hci_conn_hash_init(struct hci_dev *hdev)
+@@ -330,13 +331,17 @@
+ void hci_acl_disconn(struct hci_conn *conn, __u8 reason);
+ void hci_add_sco(struct hci_conn *conn, __u16 handle);
+ void hci_setup_sync(struct hci_conn *conn, __u16 handle);
++void hci_sco_setup(struct hci_conn *conn, __u8 status);
+ 
+-struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type, bdaddr_t *dst);
++struct hci_conn *hci_conn_add(struct hci_dev *hdev, int type,
++					__u16 pkt_type, bdaddr_t *dst);
+ int hci_conn_del(struct hci_conn *conn);
+ void hci_conn_hash_flush(struct hci_dev *hdev);
+ void hci_conn_check_pending(struct hci_dev *hdev);
+ 
+-struct hci_conn *hci_connect(struct hci_dev *hdev, int type, bdaddr_t *dst, __u8 sec_level, __u8 auth_type);
++struct hci_conn *hci_connect(struct hci_dev *hdev, int type,
++					__u16 pkt_type, bdaddr_t *dst,
++					__u8 sec_level, __u8 auth_type);
+ int hci_conn_check_link_mode(struct hci_conn *conn);
+ int hci_conn_security(struct hci_conn *conn, __u8 sec_level, __u8 auth_type);
+ int hci_conn_change_link_key(struct hci_conn *conn);
+@@ -363,7 +368,7 @@
+ 			if (conn->state == BT_CONNECTED) {
+ 				timeo = msecs_to_jiffies(conn->disc_timeout);
+ 				if (!conn->out)
+-					timeo *= 2;
++					timeo *= 20;
+ 			} else
+ 				timeo = msecs_to_jiffies(10);
+ 		} else
+@@ -444,6 +449,7 @@
+ #define lmp_sniffsubr_capable(dev) ((dev)->features[5] & LMP_SNIFF_SUBR)
+ #define lmp_esco_capable(dev)      ((dev)->features[3] & LMP_ESCO)
+ #define lmp_ssp_capable(dev)       ((dev)->features[6] & LMP_SIMPLE_PAIR)
++#define lmp_no_flush_capable(dev)  ((dev)->features[6] & LMP_NO_FLUSH)
+ 
+ /* ----- HCI protocols ----- */
+ struct hci_proto {
+diff -Nur linux-2.6.35.7//include/net/bluetooth/hci.h tiny210//include/net/bluetooth/hci.h
+--- linux-2.6.35.7//include/net/bluetooth/hci.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/bluetooth/hci.h	2011-08-08 12:52:14.000000000 +0800
+@@ -143,15 +143,20 @@
+ #define ESCO_2EV5	0x0100
+ #define ESCO_3EV5	0x0200
+ 
+-#define SCO_ESCO_MASK  (ESCO_HV1 | ESCO_HV2 | ESCO_HV3)
+-#define EDR_ESCO_MASK  (ESCO_2EV3 | ESCO_3EV3 | ESCO_2EV5 | ESCO_3EV5)
++#define SCO_ESCO_MASK	(ESCO_HV1 | ESCO_HV2 | ESCO_HV3)
++#define EDR_ESCO_MASK	(ESCO_2EV3 | ESCO_3EV3 | ESCO_2EV5 | ESCO_3EV5)
++#define ALL_ESCO_MASK	(SCO_ESCO_MASK | ESCO_EV3 | ESCO_EV4 | ESCO_EV5 | \
++			EDR_ESCO_MASK)
+ 
+ /* ACL flags */
++#define ACL_START_NO_FLUSH	0x00
+ #define ACL_CONT		0x01
+ #define ACL_START		0x02
+ #define ACL_ACTIVE_BCAST	0x04
+ #define ACL_PICO_BCAST		0x08
+ 
++#define ACL_PB_MASK	(ACL_CONT | ACL_START)
++
+ /* Baseband links */
+ #define SCO_LINK	0x00
+ #define ACL_LINK	0x01
+@@ -190,6 +195,7 @@
+ #define LMP_EDR_ESCO_3M	0x40
+ #define LMP_EDR_3S_ESCO	0x80
+ 
++#define LMP_NO_FLUSH	0x01
+ #define LMP_SIMPLE_PAIR	0x08
+ 
+ /* Connection modes */
+@@ -995,6 +1001,9 @@
+ 	__u8     out;
+ 	__u16    state;
+ 	__u32    link_mode;
++	__u32    mtu;
++	__u32    cnt;
++	__u32    pkts;
+ };
+ 
+ struct hci_dev_req {
+diff -Nur linux-2.6.35.7//include/net/bluetooth/l2cap.h tiny210//include/net/bluetooth/l2cap.h
+--- linux-2.6.35.7//include/net/bluetooth/l2cap.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/bluetooth/l2cap.h	2011-08-08 12:52:14.000000000 +0800
+@@ -73,6 +73,7 @@
+ #define L2CAP_LM_TRUSTED	0x0008
+ #define L2CAP_LM_RELIABLE	0x0010
+ #define L2CAP_LM_SECURE		0x0020
++#define L2CAP_LM_FLUSHABLE	0x0040
+ 
+ /* L2CAP command codes */
+ #define L2CAP_COMMAND_REJ	0x01
+@@ -320,6 +321,7 @@
+ 	__u8		sec_level;
+ 	__u8		role_switch;
+ 	__u8		force_reliable;
++	__u8		flushable;
+ 
+ 	__u8		conf_req[64];
+ 	__u8		conf_len;
+diff -Nur linux-2.6.35.7//include/net/bluetooth/rfcomm.h tiny210//include/net/bluetooth/rfcomm.h
+--- linux-2.6.35.7//include/net/bluetooth/rfcomm.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/bluetooth/rfcomm.h	2011-08-08 12:52:14.000000000 +0800
+@@ -29,7 +29,6 @@
+ #define RFCOMM_CONN_TIMEOUT (HZ * 30)
+ #define RFCOMM_DISC_TIMEOUT (HZ * 20)
+ #define RFCOMM_AUTH_TIMEOUT (HZ * 25)
+-#define RFCOMM_IDLE_TIMEOUT (HZ * 2)
+ 
+ #define RFCOMM_DEFAULT_MTU	127
+ #define RFCOMM_DEFAULT_CREDITS	7
+@@ -155,7 +154,6 @@
+ struct rfcomm_session {
+ 	struct list_head list;
+ 	struct socket   *sock;
+-	struct timer_list timer;
+ 	unsigned long    state;
+ 	unsigned long    flags;
+ 	atomic_t         refcnt;
+diff -Nur linux-2.6.35.7//include/net/bluetooth/sco.h tiny210//include/net/bluetooth/sco.h
+--- linux-2.6.35.7//include/net/bluetooth/sco.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/bluetooth/sco.h	2011-08-08 12:52:14.000000000 +0800
+@@ -37,6 +37,7 @@
+ struct sockaddr_sco {
+ 	sa_family_t	sco_family;
+ 	bdaddr_t	sco_bdaddr;
++	__u16		sco_pkt_type;
+ };
+ 
+ /* SCO socket options */
+@@ -72,7 +73,8 @@
+ 
+ struct sco_pinfo {
+ 	struct bt_sock	bt;
+-	__u32		flags;
++	__u16		pkt_type;
++
+ 	struct sco_conn	*conn;
+ };
+ 
+--- linux-2.6.35.7//include/net/tcp.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/net/tcp.h	2011-08-08 12:52:14.000000000 +0800
+@@ -1457,6 +1457,8 @@
+ extern int tcp_gro_complete(struct sk_buff *skb);
+ extern int tcp4_gro_complete(struct sk_buff *skb);
+ 
++extern void tcp_v4_nuke_addr(__u32 saddr);
++
+ #ifdef CONFIG_PROC_FS
+ extern int  tcp4_proc_init(void);
+ extern void tcp4_proc_exit(void);

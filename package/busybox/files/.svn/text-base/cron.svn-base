@@ -1,0 +1,111 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2011 OpenWrt-dreambox
+START=50
+
+task_get(){
+unset enabled task_Everyday task_Monday task_Tuesday task_Wednesday 
+unset task_Tuesday task_Friday task_Sartuday task_Sunday 
+unset task_time task_minute task_task task_name
+unset week1 week2 week3 week4 week5 week6 week0
+unset task_week
+unset is_everym is_everyh is_custom
+
+	config_get enabled $1 enabled or 0
+	config_get task_Everyday $1 task_Everyday or 0
+	config_get task_Monday $1 task_Monday or 0
+	config_get task_Tuesday $1 task_Tuesday or 0
+	config_get task_Wednesday $1 task_Wednesday or 0
+	config_get task_Thursday $1 task_Thursday or 0
+	config_get task_Friday $1 task_Friday or 0
+	config_get task_Sartuday $1 task_Sartuday or 0
+	config_get task_Sunday $1 task_Sunday or 0
+	config_get task_time $1 task_time
+	config_get task_minute $1 task_minute
+	config_get task_task $1 task_task
+	config_get task_name $1 task_name
+
+	if [ "$enabled" == "1" ];then
+task_week=a
+[ $task_Monday == "1" ] && task_week=$(echo "${task_week},1")
+[ $task_Tuesday == "1" ] && task_week=$(echo "${task_week},2")
+[ $task_Wednesday == "1" ] && task_week=$(echo "${task_week},3")
+[ $task_Thursday == "1" ] && task_week=$(echo "${task_week},4")
+[ $task_Friday == "1" ] && task_week=$(echo "${task_week},5")
+[ $task_Sartuday == "1" ] && task_week=$(echo "${task_week},6")
+[ $task_Sunday == "1" ] && task_week=$(echo "${task_week},7")
+task_week=$(echo $task_week| sed 's/a,//')
+
+local task_type=0
+
+is_everym=$(echo "$task_time" |grep -c everym)
+is_everyh=$(echo "$task_time" |grep -c everyh)
+is_custom=$(echo "$task_time" |grep -c custom)
+
+ [ "$is_everym" -ge "1" ]&& task_type=1 
+ [ "$is_everyh" -ge "1" ]&& task_type=2 
+ [ "$is_custom" -ge "1" ]&& task_type=3
+
+case $task_type in
+0) 
+local task_hour=`echo $task_time |cut  -d ":" -f1`
+local task_minute=`echo $task_time |cut  -d ":" -f2`
+
+if [ $task_Everyday == "1" ] ; then
+echo "$task_minute $task_hour * * * $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+else
+echo "$task_minute $task_hour * * $task_week $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+fi
+
+;;
+1)
+local task_minute=`echo $task_time |cut  -d "_" -f2`
+
+if [ $task_Everyday == "1" ] ; then
+echo "*/${task_minute} * * * * $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+else
+echo "*/${task_minute} * * * $task_week $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+fi
+
+;;
+2)
+local task_hour=`echo $task_time |cut  -d "_" -f2`
+
+if [ $task_Everyday == "1" ] ; then
+echo "0 */$task_hour * * * $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+else
+echo "0 */$task_hour * * $task_week $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+fi
+
+;;
+3)
+if [ $task_Everyday == "1" ] ; then
+echo "*/$task_minute * * * * $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+else
+echo "*/$task_minute * * * $task_week $task_task 2>/dev/null #${task_name} " >> /etc/crontabs/root
+fi
+;;
+*)
+echo "none"
+;;
+esac
+fi
+}
+
+
+start () {
+rm -rf /etc/crontabs/root
+config_load cron
+config_foreach task_get task
+	loglevel=$(uci_get "system.@system[0].cronloglevel")
+	[ -z "$(ls /etc/crontabs/)" ] && exit 1
+	mkdir -p /var/spool/cron
+	ln -s /etc/crontabs /var/spool/cron/ 2>/dev/null
+ 	ln -s /etc/crontabs/root /tmp/tmp_crontab 2>/dev/null
+	crond -c /etc/crontabs -l ${loglevel:-5}
+}
+
+stop() {
+	killall -9 crond
+}
+
+

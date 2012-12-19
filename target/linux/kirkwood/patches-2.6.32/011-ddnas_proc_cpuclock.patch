@@ -1,0 +1,40 @@
+--- a/arch/arm/kernel/setup.c	2010-12-10 05:29:45.000000000 +0800
++++ b/arch/arm/kernel/setup.c	2011-06-14 16:10:36.779702881 +0800
+@@ -808,8 +808,9 @@
+ {
+ 	int i;
+ 
+-	seq_printf(m, "Processor\t: %s rev %d (%s)\n",
+-		   cpu_name, read_cpuid_id() & 15, elf_platform);
++	//seq_printf(m, "Processor\t: %s rev %d (%s)\n",
++	//   cpu_name, read_cpuid_id() & 15, elf_platform);
++	seq_printf(m, "Processor\t: Marvell 88F6281\n");
+ 
+ #if defined(CONFIG_SMP)
+ 	for_each_online_cpu(i) {
+@@ -819,16 +820,24 @@
+ 		 * "processor".  Give glibc what it expects.
+ 		 */
+ 		seq_printf(m, "processor\t: %d\n", i);
++		seq_printf(m, "processor\t: Marvell 88F6281\n");
+ 		seq_printf(m, "BogoMIPS\t: %lu.%02lu\n\n",
+ 			   per_cpu(cpu_data, i).loops_per_jiffy / (500000UL/HZ),
+ 			   (per_cpu(cpu_data, i).loops_per_jiffy / (5000UL/HZ)) % 100);
++		seq_printf(m, "CPUClock\t: %lu.%02lu\n\n",
++			   per_cpu(cpu_data, i).loops_per_jiffy / (500000UL/HZ),
++			   (per_cpu(cpu_data, i).loops_per_jiffy / (5000UL/HZ)) % 100);
+ 	}
+ #else /* CONFIG_SMP */
+ 	seq_printf(m, "BogoMIPS\t: %lu.%02lu\n",
+ 		   loops_per_jiffy / (500000/HZ),
+ 		   (loops_per_jiffy / (5000/HZ)) % 100);
++	seq_printf(m, "CPUClock\t: %lu.%02lu\n",
++		   loops_per_jiffy / (500000/HZ),
++		   (loops_per_jiffy / (5000/HZ)) % 100);
+ #endif
+-
++	/* dump out the flashsize */
++	seq_printf(m, "FlashSize\t: 16384\n");
+ 	/* dump out the processor features */
+ 	seq_puts(m, "Features\t: ");
+ 

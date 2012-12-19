@@ -1,0 +1,30 @@
+--- a/drivers/net/Kconfig
++++ b/drivers/net/Kconfig
+@@ -290,6 +290,7 @@
+ 
+ source "drivers/net/phy/Kconfig"
+ 
++
+ #
+ #	Ethernet
+ #
+@@ -343,6 +344,8 @@
+ 
+ source "drivers/net/arm/Kconfig"
+ 
++source "drivers/net/ramips/Kconfig"
++
+ config AX88796
+ 	tristate "ASIX AX88796 NE2000 clone support"
+ 	depends on ARM || MIPS || SUPERH
+
+--- a/drivers/net/Makefile
++++ b/drivers/ne/Makefile
+@@ -255,6 +255,7 @@
+ obj-$(CONFIG_S6GMAC) += s6gmac.o
+ 
+ obj-$(CONFIG_ARM) += arm/
++obj-$(CONFIG_NET_RAMIPS) += ramips/
+ obj-$(CONFIG_DEV_APPLETALK) += appletalk/
+ obj-$(CONFIG_TR) += tokenring/
+ obj-$(CONFIG_WAN) += wan/

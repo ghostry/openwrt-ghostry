@@ -1,0 +1,381 @@
+diff -Nur linux-2.6.35.7/drivers/input/evdev.c tiny210/drivers/input/evdev.c
+--- linux-2.6.35.7/drivers/input/evdev.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/evdev.c	2011-08-08 12:52:34.000000000 +0800
+@@ -20,6 +20,7 @@
+ #include <linux/input.h>
+ #include <linux/major.h>
+ #include <linux/device.h>
++#include <linux/wakelock.h>
+ #include "input-compat.h"
+ 
+ struct evdev {
+@@ -43,6 +44,8 @@
+ 	struct fasync_struct *fasync;
+ 	struct evdev *evdev;
+ 	struct list_head node;
++	struct wake_lock wake_lock;
++	char name[28];
+ };
+ 
+ static struct evdev *evdev_table[EVDEV_MINORS];
+@@ -55,6 +58,7 @@
+ 	 * Interrupts are disabled, just acquire the lock
+ 	 */
+ 	spin_lock(&client->buffer_lock);
++	wake_lock_timeout(&client->wake_lock, 5 * HZ);
+ 	client->buffer[client->head++] = *event;
+ 	client->head &= EVDEV_BUFFER_SIZE - 1;
+ 	spin_unlock(&client->buffer_lock);
+@@ -72,8 +76,11 @@
+ 	struct evdev *evdev = handle->private;
+ 	struct evdev_client *client;
+ 	struct input_event event;
++	struct timespec ts;
+ 
+-	do_gettimeofday(&event.time);
++	ktime_get_ts(&ts);
++	event.time.tv_sec = ts.tv_sec;
++	event.time.tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+ 	event.type = type;
+ 	event.code = code;
+ 	event.value = value;
+@@ -234,6 +241,7 @@
+ 	mutex_unlock(&evdev->mutex);
+ 
+ 	evdev_detach_client(evdev, client);
++	wake_lock_destroy(&client->wake_lock);
+ 	kfree(client);
+ 
+ 	evdev_close_device(evdev);
+@@ -270,6 +278,9 @@
+ 	}
+ 
+ 	spin_lock_init(&client->buffer_lock);
++	snprintf(client->name, sizeof(client->name), "%s-%d",
++			dev_name(&evdev->dev), task_tgid_vnr(current));
++	wake_lock_init(&client->wake_lock, WAKE_LOCK_SUSPEND, client->name);
+ 	client->evdev = evdev;
+ 	evdev_attach_client(evdev, client);
+ 
+@@ -335,6 +346,8 @@
+ 	if (have_event) {
+ 		*event = client->buffer[client->tail++];
+ 		client->tail &= EVDEV_BUFFER_SIZE - 1;
++		if (client->head == client->tail)
++			wake_unlock(&client->wake_lock);
+ 	}
+ 
+ 	spin_unlock_irq(&client->buffer_lock);
+diff -Nur linux-2.6.35.7/drivers/input/Kconfig tiny210/drivers/input/Kconfig
+--- linux-2.6.35.7/drivers/input/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/Kconfig	2011-08-08 12:52:34.000000000 +0800
+@@ -161,6 +161,15 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called apm-power.
+ 
++config INPUT_KEYRESET
++	tristate "Reset key"
++	depends on INPUT
++	---help---
++	  Say Y here if you want to reboot when some keys are pressed;
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called keyreset.
++
+ config XEN_KBDDEV_FRONTEND
+ 	tristate "Xen virtual keyboard and mouse support"
+ 	depends on XEN_FBDEV_FRONTEND
+diff -Nur linux-2.6.35.7/drivers/input/keyboard/Kconfig tiny210/drivers/input/keyboard/Kconfig
+--- linux-2.6.35.7/drivers/input/keyboard/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/keyboard/Kconfig	2011-08-08 12:52:34.000000000 +0800
+@@ -204,6 +204,49 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called matrix_keypad.
+ 
++config KEYPAD_S3C
++	tristate "S3C keypad support"
++	depends on CPU_S5PC100 || CPU_S5PC110 || CPU_S5P6442 || CPU_S5PV210
++	default n
++	help
++	  Say Y here if you want to use the S3C SMDK keypad.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called s3c-keypad.
++
++config S3C_KEYPAD_DEBUG
++	bool "Print debug messages for S3C keypad"
++	depends on KEYPAD_S3C
++	default n
++	help
++	  Say Y here if you want to print debug messages for S3C keypad.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called s3c-keypad.
++
++choice
++	prompt "Select keypad interface type"
++	depends on KEYPAD_S3C
++	default KEYPAD_S3C_INT
++
++config KEYPAD_S3C_INT
++	bool "Port0 : [KEYPAD : INT(8x8)]"
++	depends on KEYPAD_S3C
++	help
++	  Say Y here if you want to use the S3C SMDK keypad.(8x8)
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called s3c-keypad.
++
++config KEYPAD_S3C_MSM
++	bool "Port1 : [KEYPAD : MSM(8x16)]"
++	depends on KEYPAD_S3C && CPU_S5PV210
++	help
++	  Say Y here if you want to use the S3C SMDK keypad.(8x16)
++	  To compile this driver as a module, choose M here: the
++	  module will be called s3c-keypad.
++endchoice
++
+ config KEYBOARD_HIL_OLD
+ 	tristate "HP HIL keyboard support (simple driver)"
+ 	depends on GSC || HP300
+@@ -426,4 +469,13 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called w90p910_keypad.
+ 
++config KEYPAD_CYPRESS_TOUCH
++	tristate "Cypress touch keypad support"
++	default n
++	help
++	  Say Y here if you want to use the Cypress touch keypad.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called cypress-touchkey.
++
+ endif
+diff -Nur linux-2.6.35.7/drivers/input/keyboard/Makefile tiny210/drivers/input/keyboard/Makefile
+--- linux-2.6.35.7/drivers/input/keyboard/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/keyboard/Makefile	2011-08-08 12:52:34.000000000 +0800
+@@ -38,3 +38,7 @@
+ obj-$(CONFIG_KEYBOARD_TWL4030)		+= twl4030_keypad.o
+ obj-$(CONFIG_KEYBOARD_XTKBD)		+= xtkbd.o
+ obj-$(CONFIG_KEYBOARD_W90P910)		+= w90p910_keypad.o
++obj-$(CONFIG_KEYPAD_CYPRESS_TOUCH)      += cypress-touchkey.o
++obj-$(CONFIG_KEYPAD_MELFAS_TOUCH)                += melfas-touchkey.o
++obj-$(CONFIG_KEYPAD_MELFAS_TOUCH)                += melfas_download.o
++obj-$(CONFIG_KEYPAD_S3C)		+= s3c-keypad.o
+diff -Nur linux-2.6.35.7/drivers/input/Makefile tiny210/drivers/input/Makefile
+--- linux-2.6.35.7/drivers/input/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/Makefile	2011-08-08 12:52:34.000000000 +0800
+@@ -24,5 +24,6 @@
+ obj-$(CONFIG_INPUT_MISC)	+= misc/
+ 
+ obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
++obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
+ 
+ obj-$(CONFIG_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
+diff -Nur linux-2.6.35.7/drivers/input/misc/Kconfig tiny210/drivers/input/misc/Kconfig
+--- linux-2.6.35.7/drivers/input/misc/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/misc/Kconfig	2011-08-08 12:52:34.000000000 +0800
+@@ -12,6 +12,12 @@
+ 
+ if INPUT_MISC
+ 
++config GYRO_K3G
++	tristate "K3G driver for s5pc11x"
++	default n
++	help
++	  This option enables gyro sensors using K3G driver
++
+ config INPUT_88PM860X_ONKEY
+ 	tristate "88PM860x ONKEY support"
+ 	depends on MFD_88PM860X
+@@ -183,6 +189,17 @@
+ 	  To compile this driver as a module, choose M here: the module will be
+ 	  called ati_remote2.
+ 
++config INPUT_KEYCHORD
++	tristate "Key chord input driver support"
++	help
++	  Say Y here if you want to enable the key chord driver
++	  accessible at /dev/keychord.  This driver can be used
++	  for receiving notifications when client specified key
++	  combinations are pressed.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called keychord.
++
+ config INPUT_KEYSPAN_REMOTE
+ 	tristate "Keyspan DMR USB remote control (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+@@ -302,6 +319,11 @@
+ 	  To compile this driver as a module, choose M here: the module will be
+ 	  called winbond_cir.
+ 
++config INPUT_GPIO
++	tristate "GPIO driver support"
++	help
++	  Say Y here if you want to support gpio based keys, wheels etc...
++
+ config HP_SDC_RTC
+ 	tristate "HP SDC Real Time Clock"
+ 	depends on (GSC || HP300) && SERIO
+@@ -406,4 +428,11 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called gpio-buttons.
+ 
++config OPTICAL_GP2A
++	depends on I2C && GENERIC_GPIO
++	tristate "GP2A ambient light and proximity input device"
++	default n
++	help
++	  This option enables proximity & light sensors using gp2a driver.
++
+ endif
+diff -Nur linux-2.6.35.7/drivers/input/misc/Makefile tiny210/drivers/input/misc/Makefile
+--- linux-2.6.35.7/drivers/input/misc/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/misc/Makefile	2011-08-08 12:52:34.000000000 +0800
+@@ -4,6 +4,7 @@
+ 
+ # Each configuration option enables a list of files.
+ 
++obj-$(CONFIG_GYRO_K3G)			+= k3g.o
+ obj-$(CONFIG_INPUT_88PM860X_ONKEY)	+= 88pm860x_onkey.o
+ obj-$(CONFIG_INPUT_AD714X)		+= ad714x.o
+ obj-$(CONFIG_INPUT_AD714X_I2C)		+= ad714x-i2c.o
+@@ -16,8 +17,10 @@
+ obj-$(CONFIG_INPUT_CM109)		+= cm109.o
+ obj-$(CONFIG_INPUT_COBALT_BTNS)		+= cobalt_btns.o
+ obj-$(CONFIG_INPUT_DM355EVM)		+= dm355evm_keys.o
++obj-$(CONFIG_INPUT_GPIO)		+= gpio_event.o gpio_matrix.o gpio_input.o gpio_output.o gpio_axis.o
+ obj-$(CONFIG_HP_SDC_RTC)		+= hp_sdc_rtc.o
+ obj-$(CONFIG_INPUT_IXP4XX_BEEPER)	+= ixp4xx-beeper.o
++obj-$(CONFIG_INPUT_KEYCHORD)		+= keychord.o
+ obj-$(CONFIG_INPUT_KEYSPAN_REMOTE)	+= keyspan_remote.o
+ obj-$(CONFIG_INPUT_M68K_BEEP)		+= m68kspkr.o
+ obj-$(CONFIG_INPUT_MAX8925_ONKEY)	+= max8925_onkey.o
+@@ -38,4 +41,4 @@ obj-$(CONFIG_INPUT_WISTRON_BTNS)	+= wistron_btns.o
+ obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
+ obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
+ obj-$(CONFIG_INPUT_GPIO_BUTTONS)	+= gpio_buttons.o
+-
++obj-$(CONFIG_OPTICAL_GP2A)		+= gp2a.o
+diff -Nur linux-2.6.35.7/drivers/input/touchscreen/Kconfig tiny210/drivers/input/touchscreen/Kconfig
+--- linux-2.6.35.7/drivers/input/touchscreen/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/touchscreen/Kconfig	2012-02-23 17:00:24.000000000 +0800
+@@ -99,6 +99,14 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called h3600_ts_input.
+ 
++config TOUCHSCREEN_S3C
++	tristate "S3C touchscreen driver"
++	depends on ARCH_S3C2410 || ARCH_S3C64XX || ARCH_S5PV2XX || ARCH_S5P64XX || CPU_S5PV210 || CPU_S5PC110
++	default y
++	help
++	  Say Y here to enable the driver for the touchscreen on the S3C SMDK board.
++	  If unsure, say N. To compile this driver as a module, choose M here: the module will be called s3c_ts.
++
+ config TOUCHSCREEN_DA9034
+ 	tristate "Touchscreen support for Dialog Semiconductor DA9034"
+ 	depends on PMIC_DA903X
+@@ -165,6 +173,34 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called s3c2410_ts.
+ 
++config TOUCHSCREEN_1WIRE
++	tristate "Mini210 1-Wire host and Touch Screen Driver"
++	depends on MACH_MINI210
++	help
++	  Say Y here to enable the 1-Wire host and Touch Screen driver for
++	  FriendlyARM Mini210 development board.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called mini210_1wire_host.
++
++config TOUCHSCREEN_IF
++	bool
++	default y if TOUCHSCREEN_1WIRE
++
++config TOUCHSCREEN_GOODIX
++	tristate "Goodix GT80X multi-touch driver"
++	depends on MACH_MINI210
++	help
++	  Say Y here to support Goodix touchscreen whose name is guitar on
++	  FriendlyARM Mini210 development board.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called goodix_touch.ko.
++
+ config TOUCHSCREEN_GUNZE
+ 	tristate "Gunze AHL-51S touchscreen"
+ 	select SERIO
+@@ -248,6 +284,18 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called mk712.
+ 
++config TOUCHSCREEN_MXT224
++	tristate "Atmel MaxTouch 224"
++	depends on I2C
++	help
++	  Say Y here to enable support for the Atmel MaxTouch 224 touch
++	  controller.
++
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called mxt224.
++
+ config TOUCHSCREEN_HP600
+ 	tristate "HP Jornada 6xx touchscreen"
+ 	depends on SH_HP6XX && SH_ADC
+@@ -303,6 +351,12 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called migor_ts.
+ 
++config TOUCHSCREEN_SYNAPTICS_I2C_RMI
++	tristate "Synaptics i2c touchscreen"
++	depends on I2C
++	help
++	  This enables support for Synaptics RMI over I2C based touchscreens.
++
+ config TOUCHSCREEN_TOUCHRIGHT
+ 	tristate "Touchright serial touchscreen"
+ 	select SERIO
+diff -Nur linux-2.6.35.7/drivers/input/touchscreen/Makefile tiny210/drivers/input/touchscreen/Makefile
+--- linux-2.6.35.7/drivers/input/touchscreen/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/input/touchscreen/Makefile	2012-02-23 17:00:24.000000000 +0800
+@@ -24,6 +24,7 @@
+ obj-$(CONFIG_TOUCHSCREEN_MIGOR)		+= migor_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_MTOUCH)	+= mtouch.o
+ obj-$(CONFIG_TOUCHSCREEN_MK712)		+= mk712.o
++obj-$(CONFIG_TOUCHSCREEN_MXT224)	+= mxt224.o
+ obj-$(CONFIG_TOUCHSCREEN_HP600)		+= hp680_ts_input.o
+ obj-$(CONFIG_TOUCHSCREEN_HP7XX)		+= jornada720_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_HTCPEN)	+= htcpen.o
+@@ -31,6 +32,7 @@
+ obj-$(CONFIG_TOUCHSCREEN_PCAP)		+= pcap_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= penmount.o
+ obj-$(CONFIG_TOUCHSCREEN_S3C2410)	+= s3c2410_ts.o
++obj-$(CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI)	+= synaptics_i2c_rmi.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHIT213)	+= touchit213.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
+ obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
+@@ -47,3 +49,15 @@
+ obj-$(CONFIG_TOUCHSCREEN_WM97XX_ZYLONITE)	+= zylonite-wm97xx.o
+ obj-$(CONFIG_TOUCHSCREEN_W90X900)	+= w90p910_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_TPS6507X)	+= tps6507x-ts.o
++obj-$(CONFIG_TOUCHSCREEN_S3C)           += ts-s3c.o
++obj-$(CONFIG_TOUCHSCREEN_1WIRE)		+= mini210_1wire_host.o
++obj-$(CONFIG_TOUCHSCREEN_IF)		+= ts-if.o
++
++ifneq ($(wildcard drivers/input/touchscreen/goodix_touch.c),)
++ifeq ($(FA),1)
++obj-$(CONFIG_TOUCHSCREEN_GOODIX)	+= goodix_touch.o
++else
++obj-m += goodix_touch.o
++endif  #FA
++endif
++

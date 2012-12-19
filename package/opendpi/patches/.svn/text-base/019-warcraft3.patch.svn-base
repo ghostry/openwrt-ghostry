@@ -1,0 +1,30 @@
+--- a/src/lib/protocols/warcraft3.c	
++++ b/src/lib/protocols/warcraft3.c	
+@@ -40,7 +40,7 @@
+ 	struct ipoque_flow_struct *flow = ipoque_struct->flow;
+ //      struct ipoque_id_struct         *src=ipoque_struct->src;
+ //      struct ipoque_id_struct         *dst=ipoque_struct->dst;
+-
++if (packet->tcp != NULL && packet->payload_packet_len != 0) {
+ 	u16 l;
+ 
+ 	IPQ_LOG(IPOQUE_PROTOCOL_WARCRAFT3, ipoque_struct, IPQ_LOG_DEBUG, "search WARCRAFT3\n");
+@@ -49,9 +49,9 @@
+ 	if (flow->packet_counter == 1 && packet->payload_packet_len == 1 && packet->payload[0] == 0x01) {
+ 		IPQ_LOG(IPOQUE_PROTOCOL_WARCRAFT3, ipoque_struct, IPQ_LOG_DEBUG, "maybe warcraft3: packet_len == 1\n");
+ 		return;
+-	} else if (packet->payload_packet_len >= 4 && (packet->payload[0] == 0xf7 || packet->payload[0] == 0xff)) {
++	} else if (packet->payload_packet_len >= 4 && (packet->payload[0] == 0xf7 || packet->payload[0] == 0xf8 || packet->payload[0] == 0xff)) {
+ 
+-		IPQ_LOG(IPOQUE_PROTOCOL_WARCRAFT3, ipoque_struct, IPQ_LOG_DEBUG, "packet_payload begins with 0xf7 or 0xff\n");
++		IPQ_LOG(IPOQUE_PROTOCOL_WARCRAFT3, ipoque_struct, IPQ_LOG_DEBUG, "packet_payload begins with 0xf7 or 0xf8 or 0xff\n");
+ 
+ 		l = packet->payload[2] + (packet->payload[3] << 8);	// similar to ntohs
+ 
+@@ -94,5 +94,6 @@
+ 	IPQ_LOG(IPOQUE_PROTOCOL_WARCRAFT3, ipoque_struct, IPQ_LOG_DEBUG, "no warcraft3 detected.\n");
+ 	IPOQUE_ADD_PROTOCOL_TO_BITMASK(flow->excluded_protocol_bitmask, IPOQUE_PROTOCOL_WARCRAFT3);
+ }
++}
+ 
+ #endif

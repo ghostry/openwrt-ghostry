@@ -1,0 +1,24 @@
+From: George Kashperko <george@znau.edu.ua>
+
+Avoid data prefetching outside actual address space
+for 74K mips socs with 128M ram.
+Signed-off-by: George Kashperko <george@znau.edu.ua>
+---
+ arch/mips/bcm47xx/prom.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+--- linux-3.0.4.orig/arch/mips/bcm47xx/prom.c	2011-09-25 00:13:46.000000000 +0300
++++ linux-3.0.4/arch/mips/bcm47xx/prom.c	2011-09-25 00:15:26.000000000 +0300
+@@ -87,6 +87,13 @@ static __init void prom_init_mem(void)
+ 			break;
+ 	}
+ 
++	/* Avoid requesting the last page when ram size is 128M. Cached
++	 * accesses to last page cause the processor prefetching
++	 * data above 128M
++	 */
++	if (cpu_data[0].cputype == CPU_74K && mem == 128 << 20)
++		mem -= 0x1000;
++
+ 	add_memory_region(0, mem, BOOT_MEM_RAM);
+ }
+ 

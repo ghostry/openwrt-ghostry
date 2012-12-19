@@ -1,0 +1,108 @@
+--- linux-2.6.32.59/arch/mips/bcm63xx/boards/board_bcm963xx.c.orig	2012-06-05 20:13:50.000000000 +0800
++++ linux-2.6.32.59/arch/mips/bcm63xx/boards/board_bcm963xx.c	2012-06-05 21:41:37.467343960 +0800
+@@ -643,6 +643,97 @@
+ 	}
+ };
+ 
++static struct board_info __initdata board_HW553 = {
++	.name                           = "HW553",
++	.expected_cpu_id		= 0x6358,
++
++	.has_enet0			= 1,
++	.has_enet1			= 1,
++	.has_pci			= 1,
++
++	.enet0 = {
++		.has_phy		= 1,
++		.use_internal_phy	= 1,
++	},
++
++	.enet1 = {
++		.force_speed_100	= 1,
++		.force_duplex_full	= 1,
++	},
++
++
++	.has_ohci0 = 1,
++	.has_pccard = 1,
++	.has_ehci0 = 1,
++	.leds = {
++		{
++			.name		= "lan:red",
++			.gpio		= 34,
++			.active_low	= 1,
++//			.default_trigger = "default-on",
++		},
++		{
++			.name		= "lan:blue",
++			.gpio		= 35,
++			.active_low	= 1,
++		},
++		{
++			.name		= "adsl:red",
++			.gpio		= 22,
++			.active_low	= 1,
++		},
++		{
++			.name		= "adsl:blue",
++			.gpio		= 23,
++			.active_low	= 1,
++		},
++		{
++			.name		= "power:red",
++			.gpio		= 5,
++			.active_low	= 1,
++			.default_trigger = "default-on",
++		},
++		{
++			.name		= "power:blue",
++			.gpio		= 4,
++			.active_low	= 1,
++		},
++		{
++			.name		= "wifi:red",
++			.gpio		= 25,
++			.active_low	= 1,
++		},
++		{
++			.name		= "hspa:red",
++			.gpio		= 12,
++			.active_low	= 1,
++		},
++		{
++			.name		= "hspa:blue",
++			.gpio		= 13,
++			.active_low	= 1,
++		},
++	},
++	.reset_buttons = {
++		{
++			.desc		= "reset",
++			.gpio		= 37,
++			.active_low	= 1,
++			.type		= EV_KEY,
++			.code		= BTN_0,
++			.threshold	= 3,
++		},
++		{
++			.desc		= "wifi",
++			.gpio		= 9,
++			.active_low	= 1,
++			.type		= EV_KEY,
++			.code		= BTN_1,
++			.threshold	= 3,
++		},
++	}
++};
++
+ static struct board_info __initdata board_AGPFS0 = {
+ 	.name                           = "AGPF-S0",
+ 	.expected_cpu_id                = 0x6358,
+@@ -772,6 +863,7 @@
+ 	&board_96358vw2,
+ 	&board_AGPFS0,
+ 	&board_DWVS0,
++	&board_HW553,
+ #endif
+ };
+ 

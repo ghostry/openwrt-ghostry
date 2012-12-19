@@ -1,0 +1,152 @@
+diff -Nur linux-2.6.35.7//include/linux/mmc/card.h tiny210//include/linux/mmc/card.h
+--- linux-2.6.35.7//include/linux/mmc/card.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/card.h	2011-08-08 12:52:13.000000000 +0800
+@@ -24,6 +24,7 @@
+ };
+ 
+ struct mmc_csd {
++	unsigned char		structure;
+ 	unsigned char		mmca_vsn;
+ 	unsigned short		cmdclass;
+ 	unsigned short		tacc_clks;
+diff -Nur linux-2.6.35.7//include/linux/mmc/core.h tiny210//include/linux/mmc/core.h
+--- linux-2.6.35.7//include/linux/mmc/core.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/core.h	2011-08-08 12:52:13.000000000 +0800
+@@ -141,6 +141,8 @@
+ extern void mmc_release_host(struct mmc_host *host);
+ extern int mmc_try_claim_host(struct mmc_host *host);
+ 
++extern void mmc_card_adjust_cfg(struct mmc_host *host, int rw);
++
+ /**
+  *	mmc_claim_host - exclusively claim a host
+  *	@host: mmc host to claim
+diff -Nur linux-2.6.35.7//include/linux/mmc/host.h tiny210//include/linux/mmc/host.h
+--- linux-2.6.35.7//include/linux/mmc/host.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/host.h	2011-08-08 12:52:13.000000000 +0800
+@@ -108,7 +108,7 @@
+ 	int	(*get_cd)(struct mmc_host *host);
+ 
+ 	void	(*enable_sdio_irq)(struct mmc_host *host, int enable);
+-
++	void	(*adjust_cfg)(struct mmc_host *host, int rw);
+ 	/* optional callback for HC quirks */
+ 	void	(*init_card)(struct mmc_host *host, struct mmc_card *card);
+ };
+@@ -156,7 +156,6 @@
+ #define MMC_CAP_DISABLE		(1 << 7)	/* Can the host be disabled */
+ #define MMC_CAP_NONREMOVABLE	(1 << 8)	/* Nonremovable e.g. eMMC */
+ #define MMC_CAP_WAIT_WHILE_BUSY	(1 << 9)	/* Waits while card is busy */
+-
+ 	mmc_pm_flag_t		pm_caps;	/* supported pm features */
+ 
+ 	/* host specific block data */
+@@ -201,6 +200,10 @@
+ 	const struct mmc_bus_ops *bus_ops;	/* current bus driver */
+ 	unsigned int		bus_refs;	/* reference counter */
+ 
++	unsigned int		bus_resume_flags;
++#define MMC_BUSRESUME_MANUAL_RESUME	(1 << 0)
++#define MMC_BUSRESUME_NEEDS_RESUME	(1 << 1)
++
+ 	unsigned int		sdio_irqs;
+ 	struct task_struct	*sdio_irq_thread;
+ 	atomic_t		sdio_irq_thread_abort;
+@@ -213,6 +216,15 @@
+ 
+ 	struct dentry		*debugfs_root;
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	struct {
++		struct sdio_cis			*cis;
++		struct sdio_cccr		*cccr;
++		struct sdio_embedded_func	*funcs;
++		int				num_funcs;
++	} embedded_sdio_data;
++#endif
++
+ 	unsigned long		private[0] ____cacheline_aligned;
+ };
+ 
+@@ -221,6 +233,14 @@
+ extern void mmc_remove_host(struct mmc_host *);
+ extern void mmc_free_host(struct mmc_host *);
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++extern void mmc_set_embedded_sdio_data(struct mmc_host *host,
++				       struct sdio_cis *cis,
++				       struct sdio_cccr *cccr,
++				       struct sdio_embedded_func *funcs,
++				       int num_funcs);
++#endif
++
+ static inline void *mmc_priv(struct mmc_host *host)
+ {
+ 	return (void *)host->private;
+@@ -231,6 +251,18 @@
+ #define mmc_dev(x)	((x)->parent)
+ #define mmc_classdev(x)	(&(x)->class_dev)
+ #define mmc_hostname(x)	(dev_name(&(x)->class_dev))
++#define mmc_bus_needs_resume(host) ((host)->bus_resume_flags & MMC_BUSRESUME_NEEDS_RESUME)
++#define mmc_bus_manual_resume(host) ((host)->bus_resume_flags & MMC_BUSRESUME_MANUAL_RESUME)
++
++static inline void mmc_set_bus_resume_policy(struct mmc_host *host, int manual)
++{
++	if (manual)
++		host->bus_resume_flags |= MMC_BUSRESUME_MANUAL_RESUME;
++	else
++		host->bus_resume_flags &= ~MMC_BUSRESUME_MANUAL_RESUME;
++}
++
++extern int mmc_resume_bus(struct mmc_host *host);
+ 
+ extern int mmc_suspend_host(struct mmc_host *);
+ extern int mmc_resume_host(struct mmc_host *);
+diff -Nur linux-2.6.35.7//include/linux/mmc/mmc.h tiny210//include/linux/mmc/mmc.h
+--- linux-2.6.35.7//include/linux/mmc/mmc.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/mmc.h	2011-08-08 12:52:13.000000000 +0800
+@@ -254,6 +254,7 @@
+ #define EXT_CSD_BUS_WIDTH	183	/* R/W */
+ #define EXT_CSD_HS_TIMING	185	/* R/W */
+ #define EXT_CSD_CARD_TYPE	196	/* RO */
++#define EXT_CSD_STRUCTURE	194	/* RO */
+ #define EXT_CSD_REV		192	/* RO */
+ #define EXT_CSD_SEC_CNT		212	/* RO, 4 bytes */
+ #define EXT_CSD_S_A_TIMEOUT	217
+diff -Nur linux-2.6.35.7//include/linux/mmc/pm.h tiny210//include/linux/mmc/pm.h
+--- linux-2.6.35.7//include/linux/mmc/pm.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/pm.h	2011-08-08 12:52:13.000000000 +0800
+@@ -26,5 +26,6 @@
+ 
+ #define MMC_PM_KEEP_POWER	(1 << 0)	/* preserve card power during suspend */
+ #define MMC_PM_WAKE_SDIO_IRQ	(1 << 1)	/* wake up host system on SDIO IRQ assertion */
++#define MMC_PM_IGNORE_PM_NOTIFY	(1 << 2)	/* ignore mmc pm notify */
+ 
+ #endif
+diff -Nur linux-2.6.35.7//include/linux/mmc/sdio_func.h tiny210//include/linux/mmc/sdio_func.h
+--- linux-2.6.35.7//include/linux/mmc/sdio_func.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//include/linux/mmc/sdio_func.h	2011-08-08 12:52:13.000000000 +0800
+@@ -23,6 +23,14 @@
+ typedef void (sdio_irq_handler_t)(struct sdio_func *);
+ 
+ /*
++ * Structure used to hold embedded SDIO device data from platform layer
++ */
++struct sdio_embedded_func {
++	uint8_t f_class;
++	uint32_t f_maxblksize;
++};
++
++/*
+  * SDIO function CIS tuple (unknown to the core)
+  */
+ struct sdio_func_tuple {
+@@ -130,6 +138,8 @@
+ extern unsigned int sdio_align_size(struct sdio_func *func, unsigned int sz);
+ 
+ extern u8 sdio_readb(struct sdio_func *func, unsigned int addr, int *err_ret);
++extern u8 sdio_readb_ext(struct sdio_func *func, unsigned int addr, int *err_ret,
++	unsigned in);
+ extern u16 sdio_readw(struct sdio_func *func, unsigned int addr, int *err_ret);
+ extern u32 sdio_readl(struct sdio_func *func, unsigned int addr, int *err_ret);
+ 

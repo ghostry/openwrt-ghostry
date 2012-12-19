@@ -1,0 +1,202 @@
+--- linux-2.6.35.7/include/mtd/mtd-abi.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/include/mtd/mtd-abi.h	2011-09-09 11:23:09.000000000 +0800
+@@ -37,6 +37,7 @@
+ #define MTD_NANDFLASH		4
+ #define MTD_DATAFLASH		6
+ #define MTD_UBIVOLUME		7
++#define MTD_MLCNANDFLASH        8
+ 
+ #define MTD_WRITEABLE		0x400	/* Device is writeable */
+ #define MTD_BIT_WRITEABLE	0x800	/* Single bits can be flipped */
+@@ -134,7 +135,7 @@
+  */
+ struct nand_ecclayout {
+ 	__u32 eccbytes;
+-	__u32 eccpos[64];
++	__u32 eccpos[256];
+ 	__u32 oobavail;
+ 	struct nand_oobfree oobfree[MTD_MAX_OOBFREE_ENTRIES];
+ };
+--- linux-2.6.35.7/include/linux/mtd/mtd.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/include/linux/mtd/mtd.h	2011-08-08 12:52:13.000000000 +0800
+@@ -13,7 +13,6 @@
+ #include <linux/notifier.h>
+ #include <linux/device.h>
+ 
+-#include <linux/mtd/compatmac.h>
+ #include <mtd/mtd-abi.h>
+ 
+ #include <asm/div64.h>
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0001.c tiny210/drivers/mtd/chips/cfi_cmdset_0001.c
+--- linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0001.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/cfi_cmdset_0001.c	2011-08-08 12:52:25.000000000 +0800
+@@ -34,7 +34,6 @@
+ #include <linux/mtd/xip.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/mtd.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/mtd/cfi.h>
+ 
+ /* #define CMDSET0001_DISABLE_ERASE_SUSPEND_ON_WRITE */
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0002.c tiny210/drivers/mtd/chips/cfi_cmdset_0002.c
+--- linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0002.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/cfi_cmdset_0002.c	2011-08-08 12:52:25.000000000 +0800
+@@ -33,7 +33,6 @@
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
+ #include <linux/reboot.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/cfi.h>
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0020.c tiny210/drivers/mtd/chips/cfi_cmdset_0020.c
+--- linux-2.6.35.7/drivers/mtd/chips/cfi_cmdset_0020.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/cfi_cmdset_0020.c	2011-08-08 12:52:25.000000000 +0800
+@@ -33,7 +33,6 @@
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/cfi.h>
+ #include <linux/mtd/mtd.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ 
+ static int cfi_staa_read(struct mtd_info *, loff_t, size_t, size_t *, u_char *);
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/cfi_util.c tiny210/drivers/mtd/chips/cfi_util.c
+--- linux-2.6.35.7/drivers/mtd/chips/cfi_util.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/cfi_util.c	2011-08-08 12:52:25.000000000 +0800
+@@ -22,7 +22,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/cfi.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ int __xipram cfi_qry_present(struct map_info *map, __u32 base,
+ 			     struct cfi_private *cfi)
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/chipreg.c tiny210/drivers/mtd/chips/chipreg.c
+--- linux-2.6.35.7/drivers/mtd/chips/chipreg.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/chipreg.c	2011-08-08 12:52:25.000000000 +0800
+@@ -10,7 +10,6 @@
+ #include <linux/slab.h>
+ #include <linux/mtd/map.h>
+ #include <linux/mtd/mtd.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ static DEFINE_SPINLOCK(chip_drvs_lock);
+ static LIST_HEAD(chip_drvs_list);
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/map_absent.c tiny210/drivers/mtd/chips/map_absent.c
+--- linux-2.6.35.7/drivers/mtd/chips/map_absent.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/map_absent.c	2011-08-08 12:52:25.000000000 +0800
+@@ -25,7 +25,6 @@
+ #include <linux/init.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ static int map_absent_read (struct mtd_info *, loff_t, size_t, size_t *, u_char *);
+ static int map_absent_write (struct mtd_info *, loff_t, size_t, size_t *, const u_char *);
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/map_ram.c tiny210/drivers/mtd/chips/map_ram.c
+--- linux-2.6.35.7/drivers/mtd/chips/map_ram.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/map_ram.c	2011-08-08 12:52:25.000000000 +0800
+@@ -13,7 +13,6 @@
+ #include <linux/init.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ 
+ static int mapram_read (struct mtd_info *, loff_t, size_t, size_t *, u_char *);
+diff -Nur linux-2.6.35.7/drivers/mtd/chips/map_rom.c tiny210/drivers/mtd/chips/map_rom.c
+--- linux-2.6.35.7/drivers/mtd/chips/map_rom.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/chips/map_rom.c	2011-08-08 12:52:25.000000000 +0800
+@@ -13,7 +13,6 @@
+ #include <linux/init.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/map.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ static int maprom_read (struct mtd_info *, loff_t, size_t, size_t *, u_char *);
+ static int maprom_write (struct mtd_info *, loff_t, size_t, size_t *, const u_char *);
+diff -Nur linux-2.6.35.7/drivers/mtd/devices/docecc.c tiny210/drivers/mtd/devices/docecc.c
+--- linux-2.6.35.7/drivers/mtd/devices/docecc.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/devices/docecc.c	2011-08-08 12:52:25.000000000 +0800
+@@ -31,7 +31,6 @@
+ #include <linux/init.h>
+ #include <linux/types.h>
+ 
+-#include <linux/mtd/compatmac.h> /* for min() in older kernels */
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/doc2000.h>
+ 
+diff -Nur linux-2.6.35.7/drivers/mtd/devices/docprobe.c tiny210/drivers/mtd/devices/docprobe.c
+--- linux-2.6.35.7/drivers/mtd/devices/docprobe.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/devices/docprobe.c	2011-08-08 12:52:25.000000000 +0800
+@@ -49,7 +49,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/mtd/doc2000.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ /* Where to look for the devices? */
+ #ifndef CONFIG_MTD_DOCPROBE_ADDRESS
+diff -Nur linux-2.6.35.7/drivers/mtd/devices/mtdram.c tiny210/drivers/mtd/devices/mtdram.c
+--- linux-2.6.35.7/drivers/mtd/devices/mtdram.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/devices/mtdram.c	2011-08-08 12:52:25.000000000 +0800
+@@ -14,7 +14,6 @@
+ #include <linux/ioport.h>
+ #include <linux/vmalloc.h>
+ #include <linux/init.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/mtdram.h>
+ 
+diff -Nur linux-2.6.35.7/drivers/mtd/devices/pmc551.c tiny210/drivers/mtd/devices/pmc551.c
+--- linux-2.6.35.7/drivers/mtd/devices/pmc551.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/devices/pmc551.c	2011-08-08 12:52:25.000000000 +0800
+@@ -98,7 +98,6 @@
+ 
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/pmc551.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ static struct mtd_info *pmc551list;
+ 
+--- linux-2.6.35.7/drivers/mtd/inftlmount.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/inftlmount.c	2011-08-08 12:52:25.000000000 +0800
+@@ -34,7 +34,6 @@
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/nftl.h>
+ #include <linux/mtd/inftl.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ /*
+  * find_boot_record: Find the INFTL Media Header and its Spare copy which
+--- linux-2.6.35.7/drivers/mtd/mtdchar.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/mtdchar.c	2011-08-08 12:52:25.000000000 +0800
+@@ -18,7 +18,7 @@
+ #include <linux/mount.h>
+ 
+ #include <linux/mtd/mtd.h>
+-#include <linux/mtd/compatmac.h>
++#include <linux/mtd/map.h>
+ 
+ #include <asm/uaccess.h>
+ 
+--- linux-2.6.35.7/drivers/mtd/mtdcore.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/mtdcore.c	2011-08-08 12:52:25.000000000 +0800
+@@ -17,7 +17,6 @@
+ #include <linux/err.h>
+ #include <linux/ioctl.h>
+ #include <linux/init.h>
+-#include <linux/mtd/compatmac.h>
+ #include <linux/proc_fs.h>
+ #include <linux/idr.h>
+ #include <linux/backing-dev.h>
+--- linux-2.6.35.7/drivers/mtd/mtdpart.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mtd/mtdpart.c	2011-08-08 12:52:25.000000000 +0800
+@@ -17,7 +17,6 @@
+ #include <linux/kmod.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/mtd/partitions.h>
+-#include <linux/mtd/compatmac.h>
+ 
+ /* Our partition linked list */
+ static LIST_HEAD(mtd_partitions);

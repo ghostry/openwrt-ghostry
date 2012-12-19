@@ -1,0 +1,18 @@
+config system
+	option hostname	DreamBox
+        option 'zonename' 'Asia/Shanghai'
+        option 'timezone' 'CST-8'
+
+config button
+	option button	reset
+	option action	released
+	option handler	"logger reboot"
+	option min		0
+	option max		4
+
+config button
+	option button	reset
+	option action	released
+	option handler	"logger factory default"
+	option min		5
+	option max		30

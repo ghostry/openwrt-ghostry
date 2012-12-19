@@ -1,0 +1,65 @@
+--- linux-2.6.35.7/arch/arm/common/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/common/Kconfig	2011-08-08 12:52:05.000000000 +0800
+@@ -6,6 +6,7 @@
+ 
+ config ARM_VIC_NR
+ 	int
++	default 4 if ARCH_S5PV210
+ 	default 2
+ 	depends on ARM_VIC
+ 	help
+@@ -41,3 +42,46 @@
+ config COMMON_CLKDEV
+ 	bool
+ 	select HAVE_CLK
++
++config FIQ_GLUE
++	bool
++	select FIQ
++
++config FIQ_DEBUGGER
++	bool "FIQ Mode Serial Debugger"
++	select FIQ
++	select FIQ_GLUE
++	select KERNEL_DEBUGGER_CORE
++	default n
++	help
++	  The FIQ serial debugger can accept commands even when the
++	  kernel is unresponsive due to being stuck with interrupts
++	  disabled.  Depends on the kernel debugger core in drivers/misc.
++
++
++config FIQ_DEBUGGER_NO_SLEEP
++	bool "Keep serial debugger active"
++	depends on FIQ_DEBUGGER
++	default n
++	help
++	  Enables the serial debugger at boot. Passing
++	  fiq_debugger.no_sleep on the kernel commandline will
++	  override this config option.
++
++config FIQ_DEBUGGER_WAKEUP_IRQ_ALWAYS_ON
++	bool "Don't disable wakeup IRQ when debugger is active"
++	depends on FIQ_DEBUGGER
++	default n
++	help
++	  Don't disable the wakeup irq when enabling the uart clock.  This will
++	  cause extra interrupts, but it makes the serial debugger usable with
++	  on some MSM radio builds that ignore the uart clock request in power
++	  collapse.
++
++config FIQ_DEBUGGER_CONSOLE
++	bool "Console on FIQ Serial Debugger port"
++	depends on FIQ_DEBUGGER
++	default n
++	help
++	  Enables a console so that printk messages are displayed on
++	  the debugger serial port as the occur.
+--- linux-2.6.35.7/arch/arm/common/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/common/Makefile	2011-08-08 12:52:05.000000000 +0800
+@@ -17,3 +17,5 @@
+ obj-$(CONFIG_ARCH_IXP23XX)	+= uengine.o
+ obj-$(CONFIG_PCI_HOST_ITE8152)  += it8152.o
+ obj-$(CONFIG_COMMON_CLKDEV)	+= clkdev.o
++obj-$(CONFIG_FIQ_GLUE)		+= fiq_glue.o fiq_glue_setup.o
++obj-$(CONFIG_FIQ_DEBUGGER)	+= fiq_debugger.o

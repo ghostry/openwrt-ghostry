@@ -1,0 +1,44 @@
+--- linux-2.6.35.7/arch/arm/plat-s5p/include/plat/irqs.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/include/plat/irqs.h	2011-08-08 12:52:05.000000000 +0800
+@@ -94,4 +94,6 @@
+ 						((irq) - S5P_EINT_BASE1) : \
+ 						((irq) + 16 - S5P_EINT_BASE2))
+ 
++#define IRQ_EINT_BIT(x)		EINT_OFFSET(x)
++
+ #endif /* __ASM_PLAT_S5P_IRQS_H */
+--- linux-2.6.35.7/arch/arm/plat-s5p/include/plat/map-s5p.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/include/plat/map-s5p.h	2011-08-08 12:52:05.000000000 +0800
+@@ -17,6 +17,7 @@
+ #define S5P_VA_GPIO		S3C_ADDR(0x00500000)
+ #define S5P_VA_SYSTIMER		S3C_ADDR(0x01200000)
+ #define S5P_VA_SROMC		S3C_ADDR(0x01100000)
++#define S5P_VA_AUDSS		S3C_ADDR(0X01600000)
+ 
+ #define S5P_VA_UART0		(S3C_VA_UART + 0x0)
+ #define S5P_VA_UART1		(S3C_VA_UART + 0x400)
+--- linux-2.6.35.7/arch/arm/plat-s5p/include/plat/pll.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/plat-s5p/include/plat/pll.h	2011-08-08 12:52:05.000000000 +0800
+@@ -21,6 +21,9 @@
+ 
+ #include <asm/div64.h>
+ 
++#define PLL45XX_APLL_VAL_1000	((1 << 31) | (125 << 16) | (3 << 8) | (1))
++#define PLL45XX_APLL_VAL_800	((1 << 31) | (100 << 16) | (3 << 8) | (1))
++
+ enum pll45xx_type_t {
+ 	pll_4500,
+ 	pll_4502,
+@@ -46,10 +49,12 @@
+ 	return (unsigned long)fvco;
+ }
+ 
++#define PLL90XX_VDIV_MASK	(0x1)
+ #define PLL90XX_MDIV_MASK	(0xFF)
+ #define PLL90XX_PDIV_MASK	(0x3F)
+ #define PLL90XX_SDIV_MASK	(0x7)
+ #define PLL90XX_KDIV_MASK	(0xffff)
++#define PLL90XX_VDIV_SHIFT	(27)
+ #define PLL90XX_MDIV_SHIFT	(16)
+ #define PLL90XX_PDIV_SHIFT	(8)
+ #define PLL90XX_SDIV_SHIFT	(0)

@@ -1,0 +1,121 @@
+From: George Kashperko <george@znau.edu.ua>
+
+Move direct master/slave wrappers registers' queries into SSB management code.
+Indirect requests to SB management code for wrappers' base/size rather than
+direct access to backplane-specific registers will let adding AI-style SSB
+buses support without need to alter drivers' code later on.
+Signed-off-by: George Kashperko <george@znau.edu.ua>
+---
+ drivers/ssb/driver_gige.c   |    2 +-
+ drivers/ssb/main.c          |    8 ++++++--
+ drivers/usb/host/ehci-ssb.c |    5 +++--
+ drivers/usb/host/ohci-ssb.c |    8 ++++----
+ include/linux/ssb/ssb.h     |    4 ++--
+ 5 files changed, 16 insertions(+), 11 deletions(-)
+--- linux-3.0.1.orig/drivers/ssb/driver_gige.c	2011-08-08 15:18:04.000000000 +0300
++++ linux-3.0.1/drivers/ssb/driver_gige.c	2011-08-08 15:27:00.000000000 +0300
+@@ -196,7 +196,7 @@ static int __devinit ssb_gige_probe(stru
+ 		ssb_device_enable(sdev, 0);
+ 
+ 	/* Setup BAR0. This is a 64k MMIO region. */
+-	base = ssb_admatch_base(ssb_read32(sdev, SSB_ADMATCH1));
++	base = ssb_admatch_base(sdev, SSB_ADMATCH1);
+ 	gige_pcicfg_write32(dev, PCI_BASE_ADDRESS_0, base);
+ 	gige_pcicfg_write32(dev, PCI_BASE_ADDRESS_1, 0);
+ 
+--- linux-3.0.1.orig/drivers/ssb/main.c	2011-08-08 15:20:21.000000000 +0300
++++ linux-3.0.1/drivers/ssb/main.c	2011-08-08 15:27:00.000000000 +0300
+@@ -1366,10 +1366,12 @@ void ssb_commit_settings(struct ssb_bus 
+ }
+ EXPORT_SYMBOL(ssb_commit_settings);
+ 
+-u32 ssb_admatch_base(u32 adm)
++u32 ssb_admatch_base(struct ssb_device *dev, u32 adm)
+ {
+ 	u32 base = 0;
+ 
++	adm = ssb_read32(dev, adm);
++
+ 	switch (adm & SSB_ADM_TYPE) {
+ 	case SSB_ADM_TYPE0:
+ 		base = (adm & SSB_ADM_BASE0);
+@@ -1390,10 +1392,12 @@ u32 ssb_admatch_base(u32 adm)
+ }
+ EXPORT_SYMBOL(ssb_admatch_base);
+ 
+-u32 ssb_admatch_size(u32 adm)
++u32 ssb_admatch_size(struct ssb_device *dev, u32 adm)
+ {
+ 	u32 size = 0;
+ 
++	adm = ssb_read32(dev, adm);
++
+ 	switch (adm & SSB_ADM_TYPE) {
+ 	case SSB_ADM_TYPE0:
+ 		size = ((adm & SSB_ADM_SZ0) >> SSB_ADM_SZ0_SHIFT);
+--- linux-3.0.1.orig/drivers/usb/host/ehci-ssb.c	2011-08-08 15:20:21.000000000 +0300
++++ linux-3.0.1/drivers/usb/host/ehci-ssb.c	2011-08-08 15:27:00.000000000 +0300
+@@ -122,7 +122,9 @@ static int ssb_ehci_attach(struct ssb_de
+ 	struct ssb_ehci_device *ehcidev;
+ 	struct usb_hcd *hcd;
+ 	int err = -ENOMEM;
++#ifndef CONFIG_USB_OHCI_HCD_SSB
+ 	u32 tmp;
++#endif
+ 
+ 	if (dma_set_mask(dev->dma_dev, DMA_BIT_MASK(32)) ||
+ 	    dma_set_coherent_mask(dev->dma_dev, DMA_BIT_MASK(32)))
+@@ -172,8 +174,7 @@ static int ssb_ehci_attach(struct ssb_de
+ 		goto err_dev_disable;
+ 
+ 	ehcidev = hcd_to_ssb_ehci(hcd);
+-	tmp = ssb_read32(dev, SSB_ADMATCH0);
+-	hcd->rsrc_start = ssb_admatch_base(tmp) + 0x800; /* ehci core offset */
++	hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0) + 0x800; /* ehci core offset */
+ 	hcd->rsrc_len = 0x100; /* ehci reg block size */
+ 	/*
+ 	 * start & size modified per sbutils.c
+--- linux-3.0.1.orig/drivers/usb/host/ohci-ssb.c	2011-08-08 15:20:21.000000000 +0300
++++ linux-3.0.1/drivers/usb/host/ohci-ssb.c	2011-08-08 15:27:00.000000000 +0300
+@@ -123,7 +123,7 @@ static int ssb_ohci_attach(struct ssb_de
+ 	struct ssb_ohci_device *ohcidev;
+ 	struct usb_hcd *hcd;
+ 	int err = -ENOMEM;
+-	u32 tmp, flags = 0;
++	u32 flags = 0;
+ 
+ 	if (dma_set_mask(dev->dma_dev, DMA_BIT_MASK(32)) ||
+ 	    dma_set_coherent_mask(dev->dma_dev, DMA_BIT_MASK(32)))
+@@ -134,6 +134,7 @@ static int ssb_ohci_attach(struct ssb_de
+ 		flags |= SSB_OHCI_TMSLOW_HOSTMODE;
+ 		ssb_device_enable(dev, flags);
+ 	} else if (dev->id.coreid == SSB_DEV_USB20_HOST) {
++		u32 tmp;
+ 		/*
+ 		 * USB 2.0 special considerations:
+ 		 *
+@@ -182,9 +183,8 @@ static int ssb_ohci_attach(struct ssb_de
+ 	ohcidev = hcd_to_ssb_ohci(hcd);
+ 	ohcidev->enable_flags = flags;
+ 
+-	tmp = ssb_read32(dev, SSB_ADMATCH0);
+-	hcd->rsrc_start = ssb_admatch_base(tmp);
+-	hcd->rsrc_len = ssb_admatch_size(tmp);
++	hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0);
++	hcd->rsrc_len = ssb_admatch_size(dev, SSB_ADMATCH0);
+ 	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
+ 	if (!hcd->regs)
+ 		goto err_put_hcd;
+--- linux-3.0.1.orig/include/linux/ssb/ssb.h	2011-08-08 15:18:04.000000000 +0300
++++ linux-3.0.1/include/linux/ssb/ssb.h	2011-08-08 15:27:00.000000000 +0300
+@@ -525,8 +525,8 @@ extern int ssb_bus_powerup(struct ssb_bu
+ extern void ssb_commit_settings(struct ssb_bus *bus);
+ 
+ /* Various helper functions */
+-extern u32 ssb_admatch_base(u32 adm);
+-extern u32 ssb_admatch_size(u32 adm);
++extern u32 ssb_admatch_base(struct ssb_device *dev, u32 adm);
++extern u32 ssb_admatch_size(struct ssb_device *dev, u32 adm);
+ 
+ /* PCI device mapping and fixup routines.
+  * Called from the architecture pcibios init code.

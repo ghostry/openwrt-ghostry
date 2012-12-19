@@ -1,0 +1,36 @@
+--- linux-2.6.30.10/arch/x86/Kconfig.orig	2010-12-31 07:20:26.000000000 -0500
++++ linux-2.6.30.10/arch/x86/Kconfig	2010-12-31 07:57:28.000000000 -0500
+@@ -1987,6 +1987,20 @@
+ 	  Add support for detecting the unique features of the OLPC
+ 	  XO hardware.
+ 
++config MGB100
++	def_bool n
++    prompt "MGB100 platform support"
++    help
++      Adds support for MGB100. Enter Y if you have:
++        * Level-One    WAP-0007
++        * Comet Labs   MGB100
++        * Conceptronic CHD2WLANU
++        * Micronica    MGB100
++        * AirLive (OvisLink) WMU-6000FS
++        * Safecom      SWSAPUR-5400
++        * SMC          WAPS-G EU
++        * Pearl        PE6643
++
+ endif # X86_32
+ 
+ config K8_NB
+--- linux-2.6.30.10/arch/x86/Makefile.orig	2010-12-31 07:59:04.000000000 -0500
++++ linux-2.6.30.10/arch/x86/Makefile	2010-12-31 07:59:04.000000000 -0500
+@@ -127,6 +127,10 @@
+ # RDC R-321X support
+ #core-$(CONFIG_X86_RDC321X)   += arch/x86/mach-rdc321x/
+ 
++# MGB100 support
++#mcore-$(CONFIG_MGB100)		+= arch/x86/mach-mgb100/ // for older kernels
++core-$(CONFIG_MGB100)		+= arch/x86/mach-mgb100/
++
+ # lguest paravirtualization support
+ core-$(CONFIG_LGUEST_GUEST) += arch/x86/lguest/
+ 

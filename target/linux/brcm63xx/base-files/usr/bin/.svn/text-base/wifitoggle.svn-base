@@ -1,0 +1,14 @@
+#!/bin/sh
+
+case "$(uci get wireless.@wifi-device[0].disabled)" in
+    1)
+        uci set wireless.@wifi-device[0].disabled=0
+        wifi
+        echo 0 >/sys/class/leds/wifi:red/brightness
+    ;;
+    *)
+        uci set wireless.@wifi-device[0].disabled=1
+        wifi
+        echo 255 >/sys/class/leds/wifi:red/brightness
+    ;;
+esac 

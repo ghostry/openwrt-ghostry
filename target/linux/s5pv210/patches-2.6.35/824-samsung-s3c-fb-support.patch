@@ -1,0 +1,98 @@
+--- linux-2.6.35.7/drivers/video/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/video/Kconfig	2011-08-08 12:52:32.000000000 +0800
+@@ -17,6 +17,8 @@
+ 
+ source "drivers/gpu/drm/Kconfig"
+ 
++source "drivers/gpu/pvr/Kconfig"
++
+ config VGASTATE
+        tristate
+        default n
+@@ -245,6 +247,8 @@
+ comment "Frame buffer hardware drivers"
+ 	depends on FB
+ 
++source "drivers/video/samsung/Kconfig"
++
+ config FB_CIRRUS
+ 	tristate "Cirrus Logic support"
+ 	depends on FB && (ZORRO || PCI)
+@@ -1928,53 +1932,6 @@
+ 	depends on FB_TMIO
+ 	default y
+ 
+-config FB_S3C
+-	tristate "Samsung S3C framebuffer support"
+-	depends on FB && ARCH_S3C64XX
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	---help---
+-	  Frame buffer driver for the built-in FB controller in the Samsung
+-	  SoC line from the S3C2443 onwards, including the S3C2416, S3C2450,
+-	  and the S3C64XX series such as the S3C6400 and S3C6410.
+-
+-	  These chips all have the same basic framebuffer design with the
+-	  actual capabilities depending on the chip. For instance the S3C6400
+-	  and S3C6410 support 4 hardware windows whereas the S3C24XX series
+-	  currently only have two.
+-
+-	  Currently the support is only for the S3C6400 and S3C6410 SoCs.
+-
+-config FB_S3C_DEBUG_REGWRITE
+-       bool "Debug register writes"
+-       depends on FB_S3C
+-       ---help---
+-         Show all register writes via printk(KERN_DEBUG)
+-
+-config FB_S3C2410
+-	tristate "S3C2410 LCD framebuffer support"
+-	depends on FB && ARCH_S3C2410
+-	select FB_CFB_FILLRECT
+-	select FB_CFB_COPYAREA
+-	select FB_CFB_IMAGEBLIT
+-	---help---
+-	  Frame buffer driver for the built-in LCD controller in the Samsung
+-	  S3C2410 processor.
+-
+-	  This driver is also available as a module ( = code which can be
+-	  inserted and removed from the running kernel whenever you want). The
+-	  module will be called s3c2410fb. If you want to compile it as a module,
+-	  say M here and read <file:Documentation/kbuild/modules.txt>.
+-
+-	  If unsure, say N.
+-config FB_S3C2410_DEBUG
+-	bool "S3C2410 lcd debug messages"
+-	depends on FB_S3C2410
+-	help
+-	  Turn on debugging messages. Note that you can set/unset at run time
+-	  through sysfs
+-
+ config FB_NUC900
+         bool "NUC900 LCD framebuffer support"
+         depends on FB && ARCH_W90X900
+--- linux-2.6.35.7/drivers/video/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/video/Makefile	2011-08-08 12:52:32.000000000 +0800
+@@ -113,7 +113,7 @@
+ obj-$(CONFIG_FB_S1D13XXX)	  += s1d13xxxfb.o
+ obj-$(CONFIG_FB_SH7760)		  += sh7760fb.o
+ obj-$(CONFIG_FB_IMX)              += imxfb.o
+-obj-$(CONFIG_FB_S3C)		  += s3c-fb.o
++obj-$(CONFIG_FB_S3C)		  += samsung/
+ obj-$(CONFIG_FB_S3C2410)	  += s3c2410fb.o
+ obj-$(CONFIG_FB_FSL_DIU)	  += fsl-diu-fb.o
+ obj-$(CONFIG_FB_COBALT)           += cobalt_lcdfb.o
+diff -Nur linux-2.6.35.7/drivers/video/backlight/pwm_bl.c tiny210/drivers/video/backlight/pwm_bl.c
+--- linux-2.6.35.7/drivers/video/backlight/pwm_bl.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/video/backlight/pwm_bl.c	2011-08-08 12:52:33.000000000 +0800
+@@ -38,9 +38,6 @@
+ 	if (bl->props.power != FB_BLANK_UNBLANK)
+ 		brightness = 0;
+ 
+-	if (bl->props.fb_blank != FB_BLANK_UNBLANK)
+-		brightness = 0;
+-
+ 	if (pb->notify)
+ 		brightness = pb->notify(pb->dev, brightness);
+ 

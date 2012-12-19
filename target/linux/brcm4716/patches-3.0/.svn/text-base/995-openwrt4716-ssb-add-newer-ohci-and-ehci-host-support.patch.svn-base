@@ -1,0 +1,247 @@
+From: George Kashperko <george@znau.edu.ua>
+
+Add support for newer AI-based OHCI and EHCI SSB host controllers.
+Signed-off-by: George Kashperko <george@znau.edu.ua>
+---
+ drivers/ssb/driver_mipscore.c |    1 
+ drivers/usb/host/ehci-ssb.c   |   75 ++++++++++++++++++++++++------
+ drivers/usb/host/ohci-ssb.c   |   78 ++++++++++++++++++++++++++------
+ include/linux/ssb/ssb.h       |    1 
+ 4 files changed, 126 insertions(+), 29 deletions(-)
+--- linux-3.0.4.orig/drivers/ssb/driver_mipscore.c	2011-09-12 14:19:02.000000000 +0300
++++ linux-3.0.4/drivers/ssb/driver_mipscore.c	2011-09-12 14:23:20.000000000 +0300
+@@ -335,6 +335,7 @@ u32 ssb_cpu_clock(struct ssb_mipscore *m
+ 
+ 	return rate;
+ }
++EXPORT_SYMBOL(ssb_cpu_clock);
+ 
+ void ssb_mipscore_init(struct ssb_mipscore *mcore)
+ {
+--- linux-3.0.4.orig/drivers/usb/host/ehci-ssb.c	2011-09-12 14:15:45.000000000 +0300
++++ linux-3.0.4/drivers/usb/host/ehci-ssb.c	2011-09-12 14:23:20.000000000 +0300
+@@ -114,10 +114,45 @@ static void ssb_ehci_detach(struct ssb_d
+ EXPORT_SYMBOL_GPL(ssb_ehci_detach);
+ 
+ #ifndef CONFIG_USB_OHCI_HCD_SSB
++static void
++ssb_bcm4716_war(struct ssb_device *dev)
++{
++#ifdef CONFIG_BCM47XX
++#define SSB_BCM4716_WAR_DELAY	500
++	struct ssb_bus *bus = dev->bus;
++	u32 clock;
++	u32 tmp;
++
++	clock = ssb_cpu_clock(&bus->mipscore);
++	if (clock >= 480000000)
++		tmp = 0x0001846B; /* set CDR to 0x11(fast) */
++	else if (clock == 453000000)
++		tmp = 0x0001046B; /* set CDR to 0x10(slow) */
++	else
++		tmp = 0;
++
++	/* Change Shim mdio control reg to fix host
++	 * not acking at high frequencies */
++	if (tmp) {
++		ssb_write32(dev, 0x524, 0x01); /* write sel to enable */
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		ssb_write32(dev, 0x524, tmp);
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		ssb_write32(dev, 0x524, 0x4AB);
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		tmp = ssb_read32(dev, 0x528);
++		printk("USB20H mdio control register: 0x%X\n", tmp);
++		ssb_write32(dev, 0x528, 0x80000000);
++	}
++#endif /* CONFIG_BCM47XX */
++}
+ static int ssb_ehci_attach(struct ssb_device *dev)
+-#else
++#else /* CONFIG_USB_OHCI_HCD_SSB */
+ static int ssb_ehci_attach(struct ssb_device *dev, struct usb_hcd **ehci_hcd)
+-#endif
++#endif /* CONFIG_USB_OHCI_HCD_SSB */
+ {
+ 	struct ssb_ehci_device *ehcidev;
+ 	struct usb_hcd *hcd;
+@@ -141,19 +176,25 @@ static int ssb_ehci_attach(struct ssb_de
+ 	ssb_device_enable(dev, 0);
+ 	ssb_write32(dev, 0x200, 0x7ff);
+ 
+-	/* Change Flush control reg */
+-	tmp = ssb_read32(dev, 0x400);
+-	tmp &= ~8;
+-	ssb_write32(dev, 0x400, tmp);
+-	tmp = ssb_read32(dev, 0x400);
+-
+-	/* Change Shim control reg */
+-	tmp = ssb_read32(dev, 0x304);
+-	tmp &= ~0x100;
+-	ssb_write32(dev, 0x304, tmp);
+-	tmp = ssb_read32(dev, 0x304);
++	/* Check to avoid kernel oops on bcm4716-based ASUS RT-N16.
++	 * Maybe will be required for other ai-based socs as well. */
++	if (dev->bus->chip_id == 0x4716) {
++		ssb_bcm4716_war(dev);
++	} else {
++		/* Change Flush control reg */
++		tmp = ssb_read32(dev, 0x400);
++		tmp &= ~8;
++		ssb_write32(dev, 0x400, tmp);
++		tmp = ssb_read32(dev, 0x400);
++
++		/* Change Shim control reg */
++		tmp = ssb_read32(dev, 0x304);
++		tmp &= ~0x100;
++		ssb_write32(dev, 0x304, tmp);
++		tmp = ssb_read32(dev, 0x304);
+ 
+-	udelay(1);
++		udelay(1);
++	}
+ 
+ 	/* Work around for 5354 failures */
+ 	if (dev->id.revision == 2 && dev->bus->chip_id == 0x5354) {
+@@ -174,7 +215,10 @@ static int ssb_ehci_attach(struct ssb_de
+ 		goto err_dev_disable;
+ 
+ 	ehcidev = hcd_to_ssb_ehci(hcd);
+-	hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0) + 0x800; /* ehci core offset */
++	hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0); /* ehci core offset */
++	/* For AI type SSB socs EHCI mapped regs space starts from offset 0 */
++	if (dev->bus->chipco.chiptype != SSB_CHIPCO_AI)
++		hcd->rsrc_start += 0x800;
+ 	hcd->rsrc_len = 0x100; /* ehci reg block size */
+ 	/*
+ 	 * start & size modified per sbutils.c
+@@ -259,6 +303,7 @@ static int ssb_ehci_resume(struct ssb_de
+ 
+ static const struct ssb_device_id ssb_ehci_table[] = {
+ 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB20_HOST, SSB_ANY_REV),
++	SSB_DEVICE(SSB_VENDOR_BROADCOM2, SSB_DEV_USB20_HOST, SSB_ANY_REV),
+ 	SSB_DEVTABLE_END
+ };
+ MODULE_DEVICE_TABLE(ssb, ssb_ehci_table);
+--- linux-3.0.4.orig/drivers/usb/host/ohci-ssb.c	2011-09-12 14:16:32.000000000 +0300
++++ linux-3.0.4/drivers/usb/host/ohci-ssb.c	2011-09-12 14:23:20.000000000 +0300
+@@ -118,6 +118,42 @@ static void ssb_ohci_detach(struct ssb_d
+ 	ssb_device_disable(dev, 0);
+ }
+ 
++static void
++ssb_bcm4716_war(struct ssb_device *dev)
++{
++#ifdef CONFIG_BCM47XX
++#define SSB_BCM4716_WAR_DELAY	500
++	struct ssb_bus *bus = dev->bus;
++	u32 clock;
++	u32 tmp;
++
++	clock = ssb_cpu_clock(&bus->mipscore);
++	if (clock >= 480000000)
++		tmp = 0x0001846B; /* set CDR to 0x11(fast) */
++	else if (clock == 453000000)
++		tmp = 0x0001046B; /* set CDR to 0x10(slow) */
++	else
++		tmp = 0;
++
++	/* Change Shim mdio control reg to fix host
++	 * not acking at high frequencies */
++	if (tmp) {
++		ssb_write32(dev, 0x524, 0x01); /* write sel to enable */
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		ssb_write32(dev, 0x524, tmp);
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		ssb_write32(dev, 0x524, 0x4AB);
++		udelay(SSB_BCM4716_WAR_DELAY);
++
++		tmp = ssb_read32(dev, 0x528);
++		printk("USB20H mdio control register: 0x%X\n", tmp);
++		ssb_write32(dev, 0x528, 0x80000000);
++	}
++#endif /* CONFIG_BCM47XX */
++}
++
+ static int ssb_ohci_attach(struct ssb_device *dev)
+ {
+ 	struct ssb_ohci_device *ohcidev;
+@@ -148,19 +184,25 @@ static int ssb_ohci_attach(struct ssb_de
+ 		ssb_device_enable(dev, 0);
+ 		ssb_write32(dev, 0x200, 0x7ff);
+ 
+-		/* Change Flush control reg */
+-		tmp = ssb_read32(dev, 0x400);
+-		tmp &= ~8;
+-		ssb_write32(dev, 0x400, tmp);
+-		tmp = ssb_read32(dev, 0x400);
+-
+-		/* Change Shim control reg */
+-		tmp = ssb_read32(dev, 0x304);
+-		tmp &= ~0x100;
+-		ssb_write32(dev, 0x304, tmp);
+-		tmp = ssb_read32(dev, 0x304);
++		/* Check to avoid kernel oops on bcm4716-based socs.
++		 * Maybe will be required for other AI-based socs as well. */
++		if (dev->bus->chip_id == 0x4716) {
++			ssb_bcm4716_war(dev);
++		} else {
++			/* Change Flush control reg */
++			tmp = ssb_read32(dev, 0x400);
++			tmp &= ~8;
++			ssb_write32(dev, 0x400, tmp);
++			tmp = ssb_read32(dev, 0x400);
++
++			/* Change Shim control reg */
++			tmp = ssb_read32(dev, 0x304);
++			tmp &= ~0x100;
++			ssb_write32(dev, 0x304, tmp);
++			tmp = ssb_read32(dev, 0x304);
+ 
+-		udelay(1);
++			udelay(1);
++		}
+ 
+ 		/* Work around for 5354 failures */
+ 		if (dev->id.revision == 2 && dev->bus->chip_id == 0x5354) {
+@@ -183,8 +225,15 @@ static int ssb_ohci_attach(struct ssb_de
+ 	ohcidev = hcd_to_ssb_ohci(hcd);
+ 	ohcidev->enable_flags = flags;
+ 
+-	hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0);
+-	hcd->rsrc_len = ssb_admatch_size(dev, SSB_ADMATCH0);
++	/* For AI type socs OHCI mapped regs space is
++	 * second core register set */
++	if (dev->bus->chipco.chiptype == SSB_CHIPCO_AI) {
++		hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH1);
++		hcd->rsrc_len = ssb_admatch_size(dev, SSB_ADMATCH1);
++	} else {
++		hcd->rsrc_start = ssb_admatch_base(dev, SSB_ADMATCH0);
++		hcd->rsrc_len = ssb_admatch_size(dev, SSB_ADMATCH0);
++	}
+ 	hcd->regs = ioremap_nocache(hcd->rsrc_start, hcd->rsrc_len);
+ 	if (!hcd->regs)
+ 		goto err_put_hcd;
+@@ -273,6 +322,7 @@ static const struct ssb_device_id ssb_oh
+ 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOSTDEV, SSB_ANY_REV),
+ 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB11_HOST, SSB_ANY_REV),
+ 	SSB_DEVICE(SSB_VENDOR_BROADCOM, SSB_DEV_USB20_HOST, SSB_ANY_REV),
++	SSB_DEVICE(SSB_VENDOR_BROADCOM2, SSB_DEV_USB20_HOST, SSB_ANY_REV),
+ 	SSB_DEVTABLE_END
+ };
+ MODULE_DEVICE_TABLE(ssb, ssb_ohci_table);
+--- linux-3.0.4.orig/include/linux/ssb/ssb.h	2011-09-12 14:23:02.000000000 +0300
++++ linux-3.0.4/include/linux/ssb/ssb.h	2011-09-12 14:23:20.000000000 +0300
+@@ -172,6 +172,7 @@ struct ssb_bus_ops {
+ 
+ /* Vendor-ID values */
+ #define SSB_VENDOR_BROADCOM	0x4243
++#define SSB_VENDOR_BROADCOM2	0x04BF
+ #define SSB_VENDOR_ARM		0x043B
+ 
+ /* Some kernel subsystems poke with dev->drvdata, so we must use the

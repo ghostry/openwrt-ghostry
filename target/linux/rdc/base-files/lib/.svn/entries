@@ -1,0 +1,34 @@
+10
+
+dir
+557
+svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/rdc/base-files/lib
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2011-09-17T08:12:55.294042Z
+27
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+upgrade
+dir
+
+preinit
+dir
+

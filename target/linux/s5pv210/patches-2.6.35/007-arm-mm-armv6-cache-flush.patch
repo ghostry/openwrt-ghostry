@@ -1,0 +1,34 @@
+diff -Nur linux-2.6.35.7/arch/arm/mm/cache-v6.S tiny210/arch/arm/mm/cache-v6.S
+--- linux-2.6.35.7/arch/arm/mm/cache-v6.S	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/mm/cache-v6.S	2011-08-08 12:52:04.000000000 +0800
+@@ -256,6 +256,11 @@
+  *	- end     - virtual end address of region
+  */
+ ENTRY(v6_dma_flush_range)
++#ifdef CONFIG_CACHE_FLUSH_RANGE_LIMIT
++	sub	r2, r1, r0
++	cmp	r2, #CONFIG_CACHE_FLUSH_RANGE_LIMIT
++	bhi	v6_dma_flush_dcache_all
++#endif
+ 	bic	r0, r0, #D_CACHE_LINE_SIZE - 1
+ 1:
+ #ifdef CONFIG_DMA_CACHE_RWFO
+@@ -274,6 +279,18 @@
+ 	mcr	p15, 0, r0, c7, c10, 4		@ drain write buffer
+ 	mov	pc, lr
+ 
++#ifdef CONFIG_CACHE_FLUSH_RANGE_LIMIT
++v6_dma_flush_dcache_all:
++	mov	r0, #0
++#ifdef HARVARD_CACHE
++	mcr	p15, 0, r0, c7, c14, 0		@ D cache clean+invalidate
++#else
++	mcr	p15, 0, r0, c7, c15, 0		@ Cache clean+invalidate
++#endif
++	mcr	p15, 0, r0, c7, c10, 4		@ drain write buffer
++	mov	pc, lr
++#endif
++
+ /*
+  *	dma_map_area(start, size, dir)
+  *	- start	- kernel virtual start address

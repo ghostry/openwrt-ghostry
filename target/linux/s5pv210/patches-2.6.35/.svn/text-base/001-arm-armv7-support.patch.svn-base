@@ -1,0 +1,41 @@
+diff -Nur linux-2.6.35.7/arch/arm/boot/compressed/head.S tiny210/arch/arm/boot/compressed/head.S
+--- linux-2.6.35.7/arch/arm/boot/compressed/head.S	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/boot/compressed/head.S	2011-08-08 12:52:05.000000000 +0800
+@@ -21,7 +21,7 @@
+ 
+ #if defined(CONFIG_DEBUG_ICEDCC)
+ 
+-#ifdef CONFIG_CPU_V6
++#ifdef defined(CONFIG_CPU_V6) || defined(CONFIG_CPU_V7)
+ 		.macro	loadsp, rb, tmp
+ 		.endm
+ 		.macro	writeb, ch, rb
+@@ -627,6 +627,8 @@
+ @		b	__arm6_mmu_cache_off
+ @		b	__armv3_mmu_cache_flush
+ 
++#if !defined(CONFIG_CPU_V7)
++		/* This collides with some V7 IDs, preventing correct detection */
+ 		.word	0x00000000		@ old ARM ID
+ 		.word	0x0000f000
+ 		mov	pc, lr
+@@ -635,6 +637,7 @@
+  THUMB(		nop				)
+ 		mov	pc, lr
+  THUMB(		nop				)
++#endif
+ 
+ 		.word	0x41007000		@ ARM7/710
+ 		.word	0xfff8fe00
+diff -Nur linux-2.6.35.7/arch/arm/boot/compressed/misc.c tiny210/arch/arm/boot/compressed/misc.c
+--- linux-2.6.35.7/arch/arm/boot/compressed/misc.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/arch/arm/boot/compressed/misc.c	2011-08-08 12:52:05.000000000 +0800
+@@ -39,7 +39,7 @@
+ 
+ #ifdef CONFIG_DEBUG_ICEDCC
+ 
+-#ifdef CONFIG_CPU_V6
++#if defined(CONFIG_CPU_V6) || defined(CONFIG_CPU_V7)
+ 
+ static void icedcc_putc(int ch)
+ {

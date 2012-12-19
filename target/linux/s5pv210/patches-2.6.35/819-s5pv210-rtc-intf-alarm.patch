@@ -1,0 +1,1313 @@
+diff -Nur linux-2.6.35.7/drivers/rtc/alarm.c tiny210/drivers/rtc/alarm.c
+--- linux-2.6.35.7/drivers/rtc/alarm.c	1970-01-01 08:00:00.000000000 +0800
++++ tiny210/drivers/rtc/alarm.c	2011-08-08 12:52:31.000000000 +0800
+@@ -0,0 +1,587 @@
++/* drivers/rtc/alarm.c
++ *
++ * Copyright (C) 2007-2009 Google, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <asm/mach/time.h>
++#include <linux/android_alarm.h>
++#include <linux/device.h>
++#include <linux/miscdevice.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/sysdev.h>
++#include <linux/wakelock.h>
++
++#define ANDROID_ALARM_PRINT_ERROR (1U << 0)
++#define ANDROID_ALARM_PRINT_INIT_STATUS (1U << 1)
++#define ANDROID_ALARM_PRINT_TSET (1U << 2)
++#define ANDROID_ALARM_PRINT_CALL (1U << 3)
++#define ANDROID_ALARM_PRINT_SUSPEND (1U << 4)
++#define ANDROID_ALARM_PRINT_INT (1U << 5)
++#define ANDROID_ALARM_PRINT_FLOW (1U << 6)
++
++static int debug_mask = ANDROID_ALARM_PRINT_ERROR | \
++			ANDROID_ALARM_PRINT_INIT_STATUS;
++module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
++
++#define pr_alarm(debug_level_mask, args...) \
++	do { \
++		if (debug_mask & ANDROID_ALARM_PRINT_##debug_level_mask) { \
++			pr_info(args); \
++		} \
++	} while (0)
++
++#define ANDROID_ALARM_WAKEUP_MASK ( \
++	ANDROID_ALARM_RTC_WAKEUP_MASK | \
++	ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP_MASK)
++
++/* support old usespace code */
++#define ANDROID_ALARM_SET_OLD               _IOW('a', 2, time_t) /* set alarm */
++#define ANDROID_ALARM_SET_AND_WAIT_OLD      _IOW('a', 3, time_t)
++
++struct alarm_queue {
++	struct rb_root alarms;
++	struct rb_node *first;
++	struct hrtimer timer;
++	ktime_t delta;
++	bool stopped;
++	ktime_t stopped_time;
++};
++
++static struct rtc_device *alarm_rtc_dev;
++static DEFINE_SPINLOCK(alarm_slock);
++static DEFINE_MUTEX(alarm_setrtc_mutex);
++static struct wake_lock alarm_rtc_wake_lock;
++static struct platform_device *alarm_platform_dev;
++struct alarm_queue alarms[ANDROID_ALARM_TYPE_COUNT];
++static bool suspended;
++
++static void update_timer_locked(struct alarm_queue *base, bool head_removed)
++{
++	struct alarm *alarm;
++	bool is_wakeup = base == &alarms[ANDROID_ALARM_RTC_WAKEUP] ||
++			base == &alarms[ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP];
++
++	if (base->stopped) {
++		pr_alarm(FLOW, "changed alarm while setting the wall time\n");
++		return;
++	}
++
++	if (is_wakeup && !suspended && head_removed)
++		wake_unlock(&alarm_rtc_wake_lock);
++
++	if (!base->first)
++		return;
++
++	alarm = container_of(base->first, struct alarm, node);
++
++	pr_alarm(FLOW, "selected alarm, type %d, func %pF at %lld\n",
++		alarm->type, alarm->function, ktime_to_ns(alarm->expires));
++
++	if (is_wakeup && suspended) {
++		pr_alarm(FLOW, "changed alarm while suspened\n");
++		wake_lock_timeout(&alarm_rtc_wake_lock, 1 * HZ);
++		return;
++	}
++
++	hrtimer_try_to_cancel(&base->timer);
++	base->timer._expires = ktime_add(base->delta, alarm->expires);
++	base->timer._softexpires = ktime_add(base->delta, alarm->softexpires);
++	hrtimer_start_expires(&base->timer, HRTIMER_MODE_ABS);
++}
++
++static void alarm_enqueue_locked(struct alarm *alarm)
++{
++	struct alarm_queue *base = &alarms[alarm->type];
++	struct rb_node **link = &base->alarms.rb_node;
++	struct rb_node *parent = NULL;
++	struct alarm *entry;
++	int leftmost = 1;
++
++	pr_alarm(FLOW, "added alarm, type %d, func %pF at %lld\n",
++		alarm->type, alarm->function, ktime_to_ns(alarm->expires));
++
++	if (base->first == &alarm->node)
++		base->first = rb_next(&alarm->node);
++	if (!RB_EMPTY_NODE(&alarm->node)) {
++		rb_erase(&alarm->node, &base->alarms);
++		RB_CLEAR_NODE(&alarm->node);
++	}
++
++	while (*link) {
++		parent = *link;
++		entry = rb_entry(parent, struct alarm, node);
++		/*
++		* We dont care about collisions. Nodes with
++		* the same expiry time stay together.
++		*/
++		if (alarm->expires.tv64 < entry->expires.tv64) {
++			link = &(*link)->rb_left;
++		} else {
++			link = &(*link)->rb_right;
++			leftmost = 0;
++		}
++	}
++	if (leftmost) {
++		base->first = &alarm->node;
++		update_timer_locked(base, false);
++	}
++
++	rb_link_node(&alarm->node, parent, link);
++	rb_insert_color(&alarm->node, &base->alarms);
++}
++
++/**
++ * alarm_init - initialize an alarm
++ * @alarm:	the alarm to be initialized
++ * @type:	the alarm type to be used
++ * @function:	alarm callback function
++ */
++void alarm_init(struct alarm *alarm,
++	enum android_alarm_type type, void (*function)(struct alarm *))
++{
++	RB_CLEAR_NODE(&alarm->node);
++	alarm->type = type;
++	alarm->function = function;
++
++	pr_alarm(FLOW, "created alarm, type %d, func %pF\n", type, function);
++}
++
++
++/**
++ * alarm_start_range - (re)start an alarm
++ * @alarm:	the alarm to be added
++ * @start:	earliest expiry time
++ * @end:	expiry time
++ */
++void alarm_start_range(struct alarm *alarm, ktime_t start, ktime_t end)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	alarm->softexpires = start;
++	alarm->expires = end;
++	alarm_enqueue_locked(alarm);
++	spin_unlock_irqrestore(&alarm_slock, flags);
++}
++
++/**
++ * alarm_try_to_cancel - try to deactivate an alarm
++ * @alarm:	alarm to stop
++ *
++ * Returns:
++ *  0 when the alarm was not active
++ *  1 when the alarm was active
++ * -1 when the alarm may currently be excuting the callback function and
++ *    cannot be stopped (it may also be inactive)
++ */
++int alarm_try_to_cancel(struct alarm *alarm)
++{
++	struct alarm_queue *base = &alarms[alarm->type];
++	unsigned long flags;
++	bool first = false;
++	int ret = 0;
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	if (!RB_EMPTY_NODE(&alarm->node)) {
++		pr_alarm(FLOW, "canceled alarm, type %d, func %pF at %lld\n",
++			alarm->type, alarm->function,
++			ktime_to_ns(alarm->expires));
++		ret = 1;
++		if (base->first == &alarm->node) {
++			base->first = rb_next(&alarm->node);
++			first = true;
++		}
++		rb_erase(&alarm->node, &base->alarms);
++		RB_CLEAR_NODE(&alarm->node);
++		if (first)
++			update_timer_locked(base, true);
++	} else
++		pr_alarm(FLOW, "tried to cancel alarm, type %d, func %pF\n",
++			alarm->type, alarm->function);
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	if (!ret && hrtimer_callback_running(&base->timer))
++		ret = -1;
++	return ret;
++}
++
++/**
++ * alarm_cancel - cancel an alarm and wait for the handler to finish.
++ * @alarm:	the alarm to be cancelled
++ *
++ * Returns:
++ *  0 when the alarm was not active
++ *  1 when the alarm was active
++ */
++int alarm_cancel(struct alarm *alarm)
++{
++	for (;;) {
++		int ret = alarm_try_to_cancel(alarm);
++		if (ret >= 0)
++			return ret;
++		cpu_relax();
++	}
++}
++
++/**
++ * alarm_set_rtc - set the kernel and rtc walltime
++ * @new_time:	timespec value containing the new time
++ */
++int alarm_set_rtc(struct timespec new_time)
++{
++	int i;
++	int ret;
++	unsigned long flags;
++	struct rtc_time rtc_new_rtc_time;
++	struct timespec tmp_time;
++
++	rtc_time_to_tm(new_time.tv_sec, &rtc_new_rtc_time);
++
++	pr_alarm(TSET, "set rtc %ld %ld - rtc %02d:%02d:%02d %02d/%02d/%04d\n",
++		new_time.tv_sec, new_time.tv_nsec,
++		rtc_new_rtc_time.tm_hour, rtc_new_rtc_time.tm_min,
++		rtc_new_rtc_time.tm_sec, rtc_new_rtc_time.tm_mon + 1,
++		rtc_new_rtc_time.tm_mday,
++		rtc_new_rtc_time.tm_year + 1900);
++
++	mutex_lock(&alarm_setrtc_mutex);
++	spin_lock_irqsave(&alarm_slock, flags);
++	wake_lock(&alarm_rtc_wake_lock);
++	getnstimeofday(&tmp_time);
++	for (i = 0; i < ANDROID_ALARM_SYSTEMTIME; i++) {
++		hrtimer_try_to_cancel(&alarms[i].timer);
++		alarms[i].stopped = true;
++		alarms[i].stopped_time = timespec_to_ktime(tmp_time);
++	}
++	alarms[ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP].delta =
++		alarms[ANDROID_ALARM_ELAPSED_REALTIME].delta =
++		ktime_sub(alarms[ANDROID_ALARM_ELAPSED_REALTIME].delta,
++			timespec_to_ktime(timespec_sub(tmp_time, new_time)));
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	ret = do_settimeofday(&new_time);
++	spin_lock_irqsave(&alarm_slock, flags);
++	for (i = 0; i < ANDROID_ALARM_SYSTEMTIME; i++) {
++		alarms[i].stopped = false;
++		update_timer_locked(&alarms[i], false);
++	}
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	if (ret < 0) {
++		pr_alarm(ERROR, "alarm_set_rtc: Failed to set time\n");
++		goto err;
++	}
++	if (!alarm_rtc_dev) {
++		pr_alarm(ERROR,
++			"alarm_set_rtc: no RTC, time will be lost on reboot\n");
++		goto err;
++	}
++	ret = rtc_set_time(alarm_rtc_dev, &rtc_new_rtc_time);
++	if (ret < 0)
++		pr_alarm(ERROR, "alarm_set_rtc: "
++			"Failed to set RTC, time will be lost on reboot\n");
++err:
++	wake_unlock(&alarm_rtc_wake_lock);
++	mutex_unlock(&alarm_setrtc_mutex);
++	return ret;
++}
++
++/**
++ * alarm_get_elapsed_realtime - get the elapsed real time in ktime_t format
++ *
++ * returns the time in ktime_t format
++ */
++ktime_t alarm_get_elapsed_realtime(void)
++{
++	ktime_t now;
++	unsigned long flags;
++	struct alarm_queue *base = &alarms[ANDROID_ALARM_ELAPSED_REALTIME];
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	now = base->stopped ? base->stopped_time : ktime_get_real();
++	now = ktime_sub(now, base->delta);
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	return now;
++}
++
++static enum hrtimer_restart alarm_timer_triggered(struct hrtimer *timer)
++{
++	struct alarm_queue *base;
++	struct alarm *alarm;
++	unsigned long flags;
++	ktime_t now;
++
++	spin_lock_irqsave(&alarm_slock, flags);
++
++	base = container_of(timer, struct alarm_queue, timer);
++	now = base->stopped ? base->stopped_time : hrtimer_cb_get_time(timer);
++	now = ktime_sub(now, base->delta);
++
++	pr_alarm(INT, "alarm_timer_triggered type %d at %lld\n",
++		base - alarms, ktime_to_ns(now));
++
++	while (base->first) {
++		alarm = container_of(base->first, struct alarm, node);
++		if (alarm->softexpires.tv64 > now.tv64) {
++			pr_alarm(FLOW, "don't call alarm, %pF, %lld (s %lld)\n",
++				alarm->function, ktime_to_ns(alarm->expires),
++				ktime_to_ns(alarm->softexpires));
++			break;
++		}
++		base->first = rb_next(&alarm->node);
++		rb_erase(&alarm->node, &base->alarms);
++		RB_CLEAR_NODE(&alarm->node);
++		pr_alarm(CALL, "call alarm, type %d, func %pF, %lld (s %lld)\n",
++			alarm->type, alarm->function,
++			ktime_to_ns(alarm->expires),
++			ktime_to_ns(alarm->softexpires));
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		alarm->function(alarm);
++		spin_lock_irqsave(&alarm_slock, flags);
++	}
++	if (!base->first)
++		pr_alarm(FLOW, "no more alarms of type %d\n", base - alarms);
++	update_timer_locked(base, true);
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	return HRTIMER_NORESTART;
++}
++
++static void alarm_triggered_func(void *p)
++{
++	struct rtc_device *rtc = alarm_rtc_dev;
++	if (!(rtc->irq_data & RTC_AF))
++		return;
++	pr_alarm(INT, "rtc alarm triggered\n");
++	wake_lock_timeout(&alarm_rtc_wake_lock, 1 * HZ);
++}
++
++static int alarm_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	int                 err = 0;
++	unsigned long       flags;
++	struct rtc_wkalrm   rtc_alarm;
++	struct rtc_time     rtc_current_rtc_time;
++	unsigned long       rtc_current_time;
++	unsigned long       rtc_alarm_time;
++	struct timespec     rtc_delta;
++	struct timespec     wall_time;
++	struct alarm_queue *wakeup_queue = NULL;
++	struct alarm_queue *tmp_queue = NULL;
++
++	pr_alarm(SUSPEND, "alarm_suspend(%p, %d)\n", pdev, state.event);
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	suspended = true;
++	spin_unlock_irqrestore(&alarm_slock, flags);
++
++	hrtimer_cancel(&alarms[ANDROID_ALARM_RTC_WAKEUP].timer);
++	hrtimer_cancel(&alarms[
++			ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP_MASK].timer);
++
++	tmp_queue = &alarms[ANDROID_ALARM_RTC_WAKEUP];
++	if (tmp_queue->first)
++		wakeup_queue = tmp_queue;
++	tmp_queue = &alarms[ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP];
++	if (tmp_queue->first && (!wakeup_queue ||
++				hrtimer_get_expires(&tmp_queue->timer).tv64 <
++				hrtimer_get_expires(&wakeup_queue->timer).tv64))
++		wakeup_queue = tmp_queue;
++	if (wakeup_queue) {
++		rtc_read_time(alarm_rtc_dev, &rtc_current_rtc_time);
++		getnstimeofday(&wall_time);
++		rtc_tm_to_time(&rtc_current_rtc_time, &rtc_current_time);
++		set_normalized_timespec(&rtc_delta,
++					wall_time.tv_sec - rtc_current_time,
++					wall_time.tv_nsec);
++
++		rtc_alarm_time = timespec_sub(ktime_to_timespec(
++			hrtimer_get_expires(&wakeup_queue->timer)),
++			rtc_delta).tv_sec;
++
++		rtc_time_to_tm(rtc_alarm_time, &rtc_alarm.time);
++		rtc_alarm.enabled = 1;
++		rtc_set_alarm(alarm_rtc_dev, &rtc_alarm);
++		rtc_read_time(alarm_rtc_dev, &rtc_current_rtc_time);
++		rtc_tm_to_time(&rtc_current_rtc_time, &rtc_current_time);
++		pr_alarm(SUSPEND,
++			"rtc alarm set at %ld, now %ld, rtc delta %ld.%09ld\n",
++			rtc_alarm_time, rtc_current_time,
++			rtc_delta.tv_sec, rtc_delta.tv_nsec);
++		if (rtc_current_time + 1 >= rtc_alarm_time) {
++			pr_alarm(SUSPEND, "alarm about to go off\n");
++			memset(&rtc_alarm, 0, sizeof(rtc_alarm));
++			rtc_alarm.enabled = 0;
++			rtc_set_alarm(alarm_rtc_dev, &rtc_alarm);
++
++			spin_lock_irqsave(&alarm_slock, flags);
++			suspended = false;
++			wake_lock_timeout(&alarm_rtc_wake_lock, 2 * HZ);
++			update_timer_locked(&alarms[ANDROID_ALARM_RTC_WAKEUP],
++									false);
++			update_timer_locked(&alarms[
++				ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP], false);
++			err = -EBUSY;
++			spin_unlock_irqrestore(&alarm_slock, flags);
++		}
++	}
++	return err;
++}
++
++static int alarm_resume(struct platform_device *pdev)
++{
++	struct rtc_wkalrm alarm;
++	unsigned long       flags;
++
++	pr_alarm(SUSPEND, "alarm_resume(%p)\n", pdev);
++
++	memset(&alarm, 0, sizeof(alarm));
++	alarm.enabled = 0;
++	rtc_set_alarm(alarm_rtc_dev, &alarm);
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	suspended = false;
++	update_timer_locked(&alarms[ANDROID_ALARM_RTC_WAKEUP], false);
++	update_timer_locked(&alarms[ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP],
++									false);
++	spin_unlock_irqrestore(&alarm_slock, flags);
++
++	return 0;
++}
++
++static struct rtc_task alarm_rtc_task = {
++	.func = alarm_triggered_func
++};
++
++static int rtc_alarm_add_device(struct device *dev,
++				struct class_interface *class_intf)
++{
++	int err;
++	struct rtc_device *rtc = to_rtc_device(dev);
++
++	mutex_lock(&alarm_setrtc_mutex);
++
++	if (alarm_rtc_dev) {
++		err = -EBUSY;
++		goto err1;
++	}
++
++	alarm_platform_dev =
++		platform_device_register_simple("alarm", -1, NULL, 0);
++	if (IS_ERR(alarm_platform_dev)) {
++		err = PTR_ERR(alarm_platform_dev);
++		goto err2;
++	}
++	err = rtc_irq_register(rtc, &alarm_rtc_task);
++	if (err)
++		goto err3;
++	alarm_rtc_dev = rtc;
++	pr_alarm(INIT_STATUS, "using rtc device, %s, for alarms", rtc->name);
++	mutex_unlock(&alarm_setrtc_mutex);
++
++	return 0;
++
++err3:
++	platform_device_unregister(alarm_platform_dev);
++err2:
++err1:
++	mutex_unlock(&alarm_setrtc_mutex);
++	return err;
++}
++
++static void rtc_alarm_remove_device(struct device *dev,
++				    struct class_interface *class_intf)
++{
++	if (dev == &alarm_rtc_dev->dev) {
++		pr_alarm(INIT_STATUS, "lost rtc device for alarms");
++		rtc_irq_unregister(alarm_rtc_dev, &alarm_rtc_task);
++		platform_device_unregister(alarm_platform_dev);
++		alarm_rtc_dev = NULL;
++	}
++}
++
++static struct class_interface rtc_alarm_interface = {
++	.add_dev = &rtc_alarm_add_device,
++	.remove_dev = &rtc_alarm_remove_device,
++};
++
++static struct platform_driver alarm_driver = {
++	.suspend = alarm_suspend,
++	.resume = alarm_resume,
++	.driver = {
++		.name = "alarm"
++	}
++};
++
++static int __init alarm_late_init(void)
++{
++	unsigned long   flags;
++	struct timespec tmp_time, system_time;
++
++	/* this needs to run after the rtc is read at boot */
++	spin_lock_irqsave(&alarm_slock, flags);
++	/* We read the current rtc and system time so we can later calulate
++	 * elasped realtime to be (boot_systemtime + rtc - boot_rtc) ==
++	 * (rtc - (boot_rtc - boot_systemtime))
++	 */
++	getnstimeofday(&tmp_time);
++	ktime_get_ts(&system_time);
++	alarms[ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP].delta =
++		alarms[ANDROID_ALARM_ELAPSED_REALTIME].delta =
++			timespec_to_ktime(timespec_sub(tmp_time, system_time));
++
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	return 0;
++}
++
++static int __init alarm_driver_init(void)
++{
++	int err;
++	int i;
++
++	for (i = 0; i < ANDROID_ALARM_SYSTEMTIME; i++) {
++		hrtimer_init(&alarms[i].timer,
++				CLOCK_REALTIME, HRTIMER_MODE_ABS);
++		alarms[i].timer.function = alarm_timer_triggered;
++	}
++	hrtimer_init(&alarms[ANDROID_ALARM_SYSTEMTIME].timer,
++		     CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
++	alarms[ANDROID_ALARM_SYSTEMTIME].timer.function = alarm_timer_triggered;
++	err = platform_driver_register(&alarm_driver);
++	if (err < 0)
++		goto err1;
++	wake_lock_init(&alarm_rtc_wake_lock, WAKE_LOCK_SUSPEND, "alarm_rtc");
++	rtc_alarm_interface.class = rtc_class;
++	err = class_interface_register(&rtc_alarm_interface);
++	if (err < 0)
++		goto err2;
++
++	return 0;
++
++err2:
++	wake_lock_destroy(&alarm_rtc_wake_lock);
++	platform_driver_unregister(&alarm_driver);
++err1:
++	return err;
++}
++
++static void  __exit alarm_exit(void)
++{
++	class_interface_unregister(&rtc_alarm_interface);
++	wake_lock_destroy(&alarm_rtc_wake_lock);
++	platform_driver_unregister(&alarm_driver);
++}
++
++late_initcall(alarm_late_init);
++module_init(alarm_driver_init);
++module_exit(alarm_exit);
++
+diff -Nur linux-2.6.35.7/drivers/rtc/alarm-dev.c tiny210/drivers/rtc/alarm-dev.c
+--- linux-2.6.35.7/drivers/rtc/alarm-dev.c	1970-01-01 08:00:00.000000000 +0800
++++ tiny210/drivers/rtc/alarm-dev.c	2011-08-08 12:52:31.000000000 +0800
+@@ -0,0 +1,286 @@
++/* drivers/rtc/alarm-dev.c
++ *
++ * Copyright (C) 2007-2009 Google, Inc.
++ *
++ * This software is licensed under the terms of the GNU General Public
++ * License version 2, as published by the Free Software Foundation, and
++ * may be copied, distributed, and modified under those terms.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ */
++
++#include <asm/mach/time.h>
++#include <linux/android_alarm.h>
++#include <linux/device.h>
++#include <linux/miscdevice.h>
++#include <linux/fs.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/sysdev.h>
++#include <linux/uaccess.h>
++#include <linux/wakelock.h>
++
++#define ANDROID_ALARM_PRINT_INFO (1U << 0)
++#define ANDROID_ALARM_PRINT_IO (1U << 1)
++#define ANDROID_ALARM_PRINT_INT (1U << 2)
++
++static int debug_mask = ANDROID_ALARM_PRINT_INFO;
++module_param_named(debug_mask, debug_mask, int, S_IRUGO | S_IWUSR | S_IWGRP);
++
++#define pr_alarm(debug_level_mask, args...) \
++	do { \
++		if (debug_mask & ANDROID_ALARM_PRINT_##debug_level_mask) { \
++			pr_info(args); \
++		} \
++	} while (0)
++
++#define ANDROID_ALARM_WAKEUP_MASK ( \
++	ANDROID_ALARM_RTC_WAKEUP_MASK | \
++	ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP_MASK)
++
++/* support old usespace code */
++#define ANDROID_ALARM_SET_OLD               _IOW('a', 2, time_t) /* set alarm */
++#define ANDROID_ALARM_SET_AND_WAIT_OLD      _IOW('a', 3, time_t)
++
++static int alarm_opened;
++static DEFINE_SPINLOCK(alarm_slock);
++static struct wake_lock alarm_wake_lock;
++static DECLARE_WAIT_QUEUE_HEAD(alarm_wait_queue);
++static uint32_t alarm_pending;
++static uint32_t alarm_enabled;
++static uint32_t wait_pending;
++
++static struct alarm alarms[ANDROID_ALARM_TYPE_COUNT];
++
++static long alarm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	int rv = 0;
++	unsigned long flags;
++	struct timespec new_alarm_time;
++	struct timespec new_rtc_time;
++	struct timespec tmp_time;
++	enum android_alarm_type alarm_type = ANDROID_ALARM_IOCTL_TO_TYPE(cmd);
++	uint32_t alarm_type_mask = 1U << alarm_type;
++
++	if (alarm_type >= ANDROID_ALARM_TYPE_COUNT)
++		return -EINVAL;
++
++	if (ANDROID_ALARM_BASE_CMD(cmd) != ANDROID_ALARM_GET_TIME(0)) {
++		if ((file->f_flags & O_ACCMODE) == O_RDONLY)
++			return -EPERM;
++		if (file->private_data == NULL &&
++		    cmd != ANDROID_ALARM_SET_RTC) {
++			spin_lock_irqsave(&alarm_slock, flags);
++			if (alarm_opened) {
++				spin_unlock_irqrestore(&alarm_slock, flags);
++				return -EBUSY;
++			}
++			alarm_opened = 1;
++			file->private_data = (void *)1;
++			spin_unlock_irqrestore(&alarm_slock, flags);
++		}
++	}
++
++	switch (ANDROID_ALARM_BASE_CMD(cmd)) {
++	case ANDROID_ALARM_CLEAR(0):
++		spin_lock_irqsave(&alarm_slock, flags);
++		pr_alarm(IO, "alarm %d clear\n", alarm_type);
++		alarm_try_to_cancel(&alarms[alarm_type]);
++		if (alarm_pending) {
++			alarm_pending &= ~alarm_type_mask;
++			if (!alarm_pending && !wait_pending)
++				wake_unlock(&alarm_wake_lock);
++		}
++		alarm_enabled &= ~alarm_type_mask;
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		break;
++
++	case ANDROID_ALARM_SET_OLD:
++	case ANDROID_ALARM_SET_AND_WAIT_OLD:
++		if (get_user(new_alarm_time.tv_sec, (int __user *)arg)) {
++			rv = -EFAULT;
++			goto err1;
++		}
++		new_alarm_time.tv_nsec = 0;
++		goto from_old_alarm_set;
++
++	case ANDROID_ALARM_SET_AND_WAIT(0):
++	case ANDROID_ALARM_SET(0):
++		if (copy_from_user(&new_alarm_time, (void __user *)arg,
++		    sizeof(new_alarm_time))) {
++			rv = -EFAULT;
++			goto err1;
++		}
++from_old_alarm_set:
++		spin_lock_irqsave(&alarm_slock, flags);
++		pr_alarm(IO, "alarm %d set %ld.%09ld\n", alarm_type,
++			new_alarm_time.tv_sec, new_alarm_time.tv_nsec);
++		alarm_enabled |= alarm_type_mask;
++		alarm_start_range(&alarms[alarm_type],
++			timespec_to_ktime(new_alarm_time),
++			timespec_to_ktime(new_alarm_time));
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		if (ANDROID_ALARM_BASE_CMD(cmd) != ANDROID_ALARM_SET_AND_WAIT(0)
++		    && cmd != ANDROID_ALARM_SET_AND_WAIT_OLD)
++			break;
++		/* fall though */
++	case ANDROID_ALARM_WAIT:
++		spin_lock_irqsave(&alarm_slock, flags);
++		pr_alarm(IO, "alarm wait\n");
++		if (!alarm_pending && wait_pending) {
++			wake_unlock(&alarm_wake_lock);
++			wait_pending = 0;
++		}
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		rv = wait_event_interruptible(alarm_wait_queue, alarm_pending);
++		if (rv)
++			goto err1;
++		spin_lock_irqsave(&alarm_slock, flags);
++		rv = alarm_pending;
++		wait_pending = 1;
++		alarm_pending = 0;
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		break;
++	case ANDROID_ALARM_SET_RTC:
++		if (copy_from_user(&new_rtc_time, (void __user *)arg,
++		    sizeof(new_rtc_time))) {
++			rv = -EFAULT;
++			goto err1;
++		}
++		rv = alarm_set_rtc(new_rtc_time);
++		spin_lock_irqsave(&alarm_slock, flags);
++		alarm_pending |= ANDROID_ALARM_TIME_CHANGE_MASK;
++		wake_up(&alarm_wait_queue);
++		spin_unlock_irqrestore(&alarm_slock, flags);
++		if (rv < 0)
++			goto err1;
++		break;
++	case ANDROID_ALARM_GET_TIME(0):
++		switch (alarm_type) {
++		case ANDROID_ALARM_RTC_WAKEUP:
++		case ANDROID_ALARM_RTC:
++			getnstimeofday(&tmp_time);
++			break;
++		case ANDROID_ALARM_ELAPSED_REALTIME_WAKEUP:
++		case ANDROID_ALARM_ELAPSED_REALTIME:
++			tmp_time =
++				ktime_to_timespec(alarm_get_elapsed_realtime());
++			break;
++		case ANDROID_ALARM_TYPE_COUNT:
++		case ANDROID_ALARM_SYSTEMTIME:
++			ktime_get_ts(&tmp_time);
++			break;
++		}
++		if (copy_to_user((void __user *)arg, &tmp_time,
++		    sizeof(tmp_time))) {
++			rv = -EFAULT;
++			goto err1;
++		}
++		break;
++
++	default:
++		rv = -EINVAL;
++		goto err1;
++	}
++err1:
++	return rv;
++}
++
++static int alarm_open(struct inode *inode, struct file *file)
++{
++	file->private_data = NULL;
++	return 0;
++}
++
++static int alarm_release(struct inode *inode, struct file *file)
++{
++	int i;
++	unsigned long flags;
++
++	spin_lock_irqsave(&alarm_slock, flags);
++	if (file->private_data != 0) {
++		for (i = 0; i < ANDROID_ALARM_TYPE_COUNT; i++) {
++			uint32_t alarm_type_mask = 1U << i;
++			if (alarm_enabled & alarm_type_mask) {
++				pr_alarm(INFO, "alarm_release: clear alarm, "
++					"pending %d\n",
++					!!(alarm_pending & alarm_type_mask));
++				alarm_enabled &= ~alarm_type_mask;
++			}
++			spin_unlock_irqrestore(&alarm_slock, flags);
++			alarm_cancel(&alarms[i]);
++			spin_lock_irqsave(&alarm_slock, flags);
++		}
++		if (alarm_pending | wait_pending) {
++			if (alarm_pending)
++				pr_alarm(INFO, "alarm_release: clear "
++					"pending alarms %x\n", alarm_pending);
++			wake_unlock(&alarm_wake_lock);
++			wait_pending = 0;
++			alarm_pending = 0;
++		}
++		alarm_opened = 0;
++	}
++	spin_unlock_irqrestore(&alarm_slock, flags);
++	return 0;
++}
++
++static void alarm_triggered(struct alarm *alarm)
++{
++	unsigned long flags;
++	uint32_t alarm_type_mask = 1U << alarm->type;
++
++	pr_alarm(INT, "alarm_triggered type %d\n", alarm->type);
++	spin_lock_irqsave(&alarm_slock, flags);
++	if (alarm_enabled & alarm_type_mask) {
++		wake_lock_timeout(&alarm_wake_lock, 5 * HZ);
++		alarm_enabled &= ~alarm_type_mask;
++		alarm_pending |= alarm_type_mask;
++		wake_up(&alarm_wait_queue);
++	}
++	spin_unlock_irqrestore(&alarm_slock, flags);
++}
++
++static const struct file_operations alarm_fops = {
++	.owner = THIS_MODULE,
++	.unlocked_ioctl = alarm_ioctl,
++	.open = alarm_open,
++	.release = alarm_release,
++};
++
++static struct miscdevice alarm_device = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name = "alarm",
++	.fops = &alarm_fops,
++};
++
++static int __init alarm_dev_init(void)
++{
++	int err;
++	int i;
++
++	err = misc_register(&alarm_device);
++	if (err)
++		return err;
++
++	for (i = 0; i < ANDROID_ALARM_TYPE_COUNT; i++)
++		alarm_init(&alarms[i], i, alarm_triggered);
++	wake_lock_init(&alarm_wake_lock, WAKE_LOCK_SUSPEND, "alarm");
++
++	return 0;
++}
++
++static void  __exit alarm_dev_exit(void)
++{
++	misc_deregister(&alarm_device);
++	wake_lock_destroy(&alarm_wake_lock);
++}
++
++module_init(alarm_dev_init);
++module_exit(alarm_dev_exit);
++
+diff -Nur linux-2.6.35.7/drivers/rtc/class.c tiny210/drivers/rtc/class.c
+--- linux-2.6.35.7/drivers/rtc/class.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/rtc/class.c	2011-08-08 12:52:31.000000000 +0800
+@@ -41,25 +41,32 @@
+  */
+ 
+ static struct timespec	delta;
++static struct timespec	delta_delta;
+ static time_t		oldtime;
+ 
+ static int rtc_suspend(struct device *dev, pm_message_t mesg)
+ {
+ 	struct rtc_device	*rtc = to_rtc_device(dev);
+ 	struct rtc_time		tm;
+-	struct timespec		ts = current_kernel_time();
++	struct timespec		ts;
++	struct timespec		new_delta;
+ 
+ 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
+ 		return 0;
+ 
++	getnstimeofday(&ts);
+ 	rtc_read_time(rtc, &tm);
+ 	rtc_tm_to_time(&tm, &oldtime);
+ 
+ 	/* RTC precision is 1 second; adjust delta for avg 1/2 sec err */
+-	set_normalized_timespec(&delta,
++	set_normalized_timespec(&new_delta,
+ 				ts.tv_sec - oldtime,
+ 				ts.tv_nsec - (NSEC_PER_SEC >> 1));
+ 
++	/* prevent 1/2 sec errors from accumulating */
++	delta_delta = timespec_sub(new_delta, delta);
++	if (delta_delta.tv_sec < -2 || delta_delta.tv_sec >= 2)
++		delta = new_delta;
+ 	return 0;
+ }
+ 
+@@ -79,6 +86,8 @@
+ 		return 0;
+ 	}
+ 	rtc_tm_to_time(&tm, &newtime);
++	if (delta_delta.tv_sec < -1)
++		newtime++;
+ 	if (newtime <= oldtime) {
+ 		if (newtime < oldtime)
+ 			pr_debug("%s:  time travel!\n", dev_name(&rtc->dev));
+diff -Nur linux-2.6.35.7/drivers/rtc/Kconfig tiny210/drivers/rtc/Kconfig
+--- linux-2.6.35.7/drivers/rtc/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/rtc/Kconfig	2011-08-08 12:52:31.000000000 +0800
+@@ -109,6 +109,24 @@
+ 	  clock several times per second, please enable this option
+ 	  only if you know that you really need it.
+ 
++config RTC_INTF_ALARM
++	bool "Android alarm driver"
++	depends on RTC_CLASS
++	default y
++	help
++	  Provides non-wakeup and rtc backed wakeup alarms based on rtc or
++	  elapsed realtime, and a non-wakeup alarm on the monotonic clock.
++	  Also provides an interface to set the wall time which must be used
++	  for elapsed realtime to work.
++
++config RTC_INTF_ALARM_DEV
++	bool "Android alarm device"
++	depends on RTC_INTF_ALARM
++	default y
++	help
++	  Exports the alarm interface to user-space.
++
++
+ config RTC_DRV_TEST
+ 	tristate "Test driver/device"
+ 	help
+@@ -656,7 +674,7 @@
+ 
+ config RTC_DRV_S3C
+ 	tristate "Samsung S3C series SoC RTC"
+-	depends on ARCH_S3C2410 || ARCH_S3C64XX
++	depends on ARCH_S3C2410 || ARCH_S3C64XX || ARCH_S5PV210
+ 	help
+ 	  RTC (Realtime Clock) driver for the clock inbuilt into the
+ 	  Samsung S3C24XX series of SoCs. This can provide periodic
+diff -Nur linux-2.6.35.7/drivers/rtc/Makefile tiny210/drivers/rtc/Makefile
+--- linux-2.6.35.7/drivers/rtc/Makefile	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/rtc/Makefile	2011-08-08 12:52:31.000000000 +0800
+@@ -11,6 +11,8 @@
+ obj-$(CONFIG_RTC_CLASS)		+= rtc-core.o
+ rtc-core-y			:= class.o interface.o
+ 
++obj-$(CONFIG_RTC_INTF_ALARM) += alarm.o
++obj-$(CONFIG_RTC_INTF_ALARM_DEV) += alarm-dev.o
+ rtc-core-$(CONFIG_RTC_INTF_DEV)	+= rtc-dev.o
+ rtc-core-$(CONFIG_RTC_INTF_PROC) += rtc-proc.o
+ rtc-core-$(CONFIG_RTC_INTF_SYSFS) += rtc-sysfs.o
+diff -Nur linux-2.6.35.7/drivers/rtc/rtc-max8998.c tiny210/drivers/rtc/rtc-max8998.c
+--- linux-2.6.35.7/drivers/rtc/rtc-max8998.c	1970-01-01 08:00:00.000000000 +0800
++++ tiny210/drivers/rtc/rtc-max8998.c	2011-08-08 12:52:31.000000000 +0800
+@@ -0,0 +1,271 @@
++
++/*
++ * rtc-max8998.c 
++ *
++ * PMIC rtc utility driver 
++ *
++ * Copyright (C) 2009 Samsung Electronics.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/power_supply.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/interrupt.h>
++#include <linux/gpio.h>
++#include <linux/platform_device.h>
++#include <linux/timer.h>
++#include <linux/jiffies.h>
++#include <linux/irq.h>
++#include <asm/mach-types.h>
++#include <mach/hardware.h>
++#include <linux/rtc.h>
++#include <linux/bcd.h>
++
++
++#include <linux/i2c.h>
++
++
++
++
++
++
++#define MAX8998_REG_SECOND		0
++#define MAX8998_REG_MIN			1	
++#define MAX8998_REG_HOUR		2
++#define MAX8998_REG_WEEKDAY		3
++#define MAX8998_REG_DATE		4	
++#define MAX8998_REG_MONTH		5
++#define MAX8998_REG_YEAR0		6
++#define MAX8998_REG_YEAR1		7
++
++
++#define MAX8998_RTC_LEN			8
++
++
++#define MAX8998_RTC_TIME_ADDR		0
++#define MAX8998_RTC_ALARMO_ADDR		8
++#define MAX8998_RTC_ALARM1_ADDR		8
++
++
++#define MAX8998RTC_DEBUG    0
++
++#if MAX8998RTC_DEBUG    
++#define max8998_dbg	pr_info
++#else
++
++#define	max8998_dbg(...)	
++#endif
++
++
++/* Slave address */
++#define MAX8998_RTC_SLAVE_ADDR	0x0D
++
++/* Register address */
++static struct i2c_driver max8998_rtc_i2c_driver;
++static struct i2c_client *max8998_rtc_i2c_client = NULL;
++
++unsigned short max8998_rtc_ignore[] = {I2C_CLIENT_END };
++static unsigned short max8998_rtc_normal_i2c[] = { I2C_CLIENT_END };
++static unsigned short max8998_rtc_probe[] = {6, MAX8998_RTC_SLAVE_ADDR >> 1, I2C_CLIENT_END };
++/*
++static struct i2c_client_address_data max8998_rtc_addr_data = {
++	.normal_i2c	= max8998_rtc_normal_i2c,
++	.ignore		= max8998_rtc_ignore,
++	.probe		= max8998_rtc_probe,
++};
++*/
++
++static int max8998_rtc_i2c_read(struct i2c_client *client, u8 reg, u8 *data, int len)
++{
++	int ret;
++	u8 buf[2];
++	struct i2c_msg msg[2];
++
++	max8998_dbg("%s\n", __func__);
++
++	buf[0] = reg; 
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = 1;
++	msg[0].buf = buf;
++
++	msg[1].addr = client->addr;
++	msg[1].flags = I2C_M_RD;
++	msg[1].len = len;
++	msg[1].buf = data;
++
++	ret = i2c_transfer(client->adapter, msg, 2);
++	if (ret != 2) 
++		return -EIO;
++
++#if MAX8998RTC_DEBUG
++	int i;
++	for(i = 0; i < len ; i++)
++		max8998_dbg(" %d : %x \n",i,*(data + i));
++#endif
++
++	return 0;
++}
++
++static int max8998_rtc_i2c_write(struct i2c_client *client, u8 reg, u8 *data,int len)
++{
++	int ret;
++	struct i2c_msg msg[1];
++
++	max8998_dbg("%s\n", __func__);
++
++	data[0] = reg; 
++
++#if MAX8998RTC_DEBUG
++	int i;
++	for(i = 0; i < len ; i++)
++		max8998_dbg(" %d : %x \n",i,*(data + i));
++#endif
++
++	msg[0].addr = client->addr;
++	msg[0].flags = 0;
++	msg[0].len = len;
++	msg[0].buf = data;
++
++
++	ret = i2c_transfer(client->adapter, msg, 1);
++	max8998_dbg(" max8998 i2c write ret %d\n",ret);
++
++	if (ret != 1) 
++		return -EIO;
++
++
++	return 0;
++}
++
++
++static int max8998_rtc_i2c_read_time(struct i2c_client *client, struct rtc_time *tm)
++{
++        int ret;
++        u8 regs[MAX8998_RTC_LEN];
++
++        ret = max8998_rtc_i2c_read(client, MAX8998_RTC_TIME_ADDR,regs,MAX8998_RTC_LEN);
++        if (ret < 0)
++                return ret;
++
++        tm->tm_sec =  bcd2bin(regs[MAX8998_REG_SECOND]);
++        tm->tm_min =  bcd2bin(regs [MAX8998_REG_MIN]);
++        tm->tm_hour = bcd2bin(regs[MAX8998_REG_HOUR] & 0x3f);
++	if(regs[MAX8998_REG_HOUR] & (1 << 7))
++        	tm->tm_hour += 12;
++        tm->tm_wday = bcd2bin(regs[MAX8998_REG_WEEKDAY]);
++        tm->tm_mday = bcd2bin(regs[MAX8998_REG_DATE]);
++        tm->tm_mon =  bcd2bin(regs [MAX8998_REG_MONTH]) - 1;
++        tm->tm_year = bcd2bin(regs[MAX8998_REG_YEAR0]) +
++                      bcd2bin(regs[MAX8998_REG_YEAR1]) * 100 - 1900;
++
++
++	
++        return 0;
++}
++
++
++static int max8998_rtc_i2c_set_time(struct i2c_client *client, struct rtc_time *tm)
++{
++        int ret;
++        u8 regs[MAX8998_RTC_LEN + 1];
++
++	tm->tm_year += 1900;
++
++	regs[MAX8998_REG_SECOND + 1] = bin2bcd(tm->tm_sec);
++	regs[MAX8998_REG_MIN + 1] = bin2bcd(tm->tm_min);
++	regs[MAX8998_REG_HOUR + 1] = bin2bcd(tm->tm_hour);
++	regs[MAX8998_REG_WEEKDAY + 1] = bin2bcd(tm->tm_wday);
++	regs[MAX8998_REG_DATE + 1] = bin2bcd(tm->tm_mday);
++	regs[MAX8998_REG_MONTH + 1] = bin2bcd(tm->tm_mon + 1);
++	regs[MAX8998_REG_YEAR0 + 1] = bin2bcd(tm->tm_year % 100);
++	regs[MAX8998_REG_YEAR1 + 1] = bin2bcd((tm->tm_year /100) );
++
++        ret = max8998_rtc_i2c_write(client, MAX8998_RTC_TIME_ADDR,regs,MAX8998_RTC_LEN +1);
++
++	return ret;
++}
++
++int max8998_rtc_read_time(struct rtc_time *tm)
++{
++	int ret;
++
++	max8998_dbg("%s \n", __func__);
++
++	ret = max8998_rtc_i2c_read_time(max8998_rtc_i2c_client, tm);
++
++	max8998_dbg("read %s time %02d.%02d.%02d %02d/%02d/%02d\n",__func__,
++		 tm->tm_year, tm->tm_mon, tm->tm_mday,
++		 tm->tm_hour, tm->tm_min, tm->tm_sec);
++	return ret;
++}
++
++int max8998_rtc_set_time(struct rtc_time *tm)
++{
++	max8998_dbg("%s  %02d.%02d.%02d %02d/%02d/%02d\n",__func__,
++		 tm->tm_year, tm->tm_mon, tm->tm_mday,
++		 tm->tm_hour, tm->tm_min, tm->tm_sec);
++	return max8998_rtc_i2c_set_time(max8998_rtc_i2c_client, tm);
++}
++
++static int
++max8998_probe(struct i2c_client *client, const struct i2c_device_id *id)
++{
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
++		return -ENODEV;
++	max8998_rtc_i2c_client = client;
++	return 0;
++}
++
++static int max8998_remove(struct i2c_client *client)
++{
++	return 0;
++}
++
++static struct i2c_device_id max8998_id[] = {
++	{ "rtc_max8998", 0 },
++	{ }
++};
++
++static struct i2c_driver max8998_rtc_i2c_driver = {
++	.driver = {
++		.name = "rtc_max8998",
++		.owner = THIS_MODULE,
++	},
++	.probe = max8998_probe,
++	.remove = max8998_remove,
++	.id_table = max8998_id,
++};
++
++
++static int __init s3c_max8998_rtc_init(void)
++{
++	int ret;
++	max8998_dbg("%s\n", __func__);
++
++	if ((ret = i2c_add_driver(&max8998_rtc_i2c_driver)))
++		pr_err("%s: Can't add max8998_rtc_ i2c drv\n", __func__);
++	return ret;
++}
++
++static void __exit s3c_max8998_rtc_exit(void)
++{
++	max8998_dbg("%s\n", __func__);
++	i2c_del_driver(&max8998_rtc_i2c_driver);
++}
++
++module_init(s3c_max8998_rtc_init);
++module_exit(s3c_max8998_rtc_exit);
++
++MODULE_AUTHOR("samsung");
++MODULE_DESCRIPTION("MX 8998 rtc driver");
++MODULE_LICENSE("GPL");
+diff -Nur linux-2.6.35.7/drivers/rtc/rtc-s3c.c tiny210/drivers/rtc/rtc-s3c.c
+--- linux-2.6.35.7/drivers/rtc/rtc-s3c.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/rtc/rtc-s3c.c	2011-08-08 12:52:31.000000000 +0800
+@@ -22,10 +22,10 @@
+ #include <linux/clk.h>
+ #include <linux/log2.h>
+ #include <linux/slab.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ 
+ #include <mach/hardware.h>
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
+ #include <asm/irq.h>
+ #include <plat/regs-rtc.h>
+ 
+@@ -393,21 +393,21 @@
+ 	} else {
+ 		/* re-enable the device, and check it is ok */
+ 
+-		if ((readb(base+S3C2410_RTCCON) & S3C2410_RTCCON_RTCEN) == 0){
++		if ((readb(base+S3C2410_RTCCON) & S3C2410_RTCCON_RTCEN) == 0) {
+ 			dev_info(&pdev->dev, "rtc disabled, re-enabling\n");
+ 
+ 			tmp = readb(base + S3C2410_RTCCON);
+ 			writeb(tmp|S3C2410_RTCCON_RTCEN, base+S3C2410_RTCCON);
+ 		}
+ 
+-		if ((readb(base + S3C2410_RTCCON) & S3C2410_RTCCON_CNTSEL)){
++		if ((readb(base + S3C2410_RTCCON) & S3C2410_RTCCON_CNTSEL)) {
+ 			dev_info(&pdev->dev, "removing RTCCON_CNTSEL\n");
+ 
+ 			tmp = readb(base + S3C2410_RTCCON);
+-			writeb(tmp& ~S3C2410_RTCCON_CNTSEL, base+S3C2410_RTCCON);
++			writeb(tmp & ~S3C2410_RTCCON_CNTSEL, base+S3C2410_RTCCON);
+ 		}
+ 
+-		if ((readb(base + S3C2410_RTCCON) & S3C2410_RTCCON_CLKRST)){
++		if ((readb(base + S3C2410_RTCCON) & S3C2410_RTCCON_CLKRST)) {
+ 			dev_info(&pdev->dev, "removing RTCCON_CLKRST\n");
+ 
+ 			tmp = readb(base + S3C2410_RTCCON);
+@@ -487,7 +487,7 @@
+ 
+ 	s3c_rtc_enable(pdev, 1);
+ 
+- 	pr_debug("s3c2410_rtc: RTCCON=%02x\n",
++	pr_debug("s3c2410_rtc: RTCCON=%02x\n",
+ 		 readb(s3c_rtc_base + S3C2410_RTCCON));
+ 
+ 	device_init_wakeup(&pdev->dev, 1);
+@@ -595,7 +595,8 @@
+ 	},
+ };
+ 
+-static char __initdata banner[] = "S3C24XX RTC, (c) 2004,2006 Simtec Electronics\n";
++static char __initdata banner[] = "S3C24XX RTC, (c) 2004,2006 "
++					"Simtec Electronics\n";
+ 
+ static int __init s3c_rtc_init(void)
+ {

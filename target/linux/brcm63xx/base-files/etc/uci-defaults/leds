@@ -1,0 +1,84 @@
+#!/bin/sh
+
+. /lib/brcm63xx.sh
+
+set_usb_led() {
+	local sysfs="$1"
+
+	uci batch <<EOF
+set system.usb_led=led
+set system.usb_led.name='usb'
+set system.usb_led.sysfs='$sysfs'
+set system.usb_led.trigger='usbdev'
+set system.usb_led.dev='1-1'
+set system.usb_led.interval='50'
+commit system
+EOF
+}
+
+set_lan_led() {
+	local sysfs="$1"
+
+	uci batch <<EOF
+set system.lan_led=led
+set system.lan_led.name='lan'
+set system.lan_led.sysfs='$sysfs'
+set system.lan_led.trigger='netdev'
+set system.lan_led.dev='eth1.0'
+set system.lan_led.mode='link rx tx'
+commit system
+EOF
+}
+
+set_wan_led() {
+	local sysfs="$1"
+
+	uci batch <<EOF
+set system.wan_led=led
+set system.wan_led.name='wan'
+set system.wan_led.sysfs='$sysfs'
+set system.wan_led.trigger='netdev'
+set system.wan_led.dev='eth1.1'
+set system.wan_led.mode='link rx tx'
+commit system
+EOF
+}
+
+case $board_name in
+	"bcm63xx/HW553 "*)
+	uci batch <<EOF
+set system.wan_led=led
+set system.wan_led.name='wan'
+set system.wan_led.sysfs='adsl:blue'
+set system.wan_led.trigger='netdev'
+set system.wan_led.dev='eth1.1'
+set system.wan_led.mode='link rx tx'
+
+set system.lan_led=led
+set system.lan_led.name='lan'
+set system.lan_led.sysfs='lan:blue'
+set system.lan_led.trigger='netdev'
+set system.lan_led.dev='eth1.0'
+set system.lan_led.mode='link rx tx'
+
+set system.usb_led2=led
+set system.usb_led2.name='usb2'
+set system.usb_led2.sysfs='hspa:blue'
+set system.usb_led2.trigger='usbdev'
+set system.usb_led2.dev='1-2'
+set system.usb_led2.interval='50'
+
+set system.usb_led1=led
+set system.usb_led1.name='usb1'
+set system.usb_led1.sysfs='hspa:red'
+set system.usb_led1.trigger='usbdev'
+set system.usb_led1.dev='1-1'
+set system.usb_led1.interval='50'
+
+commit system
+EOF
+		;;
+	"bcm63xx/96358vw2 "*)
+		set_usb_led "usb"
+		;;
+esac

@@ -1,0 +1,158 @@
+10
+
+dir
+557
+svn://svn.openwrt.org.cn/dreambox/trunk/target/linux
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2012-11-07T07:32:45.324080Z
+556
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+atheros
+dir
+
+brcm4716
+dir
+
+rdc
+dir
+
+generic
+dir
+
+s3c24xx
+dir
+
+ppc40x
+dir
+
+s3c64xx
+dir
+
+ppc44x
+dir
+
+orion
+dir
+
+octeon
+dir
+
+kirkwood
+dir
+
+ar7
+dir
+
+rb532
+dir
+
+avr32
+dir
+
+ixp4xx
+dir
+
+cobalt
+dir
+
+au1000
+dir
+
+adm5120
+dir
+
+brcm63x8
+dir
+
+brcm63xx
+dir
+
+generic-2.4
+dir
+
+Makefile
+file
+
+
+
+
+2012-11-17T08:17:57.787420Z
+4a3c6e549c402779f6bbd7aee0226372
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+365
+
+brcm47xx
+dir
+
+ifxmips
+dir
+
+s5pv210
+dir
+
+brcm-2.4
+dir
+
+x86
+dir
+
+xburst
+dir
+
+lantiq
+dir
+
+ar71xx
+dir
+
+ramips
+dir
+
+uml
+dir
+
+ar93xx
+dir
+

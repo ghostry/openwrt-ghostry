@@ -1,0 +1,63 @@
+--- linux-2.6.32.48/arch/arm/kernel/setup.c.orig	2011-12-08 01:27:51.891197337 +0800
++++ linux-2.6.32.48/arch/arm/kernel/setup.c	2011-12-08 01:34:08.938956375 +0800
+@@ -804,6 +804,9 @@
+ 	NULL
+ };
+ 
++extern int getFlashSize;
++extern unsigned long s3c24xx_cpu_clk;
++
+ static int c_show(struct seq_file *m, void *v)
+ {
+ 	int i;
+@@ -858,7 +861,10 @@
+ 	seq_printf(m, "CPU revision\t: %d\n", read_cpuid_id() & 15);
+ 
+ 	seq_puts(m, "\n");
+-
++//#if defined(CONFIG_MACH_S3C24xx)
++	seq_printf(m, "FlashSize\t\t: %d\n",getFlashSize);
++	seq_printf(m, "CPUClock\t\t: %d\n",s3c24xx_cpu_clk / 1000000);
++//#endif
+ 	seq_printf(m, "Hardware\t: %s\n", machine_name);
+ 	seq_printf(m, "Revision\t: %04x\n", system_rev);
+ 	seq_printf(m, "Serial\t\t: %08x%08x\n",
+--- linux-2.6.32.48/arch/arm/plat-s3c24xx/s3c244x.c.orig	2011-12-08 01:33:36.498956373 +0800
++++ linux-2.6.32.48/arch/arm/plat-s3c24xx/s3c244x.c	2011-12-08 01:33:36.530956373 +0800
+@@ -46,6 +46,8 @@
+ #include <plat/pm.h>
+ #include <plat/pll.h>
+ 
++unsigned long s3c24xx_cpu_clk;
++
+ static struct map_desc s3c244x_iodesc[] __initdata = {
+ 	IODESC_ENT(CLKPWR),
+ 	IODESC_ENT(TIMER),
+@@ -86,7 +88,7 @@
+ 	xtal = clk_get_rate(xtal_clk);
+ 	clk_put(xtal_clk);
+ 
+-	fclk = s3c24xx_get_pll(__raw_readl(S3C2410_MPLLCON), xtal) * 2;
++	s3c24xx_cpu_clk=fclk = s3c24xx_get_pll(__raw_readl(S3C2410_MPLLCON), xtal) * 2;
+ 
+ 	clkdiv = __raw_readl(S3C2410_CLKDIVN);
+ 	camdiv = __raw_readl(S3C2440_CAMDIVN);
+--- linux-2.6.32.59/arch/arm/mach-s3c2410/s3c2410.c.orig	2012-03-17 18:14:52.000000000 +0800
++++ linux-2.6.32.59/arch/arm/mach-s3c2410/s3c2410.c	2012-05-10 17:05:25.306209112 +0800
+@@ -68,6 +68,7 @@
+ 	iotable_init(s3c2410_iodesc, ARRAY_SIZE(s3c2410_iodesc));
+ }
+ 
++extern unsigned long s3c24xx_cpu_clk;
+ void __init_or_cpufreq s3c2410_setup_clocks(void)
+ {
+ 	struct clk *xtal_clk;
+@@ -97,7 +98,7 @@
+ 
+ 	printk("S3C2410: core %ld.%03ld MHz, memory %ld.%03ld MHz, peripheral %ld.%03ld MHz\n",
+ 	       print_mhz(fclk), print_mhz(hclk), print_mhz(pclk));
+-
++	s3c24xx_cpu_clk=fclk;
+ 	/* initialise the clocks here, to allow other things like the
+ 	 * console to use them
+ 	 */

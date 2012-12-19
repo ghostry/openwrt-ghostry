@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Copyright (C) 2009 OpenWrt.org
+#
+
+. /lib/kirkwood.sh
+
+
+preinit_enable_reset_button() {
+	insmod input-core
+	insmod input-polldev
+	insmod gpio_buttons
+	insmod button-hotplug
+}
+
+boot_hook_add preinit_main preinit_enable_reset_button
+

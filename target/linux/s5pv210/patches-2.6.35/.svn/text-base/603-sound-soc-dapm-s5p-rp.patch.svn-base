@@ -1,0 +1,25 @@
+--- linux-2.6.35.7//sound/soc/soc-dapm.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//sound/soc/soc-dapm.c	2011-08-17 19:32:23.000000000 +0800
+@@ -882,6 +882,10 @@
+ 		dapm_seq_run_coalesced(codec, &pending);
+ }
+ 
++#ifdef CONFIG_SND_S5P_RP
++extern volatile int s5p_rp_is_running;
++#endif
++
+ /*
+  * Scan each dapm widget for complete audio path.
+  * A complete path is a route that has valid endpoints i.e.:-
+@@ -982,7 +986,10 @@
+ 	}
+ 
+ 	/* Power down widgets first; try to avoid amplifying pops. */
+-	dapm_seq_run(codec, &down_list, event, dapm_down_seq);
++#ifdef CONFIG_SND_S5P_RP
++        if (!s5p_rp_is_running)
++#endif            
++                dapm_seq_run(codec, &down_list, event, dapm_down_seq);
+ 
+ 	/* Now power up. */
+ 	dapm_seq_run(codec, &up_list, event, dapm_up_seq);

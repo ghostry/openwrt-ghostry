@@ -1,0 +1,14 @@
+diff -Nur linux-2.6.35.7/drivers/cpufreq/cpufreq_ondemand.c tiny210/drivers/cpufreq/cpufreq_ondemand.c
+--- linux-2.6.35.7/drivers/cpufreq/cpufreq_ondemand.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/cpufreq/cpufreq_ondemand.c	2011-08-08 12:52:18.000000000 +0800
+@@ -610,7 +610,9 @@
+ 	/* We want all CPUs to do sampling nearly on same jiffy */
+ 	int delay = usecs_to_jiffies(dbs_tuners_ins.sampling_rate);
+ 
+-	delay -= jiffies % delay;
++	if (num_online_cpus() > 1)
++		delay -= jiffies % delay;
++
+ 	mutex_lock(&dbs_info->timer_mutex);
+ 
+ 	/* Common NORMAL_SAMPLE setup */

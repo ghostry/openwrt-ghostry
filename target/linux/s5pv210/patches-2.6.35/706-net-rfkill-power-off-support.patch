@@ -1,0 +1,44 @@
+diff -Nur linux-2.6.35.7/net/rfkill/core.c tiny210/net/rfkill/core.c
+--- linux-2.6.35.7/net/rfkill/core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/rfkill/core.c	2011-08-08 12:52:36.000000000 +0800
+@@ -783,6 +783,7 @@
+ }
+ EXPORT_SYMBOL(rfkill_pause_polling);
+ 
++#ifdef CONFIG_RFKILL_PM
+ void rfkill_resume_polling(struct rfkill *rfkill)
+ {
+ 	BUG_ON(!rfkill);
+@@ -817,14 +818,17 @@
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static struct class rfkill_class = {
+ 	.name		= "rfkill",
+ 	.dev_release	= rfkill_release,
+ 	.dev_attrs	= rfkill_dev_attrs,
+ 	.dev_uevent	= rfkill_dev_uevent,
++#ifdef CONFIG_RFKILL_PM
+ 	.suspend	= rfkill_suspend,
+ 	.resume		= rfkill_resume,
++#endif
+ };
+ 
+ bool rfkill_blocked(struct rfkill *rfkill)
+diff -Nur linux-2.6.35.7/net/rfkill/Kconfig tiny210/net/rfkill/Kconfig
+--- linux-2.6.35.7/net/rfkill/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/rfkill/Kconfig	2011-08-08 12:52:36.000000000 +0800
+@@ -10,6 +10,11 @@
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called rfkill.
+ 
++config RFKILL_PM
++	bool "Power off on suspend"
++	depends on RFKILL && PM
++	default y
++
+ # LED trigger support
+ config RFKILL_LEDS
+ 	bool

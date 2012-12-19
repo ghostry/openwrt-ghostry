@@ -1,0 +1,24 @@
+diff -Nur linux-2.6.35.7/net/phonet/af_phonet.c tiny210/net/phonet/af_phonet.c
+--- linux-2.6.35.7/net/phonet/af_phonet.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/phonet/af_phonet.c	2011-08-08 12:52:36.000000000 +0800
+@@ -68,7 +68,7 @@
+ 	struct phonet_protocol *pnp;
+ 	int err;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
++	if (!capable(CAP_SYS_ADMIN) && !capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
+ 	if (protocol == 0) {
+diff -Nur linux-2.6.35.7/net/phonet/socket.c tiny210/net/phonet/socket.c
+--- linux-2.6.35.7/net/phonet/socket.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/phonet/socket.c	2011-08-08 12:52:36.000000000 +0800
+@@ -429,7 +429,7 @@
+ 
+ 		phonet_get_local_port_range(&pmin, &pmax);
+ 		for (port = pmin; port <= pmax; port++) {
+-			port_cur++;
++			port_cur += PN_HASHSIZE;
+ 			if (port_cur < pmin || port_cur > pmax)
+ 				port_cur = pmin;
+ 

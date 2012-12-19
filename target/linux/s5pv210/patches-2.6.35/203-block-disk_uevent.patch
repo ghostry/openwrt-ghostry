@@ -1,0 +1,50 @@
+--- linux-2.6.35.7//block/blk-core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//block/blk-core.c	2011-08-08 12:52:17.000000000 +0800
+@@ -1593,11 +1593,12 @@
+ 
+ 		if (unlikely(block_dump)) {
+ 			char b[BDEVNAME_SIZE];
+-			printk(KERN_DEBUG "%s(%d): %s block %Lu on %s\n",
++			printk(KERN_DEBUG "%s(%d): %s block %Lu on %s (%u sectors)\n",
+ 			current->comm, task_pid_nr(current),
+ 				(rw & WRITE) ? "WRITE" : "READ",
+ 				(unsigned long long)bio->bi_sector,
+-				bdevname(bio->bi_bdev, b));
++				bdevname(bio->bi_bdev, b),
++				count);
+ 		}
+ 	}
+ 
+--- linux-2.6.35.7//block/genhd.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210//block/genhd.c	2011-08-08 12:52:17.000000000 +0800
+@@ -1006,6 +1006,22 @@
+ 	free_part_stats(&disk->part0);
+ 	kfree(disk);
+ }
++
++static int disk_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct gendisk *disk = dev_to_disk(dev);
++	struct disk_part_iter piter;
++	struct hd_struct *part;
++	int cnt = 0;
++
++	disk_part_iter_init(&piter, disk, 0);
++	while((part = disk_part_iter_next(&piter)))
++		cnt++;
++	disk_part_iter_exit(&piter);
++	add_uevent_var(env, "NPARTS=%u", cnt);
++	return 0;
++}
++
+ struct class block_class = {
+ 	.name		= "block",
+ };
+@@ -1024,6 +1040,7 @@
+ 	.groups		= disk_attr_groups,
+ 	.release	= disk_release,
+ 	.devnode	= block_devnode,
++	.uevent		= disk_uevent,
+ };
+ 
+ #ifdef CONFIG_PROC_FS

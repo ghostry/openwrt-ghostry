@@ -1,0 +1,109 @@
+--- linux-2.6.32.27/arch/arm/mach-ixp4xx/gtwx5715-setup.c.orig	2011-09-20 12:44:45.000000000 +0800
++++ linux-2.6.32.27/arch/arm/mach-ixp4xx/gtwx5715-setup.c	2011-09-20 18:42:34.383596534 +0800
+@@ -28,14 +28,22 @@
+ #include <linux/tty.h>
+ #include <linux/serial_8250.h>
+ #include <linux/slab.h>
++#include <linux/irq.h>
+ 
+ #include <linux/spi/spi_gpio_old.h>
+ 
++#include <linux/platform_device.h>
++#include <linux/leds.h>
++#include <linux/gpio_keys.h>
++#include <linux/input.h>
++#include <linux/reboot.h>
++
+ #include <asm/types.h>
+ #include <asm/setup.h>
+ #include <asm/memory.h>
+ #include <mach/hardware.h>
+ #include <asm/irq.h>
++#include <asm/gpio.h>
+ #include <asm/mach-types.h>
+ #include <asm/mach/arch.h>
+ #include <asm/mach/flash.h>
+@@ -123,6 +131,58 @@
+ 	.resource	= &gtwx5715_flash_resource,
+ };
+ 
++/* Leds */
++static struct gpio_led gtwx5715_led_pins[] = {
++	{
++		.name		= "power",
++		.gpio		= GTWX5715_LED1_GPIO,
++
++	},
++	{
++		.name		= "wireless",
++		.gpio		= GTWX5715_LED2_GPIO,
++		.active_low	= true,
++	},
++	{
++		.name		= "wireless2",
++		.gpio		= GTWX5715_LED3_GPIO,
++		.active_low	= true,
++	},
++	{
++		.name		= "internet",
++		.gpio		= GTWX5715_LED4_GPIO,
++		.active_low	= true,
++	},
++	{
++		.name		= "dmz",
++		.gpio		= GTWX5715_LED9_GPIO,
++		.active_low	= true,
++	},
++};
++
++static struct gpio_led_platform_data gtwx5715_led_data = {
++	.num_leds		= ARRAY_SIZE(gtwx5715_led_pins),
++	.leds			= gtwx5715_led_pins,
++};
++
++static struct platform_device gtwx5715_leds = {
++	.name			= "leds-gpio",
++	.id			= -1,
++	.dev.platform_data	= &gtwx5715_led_data,
++};
++
++/* Button */
++static irqreturn_t gtwx5715_reset_handler(int irq, void *dev_id)
++{
++
++	if (gpio_get_value(GTWX5715_BUTTON_GPIO)) {
++
++		/* IO Pin is 1 (button pushed) */
++		printk(KERN_DEBUG "Reset Button press.\n");
++	} ;
++	return IRQ_HANDLED;
++}
++
+ static int gtwx5715_spi_boardinfo_setup(struct spi_board_info *bi,
+ 		struct spi_master *master, void *data)
+ {
+@@ -185,6 +245,7 @@
+ 	&gtwx5715_spi_bus,
+ 	&gtwx5715_npeb_device,
+ 	&gtwx5715_npec_device,
++	&gtwx5715_leds,
+ };
+ 
+ static void __init gtwx5715_init(void)
+@@ -194,6 +255,16 @@
+ 	gtwx5715_flash_resource.start = IXP4XX_EXP_BUS_BASE(0);
+ 	gtwx5715_flash_resource.end = IXP4XX_EXP_BUS_BASE(0) + SZ_8M - 1;
+ 
++//add botton handler by Lintel
++	if (request_irq(gpio_to_irq(GTWX5715_BUTTON_GPIO), &gtwx5715_reset_handler,
++		IRQF_DISABLED | IRQF_TRIGGER_LOW,
++		"GTWX5715 reset button", NULL) < 0) {
++
++		printk(KERN_DEBUG "Reset Button IRQ %d not available\n",
++			gpio_to_irq(GTWX5715_BUTTON_GPIO));
++	}
++	gpio_line_config(GTWX5715_BUTTON_GPIO, IXP4XX_GPIO_IN);
++	
+ 	platform_add_devices(gtwx5715_devices, ARRAY_SIZE(gtwx5715_devices));
+ }
+ 

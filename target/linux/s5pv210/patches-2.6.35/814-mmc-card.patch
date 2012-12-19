@@ -1,0 +1,1863 @@
+diff -Nur linux-2.6.35.7/drivers/mmc/card/block.c tiny210/drivers/mmc/card/block.c
+--- linux-2.6.35.7/drivers/mmc/card/block.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/card/block.c	2011-08-08 12:52:21.000000000 +0800
+@@ -86,11 +86,7 @@
+ 	mutex_lock(&open_lock);
+ 	md->usage--;
+ 	if (md->usage == 0) {
+-		int devmaj = MAJOR(disk_devt(md->disk));
+-		int devidx = MINOR(disk_devt(md->disk)) >> MMC_SHIFT;
+-
+-		if (!devmaj)
+-			devidx = md->disk->first_minor >> MMC_SHIFT;
++		int devidx = md->disk->first_minor >> MMC_SHIFT;
+ 
+ 		blk_cleanup_queue(md->queue.queue);
+ 
+@@ -237,11 +233,38 @@
+ 	cmd.flags = MMC_RSP_SPI_R2 | MMC_RSP_R1 | MMC_CMD_AC;
+ 	err = mmc_wait_for_cmd(card->host, &cmd, 0);
+ 	if (err)
+-		printk(KERN_ERR "%s: error %d sending status comand",
++		printk(KERN_DEBUG "%s: error %d sending status comand",
+ 		       req->rq_disk->disk_name, err);
+ 	return cmd.resp[0];
+ }
+ 
++static int
++mmc_blk_set_blksize(struct mmc_blk_data *md, struct mmc_card *card)
++{
++	struct mmc_command cmd;
++	int err;
++
++	/* Block-addressed cards ignore MMC_SET_BLOCKLEN. */
++	if (mmc_card_blockaddr(card))
++		return 0;
++
++	mmc_claim_host(card->host);
++	cmd.opcode = MMC_SET_BLOCKLEN;
++	cmd.arg = 512;
++	cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_AC;
++	err = mmc_wait_for_cmd(card->host, &cmd, 5);
++	mmc_release_host(card->host);
++
++	if (err) {
++		printk(KERN_ERR "%s: unable to set block size to %d: %d\n",
++			md->disk->disk_name, cmd.arg, err);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++
+ static int mmc_blk_issue_rq(struct mmc_queue *mq, struct request *req)
+ {
+ 	struct mmc_blk_data *md = mq->data;
+@@ -249,6 +272,13 @@
+ 	struct mmc_blk_request brq;
+ 	int ret = 1, disable_multi = 0;
+ 
++#ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
++	if (mmc_bus_needs_resume(card->host)) {
++		mmc_resume_bus(card->host);
++		mmc_blk_set_blksize(md, card);
++	}
++#endif
++
+ 	mmc_claim_host(card->host);
+ 
+ 	do {
+@@ -348,14 +378,27 @@
+ 				/* Redo read one sector at a time */
+ 				printk(KERN_WARNING "%s: retrying using single "
+ 				       "block read\n", req->rq_disk->disk_name);
+-				disable_multi = 1;
+-				continue;
++				if(brq.data.error == -EILSEQ) {
++					mq->rx_retries++;
++					if(mq->rx_retries == 3) {
++						mq->rx_retries = 0;
++						disable_multi = 1;
++					}
++					mmc_card_adjust_cfg(card->host, READ);
++					continue;
++				}
++				else {
++					disable_multi = 1;
++					continue;
++				}
+ 			}
+ 			status = get_card_status(card, req);
++		} else if (disable_multi == 1) {
++			disable_multi = 0;
+ 		}
+ 
+ 		if (brq.cmd.error) {
+-			printk(KERN_ERR "%s: error %d sending read/write "
++			printk(KERN_DEBUG "%s: error %d sending read/write "
+ 			       "command, response %#x, card status %#x\n",
+ 			       req->rq_disk->disk_name, brq.cmd.error,
+ 			       brq.cmd.resp[0], status);
+@@ -365,7 +408,7 @@
+ 			if (brq.data.error == -ETIMEDOUT && brq.mrq.stop)
+ 				/* 'Stop' response contains card status */
+ 				status = brq.mrq.stop->resp[0];
+-			printk(KERN_ERR "%s: error %d transferring data,"
++			printk(KERN_DEBUG "%s: error %d transferring data,"
+ 			       " sector %u, nr %u, card status %#x\n",
+ 			       req->rq_disk->disk_name, brq.data.error,
+ 			       (unsigned)blk_rq_pos(req),
+@@ -373,7 +416,7 @@
+ 		}
+ 
+ 		if (brq.stop.error) {
+-			printk(KERN_ERR "%s: error %d sending stop command, "
++			printk(KERN_DEBUG "%s: error %d sending stop command, "
+ 			       "response %#x, card status %#x\n",
+ 			       req->rq_disk->disk_name, brq.stop.error,
+ 			       brq.stop.resp[0], status);
+@@ -388,7 +431,7 @@
+ 				cmd.flags = MMC_RSP_R1 | MMC_CMD_AC;
+ 				err = mmc_wait_for_cmd(card->host, &cmd, 5);
+ 				if (err) {
+-					printk(KERN_ERR "%s: error %d requesting status\n",
++					printk(KERN_DEBUG "%s: error %d requesting status\n",
+ 					       req->rq_disk->disk_name, err);
+ 					goto cmd_err;
+ 				}
+@@ -421,6 +464,16 @@
+ 				spin_unlock_irq(&md->lock);
+ 				continue;
+ 			}
++			else {
++				if(brq.data.error == -EILSEQ) {
++					mq->tx_retries++;
++					mmc_card_adjust_cfg(card->host, WRITE);
++					if(mq->tx_retries < 3)
++						continue;
++					else
++						mq->tx_retries = 0;
++				}
++			}
+ 			goto cmd_err;
+ 		}
+ 
+@@ -522,6 +575,7 @@
+ 	md->disk->private_data = md;
+ 	md->disk->queue = md->queue.queue;
+ 	md->disk->driverfs_dev = &card->dev;
++	md->disk->flags = GENHD_FL_EXT_DEVT;
+ 
+ 	/*
+ 	 * As discussed on lkml, GENHD_FL_REMOVABLE should:
+@@ -563,32 +617,6 @@
+ 	return ERR_PTR(ret);
+ }
+ 
+-static int
+-mmc_blk_set_blksize(struct mmc_blk_data *md, struct mmc_card *card)
+-{
+-	struct mmc_command cmd;
+-	int err;
+-
+-	/* Block-addressed cards ignore MMC_SET_BLOCKLEN. */
+-	if (mmc_card_blockaddr(card))
+-		return 0;
+-
+-	mmc_claim_host(card->host);
+-	cmd.opcode = MMC_SET_BLOCKLEN;
+-	cmd.arg = 512;
+-	cmd.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_AC;
+-	err = mmc_wait_for_cmd(card->host, &cmd, 5);
+-	mmc_release_host(card->host);
+-
+-	if (err) {
+-		printk(KERN_ERR "%s: unable to set block size to %d: %d\n",
+-			md->disk->disk_name, cmd.arg, err);
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+ static int mmc_blk_probe(struct mmc_card *card)
+ {
+ 	struct mmc_blk_data *md;
+@@ -617,6 +645,9 @@
+ 		cap_str, md->read_only ? "(ro)" : "");
+ 
+ 	mmc_set_drvdata(card, md);
++#ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
++	mmc_set_bus_resume_policy(card->host, 1);
++#endif
+ 	add_disk(md->disk);
+ 	return 0;
+ 
+@@ -641,6 +672,9 @@
+ 		mmc_blk_put(md);
+ 	}
+ 	mmc_set_drvdata(card, NULL);
++#ifdef CONFIG_MMC_BLOCK_DEFERRED_RESUME
++	mmc_set_bus_resume_policy(card->host, 0);
++#endif
+ }
+ 
+ #ifdef CONFIG_PM
+@@ -659,7 +693,9 @@
+ 	struct mmc_blk_data *md = mmc_get_drvdata(card);
+ 
+ 	if (md) {
++#ifndef CONFIG_MMC_BLOCK_DEFERRED_RESUME
+ 		mmc_blk_set_blksize(md, card);
++#endif
+ 		mmc_queue_resume(&md->queue);
+ 	}
+ 	return 0;
+diff -Nur linux-2.6.35.7/drivers/mmc/card/Kconfig tiny210/drivers/mmc/card/Kconfig
+--- linux-2.6.35.7/drivers/mmc/card/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/card/Kconfig	2011-08-08 12:52:21.000000000 +0800
+@@ -32,6 +32,15 @@
+ 
+ 	  If unsure, say Y here.
+ 
++config MMC_BLOCK_DEFERRED_RESUME
++	bool "Deferr MMC layer resume until I/O is requested"
++	depends on MMC_BLOCK
++	default n
++	help
++	  Say Y here to enable deferred MMC resume until I/O
++	  is requested. This will reduce overall resume latency and
++	  save power when theres an SD card inserted but not being used.
++
+ config SDIO_UART
+ 	tristate "SDIO UART/GPS class support"
+ 	help
+diff -Nur linux-2.6.35.7/drivers/mmc/card/queue.h tiny210/drivers/mmc/card/queue.h
+--- linux-2.6.35.7/drivers/mmc/card/queue.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/card/queue.h	2011-08-08 12:52:21.000000000 +0800
+@@ -17,6 +17,7 @@
+ 	char			*bounce_buf;
+ 	struct scatterlist	*bounce_sg;
+ 	unsigned int		bounce_sg_len;
++	unsigned int		rx_retries, tx_retries;
+ };
+ 
+ extern int mmc_init_queue(struct mmc_queue *, struct mmc_card *, spinlock_t *);
+diff -Nur linux-2.6.35.7/drivers/mmc/core/core.c tiny210/drivers/mmc/core/core.c
+--- linux-2.6.35.7/drivers/mmc/core/core.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/core.c	2011-08-08 12:52:22.000000000 +0800
+@@ -22,6 +22,7 @@
+ #include <linux/scatterlist.h>
+ #include <linux/log2.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/wakelock.h>
+ 
+ #include <linux/mmc/card.h>
+ #include <linux/mmc/host.h>
+@@ -38,6 +39,7 @@
+ #include "sdio_ops.h"
+ 
+ static struct workqueue_struct *workqueue;
++static struct wake_lock mmc_delayed_work_wake_lock;
+ 
+ /*
+  * Enabling software CRCs on the data blocks can be a significant (30%)
+@@ -69,6 +71,7 @@
+ static int mmc_schedule_delayed_work(struct delayed_work *work,
+ 				     unsigned long delay)
+ {
++	wake_lock(&mmc_delayed_work_wake_lock);
+ 	return queue_delayed_work(workqueue, work, delay);
+ }
+ 
+@@ -90,8 +93,18 @@
+  */
+ void mmc_request_done(struct mmc_host *host, struct mmc_request *mrq)
+ {
+-	struct mmc_command *cmd = mrq->cmd;
+-	int err = cmd->error;
++	struct mmc_command *cmd;
++	int err;
++
++	if(mrq == NULL)
++		return;
++
++	cmd = mrq->cmd;
++
++	if(cmd == NULL)
++		return;
++
++	err = cmd->error;
+ 
+ 	if (err && cmd->retries && mmc_host_is_spi(host)) {
+ 		if (cmd->resp[0] & R1_SPI_ILLEGAL_COMMAND)
+@@ -545,9 +558,12 @@
+ 
+ 	/* If the host is claimed then we do not want to disable it anymore */
+ 	if (!mmc_try_claim_host(host))
+-		return;
++		goto out;
+ 	mmc_host_do_disable(host, 1);
+ 	mmc_do_release_host(host);
++
++out:
++	wake_unlock(&mmc_delayed_work_wake_lock);
+ }
+ 
+ /**
+@@ -907,12 +923,7 @@
+ 	 */
+ 	mmc_delay(10);
+ 
+-	if (host->f_min > 400000) {
+-		pr_warning("%s: Minimum clock frequency too high for "
+-				"identification mode\n", mmc_hostname(host));
+-		host->ios.clock = host->f_min;
+-	} else
+-		host->ios.clock = 400000;
++	host->ios.clock = host->f_min;
+ 
+ 	host->ios.power_mode = MMC_POWER_ON;
+ 	mmc_set_ios(host);
+@@ -977,6 +988,36 @@
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ }
+ 
++int mmc_resume_bus(struct mmc_host *host)
++{
++	unsigned long flags;
++
++	if (!mmc_bus_needs_resume(host))
++		return -EINVAL;
++
++	printk("%s: Starting deferred resume\n", mmc_hostname(host));
++	spin_lock_irqsave(&host->lock, flags);
++	host->bus_resume_flags &= ~MMC_BUSRESUME_NEEDS_RESUME;
++	host->rescan_disable = 0;
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	mmc_bus_get(host);
++	if (host->bus_ops && !host->bus_dead) {
++		mmc_power_up(host);
++		BUG_ON(!host->bus_ops->resume);
++		host->bus_ops->resume(host);
++	}
++
++	if (host->bus_ops->detect && !host->bus_dead)
++		host->bus_ops->detect(host);
++
++	mmc_bus_put(host);
++	printk("%s: Deferred resume completed\n", mmc_hostname(host));
++	return 0;
++}
++
++EXPORT_SYMBOL(mmc_resume_bus);
++
+ /*
+  * Assign a mmc bus handler to a host. Only one bus handler may control a
+  * host at any given time.
+@@ -1058,6 +1099,7 @@
+ 	u32 ocr;
+ 	int err;
+ 	unsigned long flags;
++	int extend_wakelock = 0;
+ 
+ 	spin_lock_irqsave(&host->lock, flags);
+ 
+@@ -1072,8 +1114,24 @@
+ 	mmc_bus_get(host);
+ 
+ 	/* if there is a card registered, check whether it is still present */
+-	if ((host->bus_ops != NULL) && host->bus_ops->detect && !host->bus_dead)
+-		host->bus_ops->detect(host);
++	if ((host->bus_ops != NULL) && host->bus_ops->detect && !host->bus_dead) {
++		if(host->ops->get_cd && host->ops->get_cd(host) == 0) {
++			if(host->bus_ops->remove)
++				host->bus_ops->remove(host);
++
++			mmc_claim_host(host);
++			mmc_detach_bus(host);
++			mmc_release_host(host);
++		}
++		else
++			host->bus_ops->detect(host);
++	}
++
++	/* If the card was removed the bus will be marked
++	 * as dead - extend the wakelock so userspace
++	 * can respond */
++	if (host->bus_dead)
++		extend_wakelock = 1;
+ 
+ 	mmc_bus_put(host);
+ 
+@@ -1112,6 +1170,7 @@
+ 	if (!err) {
+ 		if (mmc_attach_sdio(host, ocr))
+ 			mmc_power_off(host);
++		extend_wakelock = 1;
+ 		goto out;
+ 	}
+ 
+@@ -1122,6 +1181,7 @@
+ 	if (!err) {
+ 		if (mmc_attach_sd(host, ocr))
+ 			mmc_power_off(host);
++		extend_wakelock = 1;
+ 		goto out;
+ 	}
+ 
+@@ -1132,6 +1192,7 @@
+ 	if (!err) {
+ 		if (mmc_attach_mmc(host, ocr))
+ 			mmc_power_off(host);
++		extend_wakelock = 1;
+ 		goto out;
+ 	}
+ 
+@@ -1139,6 +1200,11 @@
+ 	mmc_power_off(host);
+ 
+ out:
++	if (extend_wakelock)
++		wake_lock_timeout(&mmc_delayed_work_wake_lock, HZ / 2);
++	else
++		wake_unlock(&mmc_delayed_work_wake_lock);
++
+ 	if (host->caps & MMC_CAP_NEEDS_POLL)
+ 		mmc_schedule_delayed_work(&host->detect, HZ);
+ }
+@@ -1258,6 +1324,13 @@
+ }
+ EXPORT_SYMBOL(mmc_card_can_sleep);
+ 
++void mmc_card_adjust_cfg(struct mmc_host *host, int rw)
++{
++	if(host->ops->adjust_cfg)
++		host->ops->adjust_cfg(host, rw);
++}
++EXPORT_SYMBOL(mmc_card_adjust_cfg);
++
+ #ifdef CONFIG_PM
+ 
+ /**
+@@ -1268,6 +1341,9 @@
+ {
+ 	int err = 0;
+ 
++	if (mmc_bus_needs_resume(host))
++		return 0;
++
+ 	if (host->caps & MMC_CAP_DISABLE)
+ 		cancel_delayed_work(&host->disable);
+ 	cancel_delayed_work(&host->detect);
+@@ -1297,6 +1373,12 @@
+ 	int err = 0;
+ 
+ 	mmc_bus_get(host);
++	if (mmc_bus_manual_resume(host)) {
++		host->bus_resume_flags |= MMC_BUSRESUME_NEEDS_RESUME;
++		mmc_bus_put(host);
++		return 0;
++	}
++
+ 	if (host->bus_ops && !host->bus_dead) {
+ 		if (!(host->pm_flags & MMC_PM_KEEP_POWER)) {
+ 			mmc_power_up(host);
+@@ -1334,6 +1416,10 @@
+ 	case PM_SUSPEND_PREPARE:
+ 
+ 		spin_lock_irqsave(&host->lock, flags);
++		if (mmc_bus_needs_resume(host)) {
++			spin_unlock_irqrestore(&host->lock, flags);
++			break;
++		}
+ 		host->rescan_disable = 1;
+ 		spin_unlock_irqrestore(&host->lock, flags);
+ 		cancel_delayed_work_sync(&host->detect);
+@@ -1355,6 +1441,10 @@
+ 	case PM_POST_HIBERNATION:
+ 
+ 		spin_lock_irqsave(&host->lock, flags);
++		if (mmc_bus_manual_resume(host)) {
++			spin_unlock_irqrestore(&host->lock, flags);
++			break;
++		}
+ 		host->rescan_disable = 0;
+ 		spin_unlock_irqrestore(&host->lock, flags);
+ 		mmc_detect_change(host, 0);
+@@ -1365,10 +1455,28 @@
+ }
+ #endif
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++void mmc_set_embedded_sdio_data(struct mmc_host *host,
++				struct sdio_cis *cis,
++				struct sdio_cccr *cccr,
++				struct sdio_embedded_func *funcs,
++				int num_funcs)
++{
++	host->embedded_sdio_data.cis = cis;
++	host->embedded_sdio_data.cccr = cccr;
++	host->embedded_sdio_data.funcs = funcs;
++	host->embedded_sdio_data.num_funcs = num_funcs;
++}
++
++EXPORT_SYMBOL(mmc_set_embedded_sdio_data);
++#endif
++
+ static int __init mmc_init(void)
+ {
+ 	int ret;
+ 
++	wake_lock_init(&mmc_delayed_work_wake_lock, WAKE_LOCK_SUSPEND, "mmc_delayed_work");
++
+ 	workqueue = create_singlethread_workqueue("kmmcd");
+ 	if (!workqueue)
+ 		return -ENOMEM;
+@@ -1403,6 +1511,7 @@
+ 	mmc_unregister_host_class();
+ 	mmc_unregister_bus();
+ 	destroy_workqueue(workqueue);
++	wake_lock_destroy(&mmc_delayed_work_wake_lock);
+ }
+ 
+ subsys_initcall(mmc_init);
+diff -Nur linux-2.6.35.7/drivers/mmc/core/host.c tiny210/drivers/mmc/core/host.c
+--- linux-2.6.35.7/drivers/mmc/core/host.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/host.c	2011-08-08 12:52:22.000000000 +0800
+@@ -137,7 +137,8 @@
+ #endif
+ 
+ 	mmc_start_host(host);
+-	register_pm_notifier(&host->pm_notify);
++	if (!(host->pm_flags & MMC_PM_IGNORE_PM_NOTIFY))
++		register_pm_notifier(&host->pm_notify);
+ 
+ 	return 0;
+ }
+@@ -154,7 +155,9 @@
+  */
+ void mmc_remove_host(struct mmc_host *host)
+ {
+-	unregister_pm_notifier(&host->pm_notify);
++	if (!(host->pm_flags & MMC_PM_IGNORE_PM_NOTIFY))
++		unregister_pm_notifier(&host->pm_notify);
++
+ 	mmc_stop_host(host);
+ 
+ #ifdef CONFIG_DEBUG_FS
+diff -Nur linux-2.6.35.7/drivers/mmc/core/Kconfig tiny210/drivers/mmc/core/Kconfig
+--- linux-2.6.35.7/drivers/mmc/core/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/Kconfig	2011-08-08 12:52:22.000000000 +0800
+@@ -16,3 +16,20 @@
+ 
+ 	  This option sets a default which can be overridden by the
+ 	  module parameter "removable=0" or "removable=1".
++
++config MMC_EMBEDDED_SDIO
++	boolean "MMC embedded SDIO device support (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	help
++	  If you say Y here, support will be added for embedded SDIO
++	  devices which do not contain the necessary enumeration
++	  support in hardware to be properly detected.
++
++config MMC_PARANOID_SD_INIT
++	bool "Enable paranoid SD card initialization (EXPERIMENTAL)"
++	depends on EXPERIMENTAL
++	help
++	  If you say Y here, the MMC layer will be extra paranoid
++	  about re-trying SD init requests. This can be a useful
++	  work-around for buggy controllers and hardware. Enable
++	  if you are experiencing issues with SD detection.
+diff -Nur linux-2.6.35.7/drivers/mmc/core/mmc.c tiny210/drivers/mmc/core/mmc.c
+--- linux-2.6.35.7/drivers/mmc/core/mmc.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/mmc.c	2011-08-08 12:52:22.000000000 +0800
+@@ -114,17 +114,18 @@
+ static int mmc_decode_csd(struct mmc_card *card)
+ {
+ 	struct mmc_csd *csd = &card->csd;
+-	unsigned int e, m, csd_struct;
++	unsigned int e, m;
+ 	u32 *resp = card->raw_csd;
+ 
+ 	/*
+ 	 * We only understand CSD structure v1.1 and v1.2.
+ 	 * v1.2 has extra information in bits 15, 11 and 10.
++	 * We also support eMMC v4.4 & v4.41.
+ 	 */
+-	csd_struct = UNSTUFF_BITS(resp, 126, 2);
+-	if (csd_struct != 1 && csd_struct != 2) {
++	csd->structure = UNSTUFF_BITS(resp, 126, 2);
++	if (csd->structure == 0) {
+ 		printk(KERN_ERR "%s: unrecognised CSD structure version %d\n",
+-			mmc_hostname(card->host), csd_struct);
++			mmc_hostname(card->host), csd->structure);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -207,11 +208,22 @@
+ 		goto out;
+ 	}
+ 
++	/* Version is coded in the CSD_STRUCTURE byte in the EXT_CSD register */
++	if (card->csd.structure == 3) {
++		int ext_csd_struct = ext_csd[EXT_CSD_STRUCTURE];
++		if (ext_csd_struct > 2) {
++			printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
++				"version %d\n", mmc_hostname(card->host),
++					ext_csd_struct);
++			err = -EINVAL;
++			goto out;
++		}
++	}
++
+ 	card->ext_csd.rev = ext_csd[EXT_CSD_REV];
+ 	if (card->ext_csd.rev > 5) {
+-		printk(KERN_ERR "%s: unrecognised EXT_CSD structure "
+-			"version %d\n", mmc_hostname(card->host),
+-			card->ext_csd.rev);
++		printk(KERN_ERR "%s: unrecognised EXT_CSD revision %d\n",
++			mmc_hostname(card->host), card->ext_csd.rev);
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+@@ -362,6 +374,7 @@
+ 		card->type = MMC_TYPE_MMC;
+ 		card->rca = 1;
+ 		memcpy(card->raw_cid, cid, sizeof(card->raw_cid));
++		host->card = card;
+ 	}
+ 
+ 	/*
+@@ -474,14 +487,13 @@
+ 		}
+ 	}
+ 
+-	if (!oldcard)
+-		host->card = card;
+-
+ 	return 0;
+ 
+ free_card:
+-	if (!oldcard)
++	if (!oldcard) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+ err:
+ 
+ 	return err;
+diff -Nur linux-2.6.35.7/drivers/mmc/core/sd.c tiny210/drivers/mmc/core/sd.c
+--- linux-2.6.35.7/drivers/mmc/core/sd.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/sd.c	2011-08-08 12:52:22.000000000 +0800
+@@ -337,7 +337,9 @@
+ 	int err;
+ 	u32 cid[4];
+ 	unsigned int max_dtr;
+-
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	int retries;
++#endif
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+ 
+@@ -392,6 +394,7 @@
+ 
+ 		card->type = MMC_TYPE_SD;
+ 		memcpy(card->raw_cid, cid, sizeof(card->raw_cid));
++		host->card = card;
+ 	}
+ 
+ 	/*
+@@ -440,11 +443,29 @@
+ 		err = mmc_decode_scr(card);
+ 		if (err < 0)
+ 			goto free_card;
+-
+ 		/*
+ 		 * Fetch switch information from card.
+ 		 */
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++		for (retries = 1; retries <= 3; retries++) {
++			err = mmc_read_switch(card);
++			if (!err) {
++				if (retries > 1) {
++					printk(KERN_WARNING
++					       "%s: recovered\n", 
++					       mmc_hostname(host));
++				}
++				break;
++			} else {
++				printk(KERN_WARNING
++				       "%s: read switch failed (attempt %d)\n",
++				       mmc_hostname(host), retries);
++			}
++		}
++#else
+ 		err = mmc_read_switch(card);
++#endif
++
+ 		if (err)
+ 			goto free_card;
+ 	}
+@@ -509,14 +530,13 @@
+ 		}
+ 	}
+ 
+-	if (!oldcard)
+-		host->card = card;
+-
+ 	return 0;
+ 
+ free_card:
+-	if (!oldcard)
++	if (!oldcard) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+ err:
+ 
+ 	return err;
+@@ -539,18 +559,36 @@
+  */
+ static void mmc_sd_detect(struct mmc_host *host)
+ {
+-	int err;
++	int err = 0;
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++        int retries = 5;
++#endif
+ 
+ 	BUG_ON(!host);
+ 	BUG_ON(!host->card);
+-
++       
+ 	mmc_claim_host(host);
+ 
+ 	/*
+ 	 * Just check if our card has been removed.
+ 	 */
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	while(retries) {
++		err = mmc_send_status(host->card, NULL);
++		if (err) {
++			retries--;
++			udelay(5);
++			continue;
++		}
++		break;
++	}
++	if (!retries) {
++		printk(KERN_ERR "%s(%s): Unable to re-detect card (%d)\n",
++		       __func__, mmc_hostname(host), err);
++	}
++#else
+ 	err = mmc_send_status(host->card, NULL);
+-
++#endif
+ 	mmc_release_host(host);
+ 
+ 	if (err) {
+@@ -588,12 +626,31 @@
+ static int mmc_sd_resume(struct mmc_host *host)
+ {
+ 	int err;
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	int retries;
++#endif
+ 
+ 	BUG_ON(!host);
+ 	BUG_ON(!host->card);
+ 
+ 	mmc_claim_host(host);
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	retries = 5;
++	while (retries) {
++		err = mmc_sd_init_card(host, host->ocr, host->card);
++
++		if (err) {
++			printk(KERN_ERR "%s: Re-init card rc = %d (retries = %d)\n",
++			       mmc_hostname(host), err, retries);
++			mdelay(5);
++			retries--;
++			continue;
++		}
++		break;
++	}
++#else
+ 	err = mmc_sd_init_card(host, host->ocr, host->card);
++#endif
+ 	mmc_release_host(host);
+ 
+ 	return err;
+@@ -640,6 +697,9 @@
+ int mmc_attach_sd(struct mmc_host *host, u32 ocr)
+ {
+ 	int err;
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	int retries;
++#endif
+ 
+ 	BUG_ON(!host);
+ 	WARN_ON(!host->claimed);
+@@ -688,9 +748,27 @@
+ 	/*
+ 	 * Detect and init the card.
+ 	 */
++#ifdef CONFIG_MMC_PARANOID_SD_INIT
++	retries = 5;
++	while (retries) {
++		err = mmc_sd_init_card(host, host->ocr, NULL);
++		if (err) {
++			retries--;
++			continue;
++		}
++		break;
++	}
++
++	if (!retries) {
++		printk(KERN_ERR "%s: mmc_sd_init_card() failure (err = %d)\n",
++		       mmc_hostname(host), err);
++		goto err;
++	}
++#else
+ 	err = mmc_sd_init_card(host, host->ocr, NULL);
+ 	if (err)
+ 		goto err;
++#endif
+ 
+ 	mmc_release_host(host);
+ 
+diff -Nur linux-2.6.35.7/drivers/mmc/core/sdio_bus.c tiny210/drivers/mmc/core/sdio_bus.c
+--- linux-2.6.35.7/drivers/mmc/core/sdio_bus.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/sdio_bus.c	2011-08-08 12:52:22.000000000 +0800
+@@ -21,6 +21,10 @@
+ #include "sdio_cis.h"
+ #include "sdio_bus.h"
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++#include <linux/mmc/host.h>
++#endif
++
+ /* show configuration fields */
+ #define sdio_config_attr(field, format_string)				\
+ static ssize_t								\
+@@ -200,7 +204,14 @@
+ {
+ 	struct sdio_func *func = dev_to_sdio_func(dev);
+ 
+-	sdio_free_func_cis(func);
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	/*
++	 * If this device is embedded then we never allocated
++	 * cis tables for this func
++	 */
++	if (!func->card->host->embedded_sdio_data.funcs)
++#endif
++		sdio_free_func_cis(func);
+ 
+ 	if (func->info)
+ 		kfree(func->info);
+diff -Nur linux-2.6.35.7/drivers/mmc/core/sdio.c tiny210/drivers/mmc/core/sdio.c
+--- linux-2.6.35.7/drivers/mmc/core/sdio.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/sdio.c	2011-08-08 12:52:22.000000000 +0800
+@@ -24,6 +24,10 @@
+ #include "sdio_ops.h"
+ #include "sdio_cis.h"
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++#include <linux/mmc/sdio_ids.h>
++#endif
++
+ static int sdio_read_fbr(struct sdio_func *func)
+ {
+ 	int ret;
+@@ -321,19 +325,35 @@
+ 			goto remove;
+ 	}
+ 
+-	/*
+-	 * Read the common registers.
+-	 */
+-	err = sdio_read_cccr(card);
+-	if (err)
+-		goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	if (host->embedded_sdio_data.cccr)
++		memcpy(&card->cccr, host->embedded_sdio_data.cccr, sizeof(struct sdio_cccr));
++	else {
++#endif
++		/*
++		 * Read the common registers.
++		 */
++		err = sdio_read_cccr(card);
++		if (err)
++			goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	}
++#endif
+ 
+-	/*
+-	 * Read the common CIS tuples.
+-	 */
+-	err = sdio_read_common_cis(card);
+-	if (err)
+-		goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	if (host->embedded_sdio_data.cis)
++		memcpy(&card->cis, host->embedded_sdio_data.cis, sizeof(struct sdio_cis));
++	else {
++#endif
++		/*
++		 * Read the common CIS tuples.
++		 */
++		err = sdio_read_common_cis(card);
++		if (err)
++			goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	}
++#endif
+ 
+ 	if (oldcard) {
+ 		int same = (card->cis.vendor == oldcard->cis.vendor &&
+@@ -346,6 +366,8 @@
+ 		card = oldcard;
+ 		return 0;
+ 	}
++	else
++		host->card = card;
+ 
+ 	/*
+ 	 * Switch to high-speed (if supported).
+@@ -376,13 +398,13 @@
+ 	if (err)
+ 		goto remove;
+ 
+-	if (!oldcard)
+-		host->card = card;
+ 	return 0;
+ 
+ remove:
+-	if (!oldcard)
++	if (!oldcard) {
+ 		mmc_remove_card(card);
++		host->card = NULL;
++	}
+ 
+ err:
+ 	return err;
+@@ -573,6 +595,11 @@
+ 	funcs = (ocr & 0x70000000) >> 28;
+ 	card->sdio_funcs = 0;
+ 
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++	if (host->embedded_sdio_data.funcs)
++		card->sdio_funcs = funcs = host->embedded_sdio_data.num_funcs;
++#endif
++
+ 	/*
+ 	 * If needed, disconnect card detection pull-up resistor.
+ 	 */
+@@ -584,9 +611,27 @@
+ 	 * Initialize (but don't add) all present functions.
+ 	 */
+ 	for (i = 0; i < funcs; i++, card->sdio_funcs++) {
+-		err = sdio_init_func(host->card, i + 1);
+-		if (err)
+-			goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++		if (host->embedded_sdio_data.funcs) {
++			struct sdio_func *tmp;
++
++			tmp = sdio_alloc_func(host->card);
++			if (IS_ERR(tmp))
++				goto remove;
++			tmp->num = (i + 1);
++			card->sdio_func[i] = tmp;
++			tmp->class = host->embedded_sdio_data.funcs[i].f_class;
++			tmp->max_blksize = host->embedded_sdio_data.funcs[i].f_maxblksize;
++			tmp->vendor = card->cis.vendor;
++			tmp->device = card->cis.device;
++		} else {
++#endif
++			err = sdio_init_func(host->card, i + 1);
++			if (err)
++				goto remove;
++#ifdef CONFIG_MMC_EMBEDDED_SDIO
++		}
++#endif
+ 	}
+ 
+ 	mmc_release_host(host);
+@@ -628,3 +673,82 @@
+ 	return err;
+ }
+ 
++int sdio_reset_comm(struct mmc_card *card)
++{
++	struct mmc_host *host = card->host;
++	u32 ocr;
++	int err;
++
++	printk("%s():\n", __func__);
++	mmc_claim_host(host);
++
++	mmc_go_idle(host);
++
++	mmc_set_clock(host, host->f_min);
++
++	err = mmc_send_io_op_cond(host, 0, &ocr);
++	if (err)
++		goto err;
++
++	host->ocr = mmc_select_voltage(host, ocr);
++	if (!host->ocr) {
++		err = -EINVAL;
++		goto err;
++	}
++
++	err = mmc_send_io_op_cond(host, host->ocr, &ocr);
++	if (err)
++		goto err;
++
++	if (mmc_host_is_spi(host)) {
++		err = mmc_spi_set_crc(host, use_spi_crc);
++		if (err)
++		goto err;
++	}
++
++	if (!mmc_host_is_spi(host)) {
++		err = mmc_send_relative_addr(host, &card->rca);
++		if (err)
++			goto err;
++		mmc_set_bus_mode(host, MMC_BUSMODE_PUSHPULL);
++	}
++	if (!mmc_host_is_spi(host)) {
++		err = mmc_select_card(card);
++		if (err)
++			goto err;
++	}
++
++	/*
++	 * Switch to high-speed (if supported).
++	 */
++	err = sdio_enable_hs(card);
++	if (err)
++		goto err;
++
++	/*
++	 * Change to the card's maximum speed.
++	 */
++	if (mmc_card_highspeed(card)) {
++		/*
++		 * The SDIO specification doesn't mention how
++		 * the CIS transfer speed register relates to
++		 * high-speed, but it seems that 50 MHz is
++		 * mandatory.
++		 */
++		mmc_set_clock(host, 50000000);
++	} else {
++		mmc_set_clock(host, card->cis.max_dtr);
++	}
++
++	err = sdio_enable_wide(card);
++	if (err)
++		goto err;
++	mmc_release_host(host);
++	return 0;
++err:
++	printk("%s: Error resetting SDIO communications (%d)\n",
++	       mmc_hostname(host), err);
++	mmc_release_host(host);
++	return err;
++}
++EXPORT_SYMBOL(sdio_reset_comm);
+diff -Nur linux-2.6.35.7/drivers/mmc/core/sdio_io.c tiny210/drivers/mmc/core/sdio_io.c
+--- linux-2.6.35.7/drivers/mmc/core/sdio_io.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/core/sdio_io.c	2011-08-08 12:52:22.000000000 +0800
+@@ -383,6 +383,39 @@
+ EXPORT_SYMBOL_GPL(sdio_readb);
+ 
+ /**
++ *	sdio_readb_ext - read a single byte from a SDIO function
++ *	@func: SDIO function to access
++ *	@addr: address to read
++ *	@err_ret: optional status value from transfer
++ *	@in: value to add to argument
++ *
++ *	Reads a single byte from the address space of a given SDIO
++ *	function. If there is a problem reading the address, 0xff
++ *	is returned and @err_ret will contain the error code.
++ */
++unsigned char sdio_readb_ext(struct sdio_func *func, unsigned int addr,
++	int *err_ret, unsigned in)
++{
++	int ret;
++	unsigned char val;
++
++	BUG_ON(!func);
++
++	if (err_ret)
++		*err_ret = 0;
++
++	ret = mmc_io_rw_direct(func->card, 0, func->num, addr, (u8)in, &val);
++	if (ret) {
++		if (err_ret)
++			*err_ret = ret;
++		return 0xFF;
++	}
++
++	return val;
++}
++EXPORT_SYMBOL_GPL(sdio_readb_ext);
++
++/**
+  *	sdio_writeb - write a single byte to a SDIO function
+  *	@func: SDIO function to access
+  *	@b: byte to write
+diff -Nur linux-2.6.35.7/drivers/mmc/host/Kconfig tiny210/drivers/mmc/host/Kconfig
+--- linux-2.6.35.7/drivers/mmc/host/Kconfig	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/host/Kconfig	2011-08-08 12:52:22.000000000 +0800
+@@ -123,7 +123,7 @@
+ 
+ config MMC_SDHCI_S3C
+ 	tristate "SDHCI support on Samsung S3C SoC"
+-	depends on MMC_SDHCI && (PLAT_S3C24XX || PLAT_S3C64XX)
++	depends on MMC_SDHCI && (PLAT_S3C24XX || PLAT_S3C64XX || PLAT_S5P)
+ 	help
+ 	  This selects the Secure Digital Host Controller Interface (SDHCI)
+ 	  often referrered to as the HSMMC block in some of the Samsung S3C
+@@ -150,7 +150,7 @@
+ 
+ config MMC_SDHCI_S3C_DMA
+ 	bool "DMA support on S3C SDHCI"
+-	depends on MMC_SDHCI_S3C && EXPERIMENTAL
++	depends on MMC_SDHCI_S3C
+ 	help
+ 	  Enable DMA support on the Samsung S3C SDHCI glue. The DMA
+ 	  has proved to be problematic if the controller encounters
+diff -Nur linux-2.6.35.7/drivers/mmc/host/sdhci.c tiny210/drivers/mmc/host/sdhci.c
+--- linux-2.6.35.7/drivers/mmc/host/sdhci.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/host/sdhci.c	2011-09-22 11:47:22.000000000 +0800
+@@ -23,6 +23,11 @@
+ #include <linux/leds.h>
+ 
+ #include <linux/mmc/host.h>
++#include <linux/mmc/card.h>
++
++#if defined(CONFIG_MMC_SDHCI_S3C) || defined(CONFIG_MMC_SDHCI_MODULE)
++#include <plat/regs-sdhci.h>
++#endif
+ 
+ #include "sdhci.h"
+ 
+@@ -93,6 +98,36 @@
+  *                                                                           *
+ \*****************************************************************************/
+ 
++static void sdhci_enable_clock_card(struct sdhci_host *host)
++{
++	u16 clk;
++
++	if (unlikely(host->clock < 500000))
++		return;
++
++	if (!host->mmc->card || mmc_card_sdio(host->mmc->card))
++		return;
++
++	clk = readw(host->ioaddr + SDHCI_CLOCK_CONTROL);
++	clk |= SDHCI_CLOCK_CARD_EN;
++	writew(clk, host->ioaddr + SDHCI_CLOCK_CONTROL);
++}
++
++static void sdhci_disable_clock_card(struct sdhci_host *host)
++{
++	u16 clk;
++
++	if (unlikely(host->clock < 500000))
++		return;
++
++	if (!host->mmc->card || mmc_card_sdio(host->mmc->card))
++		return;
++
++	clk = readw(host->ioaddr + SDHCI_CLOCK_CONTROL);
++	clk &= ~SDHCI_CLOCK_CARD_EN;
++	writew(clk, host->ioaddr + SDHCI_CLOCK_CONTROL);
++}
++
+ static void sdhci_clear_set_irqs(struct sdhci_host *host, u32 clear, u32 set)
+ {
+ 	u32 ier;
+@@ -878,9 +913,14 @@
+ 	int flags;
+ 	u32 mask;
+ 	unsigned long timeout;
++#if defined(CONFIG_MMC_SDHCI_S3C) || defined(CONFIG_MMC_SDHCI_MODULE)
++	int i;
++#endif
+ 
+ 	WARN_ON(host->cmd);
+ 
++	del_timer(&host->busy_check_timer);
++
+ 	/* Wait max 10 ms */
+ 	timeout = 10;
+ 
+@@ -910,8 +950,12 @@
+ 
+ 	host->cmd = cmd;
+ 
++	sdhci_enable_clock_card(host);
+ 	sdhci_prepare_data(host, cmd->data);
+ 
++	if(cmd->flags & MMC_RSP_BUSY)
++		sdhci_writeb(host, 0xE, SDHCI_TIMEOUT_CONTROL);
++
+ 	sdhci_writel(host, cmd->arg, SDHCI_ARGUMENT);
+ 
+ 	sdhci_set_transfer_mode(host, cmd->data);
+@@ -940,6 +984,17 @@
+ 	if (cmd->data)
+ 		flags |= SDHCI_CMD_DATA;
+ 
++#if defined(CONFIG_MMC_SDHCI_S3C) || defined(CONFIG_MMC_SDHCI_MODULE)
++	mask = readl(host->ioaddr + SDHCI_INT_STATUS);
++	writel(mask & SDHCI_INT_DATA_MASK & SDHCI_INT_CMD_MASK, host->ioaddr + SDHCI_INT_STATUS);
++
++	for(i=0; i<0x1000000; i++) {
++		mask = readl(host->ioaddr + S3C64XX_SDHCI_CONTROL4);
++		if(!(mask & S3C64XX_SDHCI_CONTROL4_BUSY))
++			break;
++	}
++#endif
++
+ 	sdhci_writew(host, SDHCI_MAKE_CMD(cmd->opcode, flags), SDHCI_COMMAND);
+ }
+ 
+@@ -1022,6 +1077,7 @@
+ 
+ 	clk |= SDHCI_CLOCK_CARD_EN;
+ 	sdhci_writew(host, clk, SDHCI_CLOCK_CONTROL);
++	mdelay(1);
+ 
+ out:
+ 	host->clock = clock;
+@@ -1112,7 +1168,8 @@
+ 	host->mrq = mrq;
+ 
+ 	/* If polling, assume that the card is always present. */
+-	if (host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION)
++	if ((host->quirks & SDHCI_QUIRK_BROKEN_CARD_DETECTION) ||
++	    (host->quirks & SDHCI_QUIRK_BROKEN_CARD_PRESENT_BIT))
+ 		present = true;
+ 	else
+ 		present = sdhci_readl(host, SDHCI_PRESENT_STATE) &
+@@ -1150,6 +1207,9 @@
+ 		sdhci_reinit(host);
+ 	}
+ 
++	if (host->ops->set_ios)
++		host->ops->set_ios(host, ios);
++
+ 	sdhci_set_clock(host, ios->clock);
+ 
+ 	if (ios->power_mode == MMC_POWER_OFF)
+@@ -1164,7 +1224,8 @@
+ 	else
+ 		ctrl &= ~SDHCI_CTRL_4BITBUS;
+ 
+-	if (ios->timing == MMC_TIMING_SD_HS)
++	if (!(host->quirks & SDHCI_QUIRK_NO_HISPD_BIT) &&
++	    (ios->timing == MMC_TIMING_SD_HS))
+ 		ctrl |= SDHCI_CTRL_HISPD;
+ 	else
+ 		ctrl &= ~SDHCI_CTRL_HISPD;
+@@ -1206,6 +1267,23 @@
+ 	return !(present & SDHCI_WRITE_PROTECT);
+ }
+ 
++static int sdhci_get_cd(struct mmc_host *mmc)
++{
++	struct sdhci_host *host;
++	unsigned long flags;
++	int present;
++
++	host = mmc_priv(mmc);
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	present = host->ops->get_cd(host);
++
++	spin_unlock_irqrestore(&host->lock, flags);
++
++	return present;
++}
++
+ static void sdhci_enable_sdio_irq(struct mmc_host *mmc, int enable)
+ {
+ 	struct sdhci_host *host;
+@@ -1228,11 +1306,31 @@
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ }
+ 
+-static const struct mmc_host_ops sdhci_ops = {
++void sdhci_adjust_cfg(struct mmc_host *mmc, int rw)
++{
++	struct sdhci_host *host;
++	unsigned long flags;
++
++	host = mmc_priv(mmc);
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	if(host->ops->adjust_cfg)
++		host->ops->adjust_cfg(host, rw);
++
++	sdhci_reset(host, SDHCI_RESET_CMD | SDHCI_RESET_DATA);
++
++	mmiowb();
++	spin_unlock_irqrestore(&host->lock, flags);
++}
++
++static struct mmc_host_ops sdhci_ops = {
+ 	.request	= sdhci_request,
+ 	.set_ios	= sdhci_set_ios,
+ 	.get_ro		= sdhci_get_ro,
++	.get_cd		= sdhci_get_cd,
+ 	.enable_sdio_irq = sdhci_enable_sdio_irq,
++	.adjust_cfg = sdhci_adjust_cfg,
+ };
+ 
+ /*****************************************************************************\
+@@ -1267,7 +1365,7 @@
+ 
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ 
+-	mmc_detect_change(host->mmc, msecs_to_jiffies(200));
++	mmc_detect_change(host->mmc, msecs_to_jiffies(500));
+ }
+ 
+ static void sdhci_tasklet_finish(unsigned long param)
+@@ -1278,12 +1376,18 @@
+ 
+ 	host = (struct sdhci_host*)param;
+ 
++	if(host == NULL)
++		return;
++
+ 	spin_lock_irqsave(&host->lock, flags);
+ 
+ 	del_timer(&host->timer);
+ 
+ 	mrq = host->mrq;
+ 
++	if(mrq == NULL || mrq->cmd == NULL)
++		goto out;
++
+ 	/*
+ 	 * The controller needs a reset of internal state machines
+ 	 * upon error conditions.
+@@ -1309,6 +1413,11 @@
+ 		sdhci_reset(host, SDHCI_RESET_CMD);
+ 		sdhci_reset(host, SDHCI_RESET_DATA);
+ 	}
++out:
++	if(readl(host->ioaddr + SDHCI_PRESENT_STATE) & SDHCI_DATA_INHIBIT)
++		mod_timer(&host->busy_check_timer, jiffies + msecs_to_jiffies(10));
++	else
++		sdhci_disable_clock_card(host);
+ 
+ 	host->mrq = NULL;
+ 	host->cmd = NULL;
+@@ -1355,6 +1464,23 @@
+ 	spin_unlock_irqrestore(&host->lock, flags);
+ }
+ 
++static void sdhci_busy_check_timer(unsigned long data)
++{
++	struct sdhci_host *host;
++	unsigned long flags;
++
++	host = (struct sdhci_host*)data;
++
++	spin_lock_irqsave(&host->lock, flags);
++
++	if(readl(host->ioaddr + SDHCI_PRESENT_STATE) & (SDHCI_CMD_INHIBIT | SDHCI_DATA_INHIBIT))
++		mod_timer(&host->busy_check_timer, jiffies + msecs_to_jiffies(10));
++	else
++		sdhci_disable_clock_card(host);
++
++	spin_unlock_irqrestore(&host->lock, flags);
++}
++
+ /*****************************************************************************\
+  *                                                                           *
+  * Interrupt handling                                                        *
+@@ -1381,6 +1507,7 @@
+ 
+ 	if (host->cmd->error) {
+ 		tasklet_schedule(&host->finish_tasklet);
++		host->cmd = NULL;
+ 		return;
+ 	}
+ 
+@@ -1593,39 +1720,45 @@
+ 
+ int sdhci_suspend_host(struct sdhci_host *host, pm_message_t state)
+ {
+-	int ret;
++	int ret = 0;
++	struct mmc_host *mmc = host->mmc;
+ 
+ 	sdhci_disable_card_detection(host);
+ 
+-	ret = mmc_suspend_host(host->mmc);
+-	if (ret)
+-		return ret;
++	if (mmc->card && (mmc->card->type != MMC_TYPE_SDIO))
++		ret = mmc_suspend_host(host->mmc);
+ 
+-	free_irq(host->irq, host);
++	sdhci_mask_irqs(host, SDHCI_INT_ALL_MASK);
+ 
+-	return 0;
++	del_timer(&host->busy_check_timer);
++
++	if (host->irq)
++		disable_irq(host->irq);
++
++	return ret;
+ }
+ 
+ EXPORT_SYMBOL_GPL(sdhci_suspend_host);
+ 
+ int sdhci_resume_host(struct sdhci_host *host)
+ {
+-	int ret;
++	int ret = 0;
++	struct mmc_host *mmc = host->mmc;
+ 
+ 	if (host->flags & (SDHCI_USE_SDMA | SDHCI_USE_ADMA)) {
+ 		if (host->ops->enable_dma)
+ 			host->ops->enable_dma(host);
+ 	}
+ 
+-	ret = request_irq(host->irq, sdhci_irq, IRQF_SHARED,
+-			  mmc_hostname(host->mmc), host);
+-	if (ret)
+-		return ret;
++	if (host->irq)
++		enable_irq(host->irq);
+ 
+ 	sdhci_init(host, (host->mmc->pm_flags & MMC_PM_KEEP_POWER));
+ 	mmiowb();
+ 
+-	ret = mmc_resume_host(host->mmc);
++	if (mmc->card && (mmc->card->type != MMC_TYPE_SDIO))
++		ret = mmc_resume_host(host->mmc);
++
+ 	sdhci_enable_card_detection(host);
+ 
+ 	return ret;
+@@ -1784,14 +1917,17 @@
+ 	/*
+ 	 * Set host parameters.
+ 	 */
++	if(host->ops->get_ro)
++		sdhci_ops.get_ro = host->ops->get_ro;
++
+ 	mmc->ops = &sdhci_ops;
+ 	if (host->quirks & SDHCI_QUIRK_NONSTANDARD_CLOCK &&
+ 			host->ops->set_clock && host->ops->get_min_clock)
+ 		mmc->f_min = host->ops->get_min_clock(host);
+ 	else
+-		mmc->f_min = host->max_clk / 256;
++		mmc->f_min = 400000;
+ 	mmc->f_max = host->max_clk;
+-	mmc->caps = MMC_CAP_SDIO_IRQ;
++	mmc->caps |= MMC_CAP_SDIO_IRQ;
+ 
+ 	if (!(host->quirks & SDHCI_QUIRK_FORCE_1_BIT_DATA))
+ 		mmc->caps |= MMC_CAP_4_BIT_DATA;
+@@ -1878,6 +2014,7 @@
+ 		sdhci_tasklet_finish, (unsigned long)host);
+ 
+ 	setup_timer(&host->timer, sdhci_timeout_timer, (unsigned long)host);
++	setup_timer(&host->busy_check_timer, sdhci_busy_check_timer, (unsigned long)host);
+ 
+ 	ret = request_irq(host->irq, sdhci_irq, IRQF_SHARED,
+ 		mmc_hostname(mmc), host);
+@@ -1964,6 +2101,7 @@
+ 	free_irq(host->irq, host);
+ 
+ 	del_timer_sync(&host->timer);
++	del_timer_sync(&host->busy_check_timer);
+ 
+ 	tasklet_kill(&host->card_tasklet);
+ 	tasklet_kill(&host->finish_tasklet);
+diff -Nur linux-2.6.35.7/drivers/mmc/host/sdhci.h tiny210/drivers/mmc/host/sdhci.h
+--- linux-2.6.35.7/drivers/mmc/host/sdhci.h	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/host/sdhci.h	2011-08-08 12:52:22.000000000 +0800
+@@ -240,6 +240,10 @@
+ #define SDHCI_QUIRK_CAP_CLOCK_BASE_BROKEN		(1<<25)
+ /* Controller cannot support End Attribute in NOP ADMA descriptor */
+ #define SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC		(1<<26)
++/* Controller does not use HISPD bit field in HI-SPEED SD cards */
++#define SDHCI_QUIRK_NO_HISPD_BIT			(1<<27)
++/* Controller has unreliable card present bit */
++#define SDHCI_QUIRK_BROKEN_CARD_PRESENT_BIT		(1<<28)
+ 
+ 	int			irq;		/* Device IRQ */
+ 	void __iomem *		ioaddr;		/* Mapped address */
+@@ -262,6 +266,7 @@
+ #define SDHCI_USE_ADMA		(1<<1)		/* Host is ADMA capable */
+ #define SDHCI_REQ_USE_DMA	(1<<2)		/* Use DMA for this req. */
+ #define SDHCI_DEVICE_DEAD	(1<<3)		/* Device unresponsive */
++#define SDHCI_DEVICE_ALIVE	(1<<4)		/* used on ext card detect */
+ 
+ 	unsigned int		version;	/* SDHCI spec. version */
+ 
+@@ -291,6 +296,7 @@
+ 	struct tasklet_struct	finish_tasklet;
+ 
+ 	struct timer_list	timer;		/* Timer for timeouts */
++	struct timer_list	busy_check_timer;
+ 
+ 	unsigned long		private[0] ____cacheline_aligned;
+ };
+@@ -312,6 +318,11 @@
+ 	unsigned int	(*get_max_clock)(struct sdhci_host *host);
+ 	unsigned int	(*get_min_clock)(struct sdhci_host *host);
+ 	unsigned int	(*get_timeout_clock)(struct sdhci_host *host);
++	void            (*set_ios)(struct sdhci_host *host,
++				   struct mmc_ios *ios);
++	int             (*get_ro) (struct mmc_host *mmc);
++	int				(*get_cd)(struct sdhci_host *host);
++	void			(*adjust_cfg)(struct sdhci_host *host, int rw);
+ };
+ 
+ #ifdef CONFIG_MMC_SDHCI_IO_ACCESSORS
+diff -Nur linux-2.6.35.7/drivers/mmc/host/sdhci-s3c.c tiny210/drivers/mmc/host/sdhci-s3c.c
+--- linux-2.6.35.7/drivers/mmc/host/sdhci-s3c.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/drivers/mmc/host/sdhci-s3c.c	2011-08-17 19:42:42.000000000 +0800
+@@ -20,6 +20,7 @@
+ #include <linux/io.h>
+ 
+ #include <linux/mmc/host.h>
++#include <linux/mmc/card.h>
+ 
+ #include <plat/sdhci.h>
+ #include <plat/regs-sdhci.h>
+@@ -76,7 +77,7 @@
+ 
+ 		tmp &= ~S3C_SDHCI_CTRL2_SELBASECLK_MASK;
+ 		tmp |= ourhost->cur_clk << S3C_SDHCI_CTRL2_SELBASECLK_SHIFT;
+-		writel(tmp, host->ioaddr + 0x80);
++		writel(tmp, host->ioaddr + S3C_SDHCI_CONTROL2);
+ 	}
+ }
+ 
+@@ -115,6 +116,49 @@
+ 	return sdhci_s3c_get_max_clk(host) / 1000000;
+ }
+ 
++static void sdhci_s3c_set_ios(struct sdhci_host *host,
++			      struct mmc_ios *ios)
++{
++	struct sdhci_s3c *ourhost = to_s3c(host);
++	struct s3c_sdhci_platdata *pdata = ourhost->pdata;
++	int width;
++	u8 tmp;
++
++	sdhci_s3c_check_sclk(host);
++
++	if (ios->power_mode != MMC_POWER_OFF) {
++		switch (ios->bus_width) {
++		case MMC_BUS_WIDTH_8:
++			width = 8;
++			tmp = readb(host->ioaddr + SDHCI_HOST_CONTROL);
++			writeb(tmp | SDHCI_S3C_CTRL_8BITBUS,
++				host->ioaddr + SDHCI_HOST_CONTROL);
++			break;
++		case MMC_BUS_WIDTH_4:
++			width = 4;
++			break;
++		case MMC_BUS_WIDTH_1:
++			width = 1;
++			break;
++		default:
++			BUG();
++		}
++
++		if (width > pdata->max_width) {
++			if (pdata->cfg_gpio) {
++				pdata->cfg_gpio(ourhost->pdev, width);
++			}
++		}
++	}
++
++	if (pdata->cfg_card) {
++		pdata->cfg_card(ourhost->pdev, host->ioaddr,
++				ios, host->mmc->card);
++		pdata->rx_cfg = 0;
++		pdata->tx_cfg = 0;
++	}
++}
++
+ /**
+  * sdhci_s3c_consider_clock - consider one the bus clocks for current setting
+  * @ourhost: Our SDHCI instance.
+@@ -195,26 +239,91 @@
+ 		ctrl |= best_src << S3C_SDHCI_CTRL2_SELBASECLK_SHIFT;
+ 		writel(ctrl, host->ioaddr + S3C_SDHCI_CONTROL2);
+ 	}
++}
+ 
+-	/* reconfigure the hardware for new clock rate */
++static int sdhci_s3c_get_ro(struct mmc_host *mmc)
++{
++	struct sdhci_host *host;
++	struct sdhci_s3c *sc;
++
++	host = mmc_priv(mmc);
++	sc = sdhci_priv(host);
++
++	if(sc->pdata->get_ro)
++		return sc->pdata->get_ro(mmc);
+ 
+-	{
+-		struct mmc_ios ios;
++	return 0;
++}
++
++static int sdhci_s3c_get_cd(struct sdhci_host *host)
++{
++	unsigned int detect = -ENOSYS;
++	struct sdhci_s3c* sc = sdhci_priv(host);
+ 
+-		ios.clock = clock;
++	if(sc->pdata->detect_ext_cd)
++		detect = sc->pdata->detect_ext_cd();
+ 
+-		if (ourhost->pdata->cfg_card)
+-			(ourhost->pdata->cfg_card)(ourhost->pdev, host->ioaddr,
+-						   &ios, NULL);
++	if (sc->pdata->cd_type == S3C_SDHCI_CD_INTERNAL) {
++		detect = readl(host->ioaddr + SDHCI_PRESENT_STATE) & SDHCI_CARD_PRESENT;
++	} else if(sc->pdata->cd_type == S3C_SDHCI_CD_PERMANENT) {
++		detect = 1;
+ 	}
++
++	return detect;
++}
++
++static void sdhci_s3c_adjust_cfg(struct sdhci_host *host, int rw)
++{
++	struct sdhci_s3c *ourhost = to_s3c(host);
++	struct s3c_sdhci_platdata *pdata = ourhost->pdata;
++
++	if(pdata->adjust_cfg_card)
++		pdata->adjust_cfg_card(pdata, host->ioaddr, rw);
+ }
+ 
+ static struct sdhci_ops sdhci_s3c_ops = {
+ 	.get_max_clock		= sdhci_s3c_get_max_clk,
+ 	.get_timeout_clock	= sdhci_s3c_get_timeout_clk,
+ 	.set_clock		= sdhci_s3c_set_clock,
++	.set_ios		= sdhci_s3c_set_ios,
++	.get_cd			= sdhci_s3c_get_cd,
++	.adjust_cfg		= sdhci_s3c_adjust_cfg,
+ };
+ 
++/*
++ * call this when you need sd stack to recognize insertion or removal of card
++ * that can't be told by SDHCI regs
++ */
++void sdhci_s3c_force_presence_change(struct platform_device *pdev)
++{
++	struct sdhci_host *host = platform_get_drvdata(pdev);
++
++	printk(KERN_DEBUG "%s : Enter\n",__FUNCTION__);
++	mmc_detect_change(host->mmc, msecs_to_jiffies(60));
++}
++EXPORT_SYMBOL_GPL(sdhci_s3c_force_presence_change);
++
++irqreturn_t sdhci_irq_cd(int irq, void *dev_id)
++{
++	struct sdhci_s3c* sc = dev_id;
++	uint detect;
++
++	printk(KERN_DEBUG "sdhci: card interrupt.\n");
++
++	detect = sc->pdata->detect_ext_cd();
++
++	if (detect) {
++		printk(KERN_DEBUG "sdhci: card inserted.\n");
++		sc->host->flags |= SDHCI_DEVICE_ALIVE;
++	} else {
++		printk(KERN_DEBUG "sdhci: card removed.\n");
++		sc->host->flags &= ~SDHCI_DEVICE_ALIVE;
++	}
++	tasklet_schedule(&sc->host->card_tasklet);
++
++	return IRQ_HANDLED;
++}
++
+ static int __devinit sdhci_s3c_probe(struct platform_device *pdev)
+ {
+ 	struct s3c_sdhci_platdata *pdata = pdev->dev.platform_data;
+@@ -311,6 +420,9 @@
+ 	if (pdata->cfg_gpio)
+ 		pdata->cfg_gpio(pdev, pdata->max_width);
+ 
++	if (pdata->get_ro)
++		sdhci_s3c_ops.get_ro = sdhci_s3c_get_ro;
++
+ 	host->hw_name = "samsung-hsmmc";
+ 	host->ops = &sdhci_s3c_ops;
+ 	host->quirks = 0;
+@@ -318,6 +430,8 @@
+ 
+ 	/* Setup quirks for the controller */
+ 	host->quirks |= SDHCI_QUIRK_NO_ENDATTR_IN_NOPDESC;
++	host->quirks |= SDHCI_QUIRK_BROKEN_CARD_PRESENT_BIT;
++	host->quirks |= SDHCI_QUIRK_BROKEN_TIMEOUT_VAL;
+ 
+ #ifndef CONFIG_MMC_SDHCI_S3C_DMA
+ 
+@@ -325,6 +439,9 @@
+ 	 * support as well. */
+ 	host->quirks |= SDHCI_QUIRK_BROKEN_DMA;
+ 
++	/* PIO currently has problems with multi-block IO */
++	host->quirks |= SDHCI_QUIRK_NO_MULTIBLOCK;
++
+ #endif /* CONFIG_MMC_SDHCI_S3C_DMA */
+ 
+ 	/* It seems we do not get an DATA transfer complete on non-busy
+@@ -335,12 +452,44 @@
+ 	host->quirks |= (SDHCI_QUIRK_32BIT_DMA_ADDR |
+ 			 SDHCI_QUIRK_32BIT_DMA_SIZE);
+ 
++	host->quirks |= SDHCI_QUIRK_NO_HISPD_BIT;
++
++	if (pdata->host_caps)
++		host->mmc->caps = pdata->host_caps;
++	else
++		host->mmc->caps = 0;
++
++	/* Set pm_flags for built_in device */
++	host->mmc->pm_caps = MMC_PM_KEEP_POWER | MMC_PM_IGNORE_PM_NOTIFY;
++	if (pdata->built_in)
++		host->mmc->pm_flags = MMC_PM_KEEP_POWER | MMC_PM_IGNORE_PM_NOTIFY;
++
++	/* to add external irq as a card detect signal */
++	if (pdata->cfg_ext_cd) {
++		pdata->cfg_ext_cd();
++
++		if (pdata->detect_ext_cd())
++			host->flags |= SDHCI_DEVICE_ALIVE;
++	}
++
++	/* to configure gpio pin as a card write protection signal */
++	if (pdata->cfg_wp)
++		pdata->cfg_wp();
++
+ 	ret = sdhci_add_host(host);
+ 	if (ret) {
+ 		dev_err(dev, "sdhci_add_host() failed\n");
+ 		goto err_add_host;
+ 	}
+ 
++	/* register external irq here (after all init is done) */
++	if (pdata->cfg_ext_cd) {
++		ret = request_irq(pdata->ext_cd, sdhci_irq_cd,
++				IRQF_SHARED, mmc_hostname(host->mmc), sc);
++		if(ret)
++			goto err_add_host;
++	}
++
+ 	return 0;
+ 
+  err_add_host:
+@@ -349,8 +498,10 @@
+ 
+  err_req_regs:
+ 	for (ptr = 0; ptr < MAX_BUS_CLK; ptr++) {
+-		clk_disable(sc->clk_bus[ptr]);
+-		clk_put(sc->clk_bus[ptr]);
++		if (sc->clk_bus[ptr]) {
++			clk_disable(sc->clk_bus[ptr]);
++			clk_put(sc->clk_bus[ptr]);
++		}
+ 	}
+ 
+  err_no_busclks:
+@@ -367,13 +518,23 @@
+ {
+ 	struct sdhci_host *host =  platform_get_drvdata(pdev);
+ 	struct sdhci_s3c *sc = sdhci_priv(host);
+-	int ptr;
++	int ptr, dead = 0;
++	u32 scratch;
++
++	scratch = readl(host->ioaddr + SDHCI_INT_STATUS);
++	if (scratch == (u32)-1)
++		dead = 1;
+ 
+-	sdhci_remove_host(host, 1);
++	if(sc->pdata && sc->pdata->cfg_ext_cd)
++		free_irq(sc->pdata->ext_cd, sc);
+ 
+-	for (ptr = 0; ptr < 3; ptr++) {
+-		clk_disable(sc->clk_bus[ptr]);
+-		clk_put(sc->clk_bus[ptr]);
++	sdhci_remove_host(host, dead);
++
++	for (ptr = 0; ptr < MAX_BUS_CLK; ptr++) {
++		if (sc->clk_bus[ptr]) {
++			clk_disable(sc->clk_bus[ptr]);
++			clk_put(sc->clk_bus[ptr]);
++		}
+ 	}
+ 	clk_disable(sc->clk_io);
+ 	clk_put(sc->clk_io);
+@@ -393,16 +554,35 @@
+ static int sdhci_s3c_suspend(struct platform_device *dev, pm_message_t pm)
+ {
+ 	struct sdhci_host *host = platform_get_drvdata(dev);
++	struct s3c_sdhci_platdata *pdata = dev->dev.platform_data;
++
++	struct mmc_host *mmc = host->mmc;
++
++	if (mmc->card && (mmc->card->type == MMC_TYPE_SDIO))
++		mmc->pm_flags |= MMC_PM_KEEP_POWER;
+ 
+ 	sdhci_suspend_host(host, pm);
++
++	if(pdata && pdata->cfg_ext_cd){
++		free_irq(pdata->ext_cd, sdhci_priv(host));
++	}
+ 	return 0;
+ }
+ 
+ static int sdhci_s3c_resume(struct platform_device *dev)
+ {
+ 	struct sdhci_host *host = platform_get_drvdata(dev);
++	struct s3c_sdhci_platdata *pdata = dev->dev.platform_data;
++	int ret;
+ 
+ 	sdhci_resume_host(host);
++
++	if(pdata && pdata->cfg_ext_cd){
++		ret = request_irq(pdata->ext_cd, sdhci_irq_cd, IRQF_SHARED, mmc_hostname(host->mmc), sdhci_priv(host));
++		if(ret)
++			return ret;
++	}
++
+ 	return 0;
+ }
+ 

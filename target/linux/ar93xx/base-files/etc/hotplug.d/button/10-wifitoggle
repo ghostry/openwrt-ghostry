@@ -1,0 +1,148 @@
+#!/bin/sh
+# button reset Script VER 1.1 2011.1.6 for openwrt  by zjhzzyf
+# reset up 4s is reset  on 3s wifi  wps is  up 3s umount 1s start_tr 
+
+debug_log=0
+
+stop_tr(){
+
+HOST=localhost
+PORT=$(uci get transmission.@transmission[0].rpc_port)
+RPC_AUTH=$(uci get transmission.@transmission[0].rpc_authentication_required)
+USER=$(uci get transmission.@transmission[0].rpc_username)
+PASS=$(uci get transmission.@transmission[0].rpc_password)
+
+  [ "$RPC_AUTH" = "" ] &&RPC_AUTH=0
+  
+if [ "$RPC_AUTH" = "1" ] ;then	
+		COMMAND="transmission-remote ${HOST}:${PORT} --auth ${USER}:${PASS} "
+	else
+		COMMAND="transmission-remote ${HOST}:${PORT} "
+	fi
+
+	tr_id=$($COMMAND -l | grep -v Sum:|grep -v ID | awk '{ print $1; }')
+	for Downloading_id in $tr_id ;do
+	$COMMAND --torrent $Downloading_id --stop > /dev/null
+	done
+	/etc/init.d/transmission stop
+	
+}
+
+start_tr(){
+  # /etc/init.d/transmission start
+ echo "transmission start"
+	#echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/brightness	
+  #echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness	
+	#echo 1 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/brightness
+}
+
+umount_disk(){
+swapoff -a
+swapoff -a
+dev_name=$(df |grep /mnt/sd |grep -v /overlay | awk '{ print $1; }')
+for dev_id in $dev_name;do
+umount -l ${dev_id} 
+done 
+
+	echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/brightness
+	echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness
+ # echo none > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/trigger
+	echo none > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/trigger
+	echo heartbeat > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/trigger
+	
+}
+
+wifi_switch(){
+	        if [ "`uci get wireless.@wifi-device[0].disabled`" = 1 ]; 
+             then
+             uci set wireless.@wifi-device[0].disabled=0 && wifi up&
+                 #echo 1 > /proc/diag/led/power
+             else
+               uci set wireless.@wifi-device[0].disabled=1 && wifi down&
+              #echo f > /proc/diag/led/power
+           fi
+         uci commit wireless 
+	}
+	
+	pres_time(){
+	       old_time=$(cat /tmp/prestime)
+        new_time=$(date +%s)
+        totle_time=$(($new_time - $old_time ))	
+		}
+
+
+# reset wps button for 941N v2  Backfire (10.03, r24197) --------btn0 reset
+[ "$BUTTON" = "BTN_0" -a  "$ACTION" = "pressed" ]&& echo `date +%s` > /tmp/prestime	
+if [ "$BUTTON" = "BTN_0" -a  "$ACTION" = "released" ];
+	then
+       pres_time
+        [ "$debug_log" = "1" ]&&echo pres_time:${pres_time} >>/root/button
+     if [ "$totle_time" -gt "4" ] ;
+      	then
+			echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/brightness	
+  echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness	
+	echo 1 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness
+         mtd -r erase rootfs_data
+     fi
+     
+    
+   rm -rf   /tmp/prestime	 
+fi
+	 
+
+ [ "$BUTTON" = "BTN_1" -a  "$ACTION" = "pressed" ]&& echo `date +%s` > /tmp/prestime	
+if [ "$BUTTON" = "BTN_1" -a  "$ACTION" = "released" ];
+	then
+         pres_time
+          [ "$debug_log" = "1" ]&&echo pres_time:${pres_time} >>/root/button
+    if [ "$totle_time" -gt "2" ] ;
+     	then
+      		stop_tr  > /dev/null
+         umount_disk  > /dev/null
+     fi
+     
+ if [ "$totle_time" -le "1" ] ; 
+     	 then
+        wifi_switch  > /dev/null           
+	   fi
+	    rm -rf   /tmp/prestime	     	 
+fi
+
+#  reset wps button  for 841N V3 KAMIKAZE (bleeding edge, r24860)-----------
+# reset button for v6 rc4 reset
+[ "$BUTTON" = "reset" -a  "$ACTION" = "pressed" ]&& echo `date +%s` > /tmp/prestime	
+if [ "$BUTTON" = "reset" -a  "$ACTION" = "released" ];
+	then
+        pres_time
+     [ "$debug_log" = "1" ]&&echo pres_time:${pres_time} >>/root/button
+     if [ "$totle_time" -gt "4" ] ;
+      	then
+					echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:green:qss/brightness	
+  echo 0 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness	
+	echo 1 > /sys/devices/platform/leds-gpio/leds/tl-wr941nd:red:qss/brightness
+         mtd -r erase rootfs_data
+     fi
+
+   rm -rf   /tmp/prestime	 
+fi
+	 
+
+ [ "$BUTTON" = "wps" -a  "$ACTION" = "pressed" ]&& echo `date +%s` > /tmp/prestime	
+if [ "$BUTTON" = "wps" -a  "$ACTION" = "released" ];
+	then
+      pres_time
+       [ "$debug_log" = "1" ]&&echo pres_time:${pres_time} >>/root/button
+     if [ "$totle_time" -gt "2" ] ;
+      	then
+      		stop_tr  > /dev/null
+          umount_disk  > /dev/null
+     fi
+     
+ if [ "$totle_time" -le "1" ] ; 
+     	 then
+        wifi_switch  > /dev/null           
+	   fi
+	    rm -rf   /tmp/prestime	     	 
+fi
+
+

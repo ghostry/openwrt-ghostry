@@ -1,0 +1,88 @@
+--- a/src/lib/protocols/bittorrent.c	
++++ b/src/lib/protocols/bittorrent.c	
+@@ -34,6 +34,12 @@
+ {
+ 	ipoque_int_change_protocol(ipoque_struct, IPOQUE_PROTOCOL_BITTORRENT, protocol_type);
+ }
++static void ipoque_add_connection_bittorrent_udp(struct ipoque_detection_module_struct
++												*ipoque_struct)
++{
++	ipoque_int_add_connection(ipoque_struct, IPOQUE_PROTOCOL_BITTORRENT, IPOQUE_REAL_PROTOCOL);
++}
++
+ 
+ static u8 ipoque_int_search_bittorrent_tcp_zero(struct ipoque_detection_module_struct
+ 												*ipoque_struct)
+@@ -50,7 +56,7 @@
+ 		flow->bittorrent_stage = 0;
+ 		return 0;
+ 	}
+-	if (flow->packet_counter == 2 && packet->payload_packet_len > 20) {
++	if ((flow->packet_counter == 2 || flow->packet_counter == 3 || flow->packet_counter == 4)&& packet->payload_packet_len > 20) {
+ 
+ 		if (memcmp(&packet->payload[0], "BitTorrent protocol", 19) == 0) {
+ 			IPQ_LOG_BITTORRENT(IPOQUE_PROTOCOL_BITTORRENT,
+@@ -366,6 +372,52 @@
+ 	return;
+ }
+ 
++static void ipoque_int_search_bittorrent_udp(struct ipoque_detection_module_struct
++											 *ipoque_struct)
++{
++
++	struct ipoque_packet_struct *packet = &ipoque_struct->packet;
++//	struct ipoque_flow_struct *flow = ipoque_struct->flow;
++	if (packet->payload_packet_len >= 20) {
++		/* test for match 0x......13+"BitTorrent protocol" */
++		if (packet->payload_packet_len > 100) {
++			if (packet->payload[60] == 0x13){
++				if (memcmp(&packet->payload[61], "BitTorrent protocol", 19) == 0) {
++					IPQ_LOG_BITTORRENT(IPOQUE_PROTOCOL_BITTORRENT,
++									   ipoque_struct, IPQ_LOG_TRACE, "BT: plain BitTorrent protocol over udp detected\n");
++					ipoque_add_connection_as_bittorrent(ipoque_struct,
++														IPOQUE_PROTOCOL_SAFE_DETECTION, IPOQUE_PROTOCOL_PLAIN_DETECTION,
++														IPOQUE_REAL_PROTOCOL);
++					return;
++				}
++			}
++		}
++		if (packet->payload_packet_len > 50) {
++			if (packet->payload[20] == 0x13){
++				if (memcmp(&packet->payload[21], "BitTorrent protocol", 19) == 0) {
++					IPQ_LOG_BITTORRENT(IPOQUE_PROTOCOL_BITTORRENT,
++									   ipoque_struct, IPQ_LOG_TRACE, "BT: plain BitTorrent protocol over udp detected\n");
++					ipoque_add_connection_as_bittorrent(ipoque_struct,
++														IPOQUE_PROTOCOL_SAFE_DETECTION, IPOQUE_PROTOCOL_PLAIN_DETECTION,
++														IPOQUE_REAL_PROTOCOL);
++					return;
++				}
++			}
++		}
++		if (ntohs(get_u16(packet->payload, 0)) == 0x2100 || ntohs(get_u16(packet->payload, 0)) == 0x2102 || ntohs(get_u16(packet->payload, 0)) == 0x1100 || ntohs(get_u16(packet->payload, 0)) == 0x0100 || ntohs(get_u16(packet->payload, 0)) == 0x4102 || ntohs(get_u16(packet->payload, 0)) == 0x3100) {
++			if (get_u32(packet->payload, 12) == htonl(0x00380000) || get_u32(packet->payload, 12) == htonl(0x00032000)) {
++				IPQ_LOG(IPOQUE_PROTOCOL_BITTORRENT,
++								   ipoque_struct, IPQ_LOG_DEBUG, "found bittorrent over udp.\n");
++				ipoque_add_connection_bittorrent_udp(ipoque_struct);
++				return;
++			}
++		}
++	}
++	IPQ_LOG_BITTORRENT(IPOQUE_PROTOCOL_BITTORRENT, ipoque_struct, IPQ_LOG_DEBUG,
++						   "stage 0 has no direct detection, fall through\n");
++	return;
++}
++
+ void ipoque_search_bittorrent(struct ipoque_detection_module_struct
+ 							  *ipoque_struct)
+ {
+@@ -378,5 +430,9 @@
+ 			ipoque_int_search_bittorrent_tcp(ipoque_struct);
+ 		}
+ 	}
++	if (packet->udp != NULL)
++		{
++		ipoque_int_search_bittorrent_udp(ipoque_struct);
++	}
+ }
+ #endif
+

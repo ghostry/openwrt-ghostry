@@ -1,0 +1,34 @@
+10
+
+dir
+557
+svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/files/drivers/usb
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2012-07-26T15:15:42.252199Z
+522
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+dwc_otg
+dir
+
+host
+dir
+

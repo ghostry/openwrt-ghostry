@@ -1,0 +1,18 @@
+--- a/drivers/mtd/mtdpart.c	2011-08-29 09:12:39.000000000 +0800
++++ b/drivers/mtd/mtdpart.c	2011-09-29 14:38:28.049481001 +0800
+@@ -21,6 +21,7 @@
+ #include <linux/root_dev.h>
+ #include <linux/magic.h>
+ 
++int getFlashSize;  // get flash size
+ #define MTD_ERASE_PARTIAL	0x8000 /* partition only covers parts of an erase block */
+ 
+ /* Our partition linked list */
+@@ -740,6 +741,7 @@
+ 	int i, ret;
+ 
+ 	printk(KERN_NOTICE "Creating %d MTD partitions on \"%s\":\n", nbparts, master->name);
++	getFlashSize = master->size >> 10;
+ 
+ 	for (i = 0; i < nbparts; i++) {
+ 		slave = add_one_partition(master, parts + i, i, cur_offset);

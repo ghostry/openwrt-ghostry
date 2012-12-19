@@ -1,0 +1,8 @@
+# Copyright (C) 2011 Lintel
+
+config button
+        option button   BTN_0
+        option action   released
+        option handler  "firstboot && reboot"
+        option min              5
+        option max             30

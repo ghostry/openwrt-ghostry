@@ -1,0 +1,35 @@
+#!/bin/sh
+echo -n "Checking MGB100 Key status..."
+
+#enable led
+gpioctl clear 2 >> /dev/null
+gpioctl clear 3 >> /dev/null
+gpioctl clear 4 >> /dev/null
+gpioctl clear 5 >> /dev/null
+#wait for user push the reset button.
+sleep 2
+gpioctl get 0 >> /dev/null
+shutdown=$?
+
+gpioctl get 1 >> /dev/null
+backup=$?
+
+if [ $shutdown = 0 -a $backup = 0 ]
+then
+echo -n "Reset-key pressed!"
+gpioctl set 2 >> /dev/null
+echo "Reset to default settings...:"
+gpioctl set 3 >> /dev/null
+flash_eraseall -j /dev/mtd2
+gpioctl set 4 >> /dev/null
+echo reboot system..
+gpioctl set 5 >> /dev/null
+reboot
+else
+echo -n "No pressed!"
+echo
+gpioctl set 2 >> /dev/null
+gpioctl set 3 >> /dev/null
+gpioctl set 4 >> /dev/null
+gpioctl set 5 >> /dev/null
+fi;

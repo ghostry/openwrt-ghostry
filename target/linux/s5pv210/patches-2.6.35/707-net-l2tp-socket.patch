@@ -1,0 +1,42 @@
+diff -Nur linux-2.6.35.7/net/l2tp/l2tp_eth.c tiny210/net/l2tp/l2tp_eth.c
+--- linux-2.6.35.7/net/l2tp/l2tp_eth.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/l2tp/l2tp_eth.c	2011-08-08 12:52:36.000000000 +0800
+@@ -284,7 +284,7 @@
+ 	return 0;
+ }
+ 
+-static __net_initdata struct pernet_operations l2tp_eth_net_ops = {
++static struct pernet_operations l2tp_eth_net_ops = {
+ 	.init = l2tp_eth_init_net,
+ 	.id   = &l2tp_eth_net_id,
+ 	.size = sizeof(struct l2tp_eth_net),
+--- linux-2.6.35.7/net/socket.c	2010-09-29 09:09:08.000000000 +0800
++++ tiny210/net/socket.c	2011-08-08 12:52:35.000000000 +0800
+@@ -570,7 +570,8 @@
+ 	if (err)
+ 		return err;
+ 
+-	return sock->ops->sendmsg(iocb, sock, msg, size);
++	err = sock->ops->sendmsg(iocb, sock, msg, size);
++	return err;
+ }
+ 
+ int sock_sendmsg(struct socket *sock, struct msghdr *msg, size_t size)
+@@ -685,6 +686,7 @@
+ static inline int __sock_recvmsg_nosec(struct kiocb *iocb, struct socket *sock,
+ 				       struct msghdr *msg, size_t size, int flags)
+ {
++	int err;
+ 	struct sock_iocb *si = kiocb_to_siocb(iocb);
+ 
+ 	sock_update_classid(sock->sk);
+@@ -695,7 +697,8 @@
+ 	si->size = size;
+ 	si->flags = flags;
+ 
+-	return sock->ops->recvmsg(iocb, sock, msg, size, flags);
++	err = sock->ops->recvmsg(iocb, sock, msg, size, flags);
++	return err;
+ }
+ 
+ static inline int __sock_recvmsg(struct kiocb *iocb, struct socket *sock,
