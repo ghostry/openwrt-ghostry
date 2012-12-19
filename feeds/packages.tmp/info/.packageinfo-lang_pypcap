@@ -1,0 +1,18 @@
+Source-Makefile: feeds/packages/lang/pypcap/Makefile
+Package: python-pcap
+Submenu: Python
+Version: 1.1-1
+Depends: +python-mini +libpcap
+Provides: 
+Build-Depends: python
+Section: lang
+Category: Languages
+Title: Python interface to lipcap
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: pypcap-1.1.tar.gz
+Type: ipkg
+Description: Python interface to lipcap
+http://code.google.com/p/pypcap/
+@@
+
+

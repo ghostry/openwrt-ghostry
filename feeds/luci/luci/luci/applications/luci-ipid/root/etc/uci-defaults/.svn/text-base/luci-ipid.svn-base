@@ -1,0 +1,10 @@
+#!/bin/sh 
+
+uci -q batch <<-EOF >/dev/null
+          delete ucitrack.@ipid[-1]
+          add ucitrack ipid
+          set ucitrack.@ipid[-1].init=ipid   
+          commit ucitrack
+EOF
+rm -f /tmp/luci-indexcahe
+exit 0

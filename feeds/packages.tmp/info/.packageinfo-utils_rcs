@@ -1,0 +1,16 @@
+Source-Makefile: feeds/packages/utils/rcs/Makefile
+Package: rcs
+Version: 5.7-2
+Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: The GNU Revision Control System
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: rcs-5.7.tar.gz
+Type: ipkg
+Description: The GNU Revision Control System
+http://www.gnu.org/software/rcs/
+@@
+
+

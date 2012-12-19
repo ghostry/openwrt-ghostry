@@ -1,0 +1,120 @@
+diff -ruN a/defaults.h b/defaults.h
+--- a/defaults.h	2006-09-05 07:17:25.000000000 +0800
++++ b/defaults.h	2011-11-22 21:12:37.784705342 +0800
+@@ -61,6 +61,7 @@
+ #define SPEED_KEYWORD			"speed"
+ #define PPPD_OPTION_KEYWORD		"option"
+ #define DEBUG_KEYWORD			"debug"
++#define IPV6_KEYWORD			"ipv6"
+ #ifdef BCRELAY
+ #define BCRELAY_KEYWORD			"bcrelay"
+ #endif
+diff -ruN a/pptpctrl.c b/pptpctrl.c
+--- a/pptpctrl.c	2006-12-08 08:01:40.000000000 +0800
++++ b/pptpctrl.c	2011-11-22 21:24:06.072956884 +0800
+@@ -72,6 +72,7 @@
+ 
+ /* Needed by this and ctrlpacket.c */
+ int pptpctrl_debug = 0;		/* specifies if debugging is on or off */
++int pptpctrl_ipv6 = 0;		/* ipv6 is on or off*/
+ uint16_t unique_call_id = 0xFFFF;	/* Start value for our call IDs on this TCP link */
+ 
+ int gargc;                     /* Command line argument count */
+@@ -134,6 +135,7 @@
+ 
+ 	/* note: update pptpctrl.8 if the argument list format is changed */
+ 	GETARG_INT(pptpctrl_debug);
++	GETARG_INT(pptpctrl_ipv6);
+ 	GETARG_INT(noipparam);
+ 	GETARG_VALUE(pppdxfig);
+ 	GETARG_VALUE(speed);
+@@ -657,7 +659,7 @@
+  */
+ static void launch_pppd(char **pppaddrs, struct in_addr *inetaddrs)
+ {
+-	char *pppd_argv[14];
++	char *pppd_argv[16];
+ 	int an = 0;
+ 	sigset_t sigs;
+ 
+@@ -763,6 +765,22 @@
+ 		char pppInterfaceIPs[33];
+ 		sprintf(pppInterfaceIPs, "%s:%s", pppaddrs[0], pppaddrs[1]);
+ 		pppd_argv[an++] = pppInterfaceIPs;
++
++
++		/*emong add ipv6 surport*/
++		if(pptpctrl_ipv6) {
++			int emong_x[4];
++			char ipv6_local[12],ipv6_remote[12],ipv6[30];
++			sscanf(pppaddrs[0],"%d.%d.%d.%d",emong_x,emong_x+1,emong_x+2,emong_x+3);
++			sprintf(ipv6_local,"::%X%X:%X%X",emong_x[0],emong_x[1],emong_x[2],emong_x[3]);
++			sscanf(pppaddrs[1],"%d.%d.%d.%d",emong_x,emong_x+1,emong_x+2,emong_x+3);
++			sprintf(ipv6_remote,"::%X%X:%X%X",emong_x[0],emong_x[1],emong_x[2],emong_x[3]);
++	
++			sprintf(ipv6, "%s,%s", ipv6_local, ipv6_remote);
++	//		syslog(LOG_INFO, "%s", ipv6);
++			pppd_argv[an++] = "ipv6";
++			pppd_argv[an++] = ipv6;
++		}
+ 	}
+ #endif
+ 
+@@ -777,7 +795,6 @@
+                  pppd_argv[an++] = "pptpd-original-ip";
+                  pppd_argv[an++] = inet_ntoa(inetaddrs[1]);
+         }
+-
+ 	/* argv arrays must always be NULL terminated */
+ 	pppd_argv[an++] = NULL;
+ 	/* make sure SIGCHLD is unblocked, pppd does not expect it */
+diff -ruN a/pptpd.c b/pptpd.c
+--- a/pptpd.c	2006-09-05 07:17:25.000000000 +0800
++++ b/pptpd.c	2011-11-22 21:15:56.604957166 +0800
+@@ -58,6 +58,7 @@
+ char *bcrelay = NULL;
+ #endif
+ int pptp_debug = 0;
++int pptp_ipv6 = 0;
+ int pptp_noipparam = 0;
+ int pptp_logwtmp = 0;
+ int pptp_delegate = 0;
+@@ -298,6 +299,8 @@
+ 
+ 	if (!pptp_debug && read_config_file(configFile, DEBUG_KEYWORD, tmp) > 0)
+ 		pptp_debug = TRUE;
++	if(!pptp_ipv6 && read_config_file(configFile, IPV6_KEYWORD, tmp) > 0)
++		pptp_ipv6 = TRUE;
+ 
+ #ifdef BCRELAY
+ 	if (!bcrelay && read_config_file(configFile, BCRELAY_KEYWORD, tmp) > 0) 
+diff -ruN a/pptpmanager.c b/pptpmanager.c
+--- a/pptpmanager.c	2005-12-29 17:59:49.000000000 +0800
++++ b/pptpmanager.c	2011-11-22 21:30:26.140707264 +0800
+@@ -59,6 +59,7 @@
+ extern char *speedstr;
+ extern char *bindaddr;
+ extern int pptp_debug;
++extern int pptp_ipv6;
+ extern int pptp_noipparam;
+ extern int pptp_logwtmp;
+ extern int pptp_delegate;
+@@ -463,6 +464,7 @@
+ 
+ 	/* lame strings to hold passed args. */
+ 	char ctrl_debug[2];
++	char ctrl_ipv6[2];
+ 	char ctrl_noipparam[2];
+ 	char pppdoptfile_argv[2];
+ 	char speedgiven_argv[2];
+@@ -488,6 +490,10 @@
+ 	ctrl_debug[1] = '\0';
+ 	ctrl_argv[pptpctrl_argc++] = ctrl_debug;
+ 
++	NUM2ARRAY(ctrl_ipv6, pptp_ipv6 ? 1 : 0);
++	ctrl_ipv6[1] = '\0';
++	ctrl_argv[pptpctrl_argc++] = ctrl_ipv6;
++
+ 	NUM2ARRAY(ctrl_noipparam, pptp_noipparam ? 1 : 0);
+ 	ctrl_noipparam[1] = '\0';
+ 	ctrl_argv[pptpctrl_argc++] = ctrl_noipparam;

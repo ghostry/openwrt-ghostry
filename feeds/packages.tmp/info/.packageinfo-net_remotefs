@@ -1,0 +1,35 @@
+Source-Makefile: feeds/packages/net/remotefs/Makefile
+Package: remotefs
+Submenu: Filesystem
+Version: 854-1
+Depends: +libfuse +libc +libgcc +libpthread
+Provides: 
+Section: net
+Category: Network
+Title: RemoteFS
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: remotefs-854.tar.gz
+Type: ipkg
+Description:   remotefs is a network file system designed for use with home NAS.
+  Simple to use, few dependencies, reasonable security, completely
+  in user space. Provided remotefs-server package contains server
+  components.
+http://remotefs.sourceforge.net
+@@
+
+Package: remotefs-server
+Submenu: Filesystem
+Version: 854-1
+Depends: +libc +libgcc
+Provides: 
+Section: net
+Category: Network
+Title: RemoteFS server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: remotefs-854.tar.gz
+Type: ipkg
+Description: RemoteFS server
+http://remotefs.sourceforge.net
+@@
+
+

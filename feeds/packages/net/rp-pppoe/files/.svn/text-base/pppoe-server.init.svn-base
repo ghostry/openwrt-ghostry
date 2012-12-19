@@ -1,0 +1,77 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+START=50
+
+BIN=pppoe-server
+DEFAULT=/etc/default/pppoe-server
+RUN_D=/var/run
+PID_F=$RUN_D/$BIN.pid
+
+. /etc/functions.sh
+
+conf_get_pppoe_conf(){
+
+ config_get option $1 option
+ config_get timeout $1 timeout
+ config_get num $1 num
+ config_get pppoe_clientip $1 clientip 
+ config_get pppoe_serverip $1 serverip
+ config_get lcp_echo_failure $1 lcp_echo_failure
+ config_get lcp_echo_interval $1 lcp_echo_interval
+ config_get mtu  $1 mtu
+ config_get mru  $1 mru
+
+echo "# PPP options for the PPPoE server" >/etc/ppp/pppoe-server-options
+echo "# LIC: GPL" >>/etc/ppp/pppoe-server-options
+echo "require-pap" >>/etc/ppp/pppoe-server-options
+echo "#login" >>/etc/ppp/pppoe-server-options
+echo "auth" >>/etc/ppp/pppoe-server-options
+echo "mru $mru" >>/etc/ppp/pppoe-server-options
+echo "mtu $mtu" >>/etc/ppp/pppoe-server-options
+echo "lcp-echo-interval $lcp_echo_interval" >>/etc/ppp/pppoe-server-options
+echo "lcp-echo-failure $lcp_echo_failure" >>/etc/ppp/pppoe-server-options
+
+
+echo 1 > /proc/sys/net/ipv4/ip_forward
+iptables -t nat -D POSTROUTING -s ${pppoe_clientip%.*}.0/24 -j MASQUERADE
+iptables -t nat -A POSTROUTING -s ${pppoe_clientip%.*}.0/24 -j MASQUERADE
+
+PPPOEOPTIONS="-k -T $timeout -I br-lan -N $num -L $pppoe_serverip -R $pppoe_clientip"
+
+}
+
+conf_get_pppoeuser(){
+ config_get user_enable $1 enable
+ config_get USERNAME  $1 USERNAME
+ config_get PROVIDER  $1 PROVIDER   
+ config_get PASSWORD  $1 PASSWORD
+ config_get IPADDRESS $1 IPADDRESS
+[ "$PROVIDER" == "all" ]&&PROVIDER=*
+[ "$IPADDRESS" == "all" ]&&IPADDRESS=*
+[ "$user_enable" == "1" ]&& echo "$USERNAME  $PROVIDER  $PASSWORD  $IPADDRESS" >> /etc/ppp/pap-secrets
+
+}
+
+
+
+config_load pppoeserver
+
+start() {
+ echo "# USERNAME  PROVIDER  PASSWORD IPADDRESS" > /etc/ppp/pap-secrets
+pppoeserver_enable=$(uci get pppoeserver.@global[0].enable)
+
+if [ "$pppoeserver_enable" = "1" ] ;then
+
+config_foreach conf_get_pppoe_conf conf
+config_foreach conf_get_pppoeuser pppoeuser
+
+pppoe-server  $PPPOEOPTIONS
+fi
+
+}
+
+stop() {
+	#[ -f $PID_F ] && kill $(cat $PID_F)
+killall pppoe-server
+}
+

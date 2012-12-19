@@ -1,0 +1,64 @@
+10
+
+dir
+560
+svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/freeswitch/files/etc.packages
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+say-en
+dir
+
+say-ru
+dir
+
+syslog
+dir
+
+tts_commandline
+dir
+
+logfile
+dir
+
+say-fr
+dir
+
+rtmp
+dir
+
+say-de
+dir
+
+cdr_csv
+dir
+
+xml-cdr
+dir
+
+voicemail
+dir
+
+cdr_pg_csv
+dir
+

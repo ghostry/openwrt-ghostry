@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/libs/classpath/Makefile
+Package: classpath
+Version: 0.98-3
+Depends: @BROKEN
+Provides: 
+Build-Depends: libtool libintl libiconv
+Section: libs
+Category: Libraries
+Title: GNU Classpath
+Maintainer: Roberto Riggio <roberto.riggio@create-net.org>
+Source: classpath-0.98.tar.gz
+Type: ipkg
+Description: GNU Classpath
+http://www.gnu.org/software/classpath/
+@@
+
+

@@ -1,0 +1,386 @@
+Source-Makefile: feeds/dreambox_packages/libmhash/Makefile
+Package: mhash
+Version: 0.9.9.9-1
+Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: mhash library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mhash-0.9.9.9.tar.bz2
+Type: ipkg
+Description: 	libmhash is hash library that conveniently brings
+	together a variety of ciphers for convenient use.
+http://mhash.sourceforge.net/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/new-dialer/Makefile
+Package: new-dialer
+Version: 1.2.2007.5
+Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: new-dialer
+Maintainer: Emong <emongxx@gmail.com>
+Source: 
+Type: ipkg
+Description:  new-dialer helps you do something.
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/mentohust/Makefile
+Package: mentohust
+Submenu: CERNET
+Version: 0.3.1-1
+Depends: +libpcap
+Provides: 
+Section: net
+Category: Network
+Title: An CERNET client daemon
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mentohust-0.3.1.tar.gz
+Type: ipkg
+Description: An CERNET client daemon,
+Most usually used in China collages.
+http://code.google.com/p/mentohust/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/njit8021xclient/Makefile
+Package: njit8021xclient
+Submenu: CERNET
+Version: 1.2-1
+Depends: +libpcap +libopenssl +libpthread 
+Provides: 
+Section: net
+Category: Network
+Title: NJIT 802.1X client program
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: njit8021xclient-1.2.tar.gz
+Type: ipkg
+Description:  802.1X client from Nanjing Institude of Technology,
+ compatable with H3C iNode 802.1X client.
+ Support H3C/iNode's private authentication protocol V2.40-V3.60
+http://liuqun.github.com/njit8021xclient
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/mediatomb/Makefile
+Package: mediatomb
+Version: 0.12.1-1
+Depends: +libexif +libsqlite3 +id3lib +libiconv-full +libcharset +iconv +file +libexpat +libpthread
+Provides: 
+Build-Depends: libexif sqlite3 id3lib libiconv file expat libpthread
+Section: multimedia
+Category: Multimedia
+Title: A powerfull UPNP media server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mediatomb-0.12.1.tar.gz
+Type: ipkg
+Description: A powerfull UPNP media server
+http://www.mediatomb.cc/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/reaver/Makefile
+Package: reaver
+Submenu: wireless
+Version: 1.4-1
+Depends: +libpcap
+Provides: 
+Section: net
+Category: Network
+Title: Brute force attack against Wifi Protected Setup
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: reaver-1.4.tar.gz
+Type: ipkg
+Description:   Reaver targets the external registrar functionality mandated by the WiFi
+  Protected Setup specification.
+  Access points will provide authenticated registrars with their current
+  wireless configuration (including the WPA PSK), and also accept a new
+  configuration from the registrar.
+https://code.google.com/p/reaver-wps/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/car-app/Makefile
+Package: car-app
+Version: 1.0-1
+Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: WiFi-Car Server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: 	Servers for wifi-car
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/oscam/Makefile
+Package: oscam
+Version: svn5339-1
+Depends: +openssl +libopenssl 
+Provides: 
+Section: custom
+Category: Custom packages
+Title: Open Source Conditional Access Module software
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: oscam-svn5339.tar.gz
+Type: ipkg
+Description: 	An Open Source Conditional Access Module software,
+based on the very good MpCS version 0.9d created by dukat.
+http://streamboard.gmc.to/oscam/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/cngeoip/Makefile
+Package: cngeoip
+Version: 0.1.0-1
+Depends: +iptables +iptables-mod-filter +kmod-ipt-geoip +iptables-mod-geoip
+Provides: 
+Section: utils
+Category: Base system
+Title: band fair share among PCs
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:  The geoip database for china, you know what this mean! 
+ you have to patch xtables-addons Makefile to produce xt_geoip ipks. 
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/transmission/Makefile
+Package: transmission-daemon
+Menu: 1
+Submenu: BitTorrent
+Version: 2.61-1
+Depends: +libcurl +libopenssl +libpthread +libevent2 +librt +libminiupnpc
+Provides: 
+Section: net
+Category: Network
+Title: A free, lightweight BitTorrent client
+Maintainer: Cezary Jackiewicz <cezary@eko.one.pl>
+Source: transmission-2.61.tar.bz2
+Type: ipkg
+Description:  Transmission is a simple BitTorrent client.
+ It features a very simple, intuitive interface
+ on top on an efficient, cross-platform back-end.
+ This package contains the daemon itself.
+http://www.transmissionbt.com
+@@
+
+Package: transmission-cli
+Submenu: BitTorrent
+Version: 2.61-1
+Depends: transmission-daemon
+Provides: 
+Section: net
+Category: Network
+Title: A free, lightweight BitTorrent client
+Maintainer: Cezary Jackiewicz <cezary@eko.one.pl>
+Source: transmission-2.61.tar.bz2
+Type: ipkg
+Description:  CLI utilities for transmission.
+http://www.transmissionbt.com
+@@
+
+Package: transmission-remote
+Submenu: BitTorrent
+Version: 2.61-1
+Depends: +libcurl +libopenssl +libpthread +libevent2 +librt +libminiupnpc
+Provides: 
+Section: net
+Category: Network
+Title: A free, lightweight BitTorrent client
+Maintainer: Cezary Jackiewicz <cezary@eko.one.pl>
+Source: transmission-2.61.tar.bz2
+Type: ipkg
+Description:  CLI remote interface for transmission.
+http://www.transmissionbt.com
+@@
+
+Package: transmission-web
+Submenu: BitTorrent
+Version: 2.61-1
+Depends: transmission-daemon
+Provides: 
+Section: net
+Category: Network
+Title: A free, lightweight BitTorrent client
+Maintainer: Cezary Jackiewicz <cezary@eko.one.pl>
+Source: transmission-2.61.tar.bz2
+Type: ipkg
+Description:  Webinterface resources for transmission.
+http://www.transmissionbt.com
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/cpulimit-ng/Makefile
+Package: cpulimit-ng
+Version: 1.2-1
+Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: CPU Usage Limiter for Linux
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: CPU Usage Limiter for Linux
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/mplayer/Makefile
+Package: mplayer
+Version: 1.0rc3-1
+Depends: 
+Provides: 
+Section: sound
+Category: Sound
+Title: MPlayer
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: MPlayer-1.0rc3.tar.bz2
+Type: ipkg
+Description: MPlayer can play most standard video formats out of the box
+and almost all others with the help of external codecs.
+http://www.mplayerhq.hu/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/oh3c/Makefile
+Package: oh3c
+Submenu: CERNET
+Version: 1.0-1
+Depends: +python-mini
+Provides: 
+Section: net
+Category: Network
+Title: OH3C 802.1X client
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: oh3c-1.0.tar.bz2
+Type: ipkg
+Description:  OH3C 802.1X client  
+http://github.com/nanpuyue/oh3c
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/napt66/Makefile
+Package: kmod-napt66
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+0.2-r18
+Depends: +ip6tables +radvd
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: kmod-napt66
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: napt66-0.2.tar.gz
+Type: ipkg
+Description:  Stateful IPv6-to-IPv6 Network Address Port Translation.
+http://code.google.com/p/napt66/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/OpenCV-sample/Makefile
+Package: opencv-sample
+Version: 1.0-1
+Depends: +OpenCV
+Provides: 
+Section: utils
+Category: Utilities
+Title: OpenCV sample
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: 	Tool for opencv
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/aria2/Makefile
+Package: aria2
+Submenu: File Transfer
+Version: 1.16.0.2-1
+Depends: +libopenssl +zlib +libxml2 +libstdcpp  
+Provides: 
+Section: net
+Category: Network
+Title: lightweight download utility
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: aria2-1.16.0.2.tar.bz2
+Type: ipkg
+Description:  aria2 is a lightweight multi-protocol & multi-source command-line download
+ utility
+http://aria2.sourceforge.net/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/car-driver/Makefile
+Package: kmod-car-driver
+Submenu: Other modules
+Version: <LINUX_VERSION>-1
+Depends: @GPIO_SUPPORT
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: Car-Drivers for WiFi-Car
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: Car-Drivers for WiFi-Car
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/drcom/Makefile
+Package: drcom
+Submenu: CERNET
+Version: 1.4.8.3-1
+Depends: +libpthread
+Provides: 
+Section: net
+Category: Network
+Title: An CERNET client daemon
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: drcom-1.4.8.3.tar.gz
+Type: ipkg
+Description: An CERNET client daemon,
+Most usually used in China collages.
+http://sourceforge.net/projects/drcom-client/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/OpenCV/Makefile
+Package: OpenCV
+Version: 2.4.0-1
+Depends: +libjpeg +libpng +libffmpeg +libswscale +libiconv +bzip2 +gtk +gtkmm +gtkperf +BUILD_NLS:libiconv-full
+Provides: 
+Build-Depends: libtool libintl libiconv !BUILD_NLS:libiconv !BUILD_NLS:gettext
+Section: multimedia
+Category: Multimedia
+Title: OpenCV
+Maintainer: lintel <lintel.huang@gmail.com>
+Source: OpenCV-2.4.0.tar.bz2
+Type: ipkg
+Description:  Weechat is fast, light & extensible IRC client.
+http://www.OpenCV.org/
+@@
+
+
+Source-Makefile: feeds/dreambox_packages/sanxun/Makefile
+Package: sanxun
+Version: 1
+Depends: +ppp
+Provides: 
+Section: net
+Category: Network
+Title: sanxun ppp plugin
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:  sanxun ppp plugin.
+@@
+
+

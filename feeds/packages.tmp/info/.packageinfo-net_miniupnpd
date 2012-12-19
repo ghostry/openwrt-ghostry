@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/net/miniupnpd/Makefile
+Package: miniupnpd
+Submenu: Firewall
+Version: 1.5.20110309-2
+Depends: +iptables +libip4tc
+Provides: 
+Section: net
+Category: Network
+Title: Lightweight UPnP daemon
+Maintainer: Daniel Dickinson <openwrt@cshore.neomailbox.net>
+Source: miniupnpd-1.5.20110309.tar.gz
+Type: ipkg
+Description: Lightweight UPnP daemon
+http://miniupnp.free.fr/
+@@
+
+

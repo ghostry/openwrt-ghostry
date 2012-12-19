@@ -1,0 +1,37 @@
+10
+
+dir
+560
+svn://svn.openwrt.org.cn/dreambox/luci/trunk/luci/luci/applications/luci-vsftpd/root/etc
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2012-08-08T16:52:35.254111Z
+530
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+config
+dir
+
+uci-defaults
+dir
+
+vsftpd
+dir
+

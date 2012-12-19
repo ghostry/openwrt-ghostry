@@ -1,0 +1,15 @@
+Source-Makefile: feeds/dreambox_packages/cpulimit-ng/Makefile
+Package: cpulimit-ng
+Version: 1.2-1
+Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Title: CPU Usage Limiter for Linux
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: CPU Usage Limiter for Linux
+@@
+
+

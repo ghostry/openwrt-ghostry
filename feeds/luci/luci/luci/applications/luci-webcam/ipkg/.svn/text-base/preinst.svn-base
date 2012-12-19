@@ -1,0 +1,3 @@
+#!/bin/sh
+rm -f /etc/config/mjpg-streamer
+rm -f /etc/init.d/mjpg-streamer

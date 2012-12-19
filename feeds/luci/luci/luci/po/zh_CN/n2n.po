@@ -1,0 +1,80 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "Client,select as Client."
+msgstr "客户端模式，选择作为客户端"
+
+msgid "Enable or Disable N2N Server."
+msgstr "打开和关闭N2N服务"
+
+msgid "Enable or Disable N2N supernode Server."
+msgstr "打开和关闭建立 N2N的超级节点"
+
+msgid "N2N VPN Client mode"
+msgstr "N2N VPN 客户端模式"
+
+msgid "N2N VPN Server"
+msgstr "N2N VPN 服务"
+
+msgid "N2N VPN Server IP supernode addr. ; default: 88.86.108.50"
+msgstr "N2N VPN 服务的 超级节点 ip地址. ;默认: 88.86.108.50"
+
+msgid "N2N VPN supernode Server"
+msgstr "N2N VPN超级节点服务"
+
+msgid "N2N VPN supernode port.; default: 82"
+msgstr "N2N VPN超级节点，端口；默认：82"
+
+msgid "N2N conf"
+msgstr "N2N 配置"
+
+msgid "This is n2n VPN Server ."
+msgstr "这里是N2N VPN服务，N2N支持的OS也非常广，Linux、FreeBSD、MAC OSX、甚至windows，能提供内网情况下的VPN服务，N2N支持双方通过超级节点握手后，直接对传，也可以通过超级节点服务器中转， N2N可以不用外网IP,不用端口映射"
+
+msgid "community"
+msgstr "通讯组"
+
+msgid "community key"
+msgstr "通讯组密码"
+
+msgid "community key,default: 1234"
+msgstr "通讯组密码：默认1234"
+
+msgid "community name ; default: openwrt"
+msgstr "你自己创建的组名；默认：openwrt"
+
+msgid "enable"
+msgstr "开启"
+
+msgid "ipaddr"
+msgstr "ip地址"
+
+msgid "ipaddr,;default: 10.0.0.1"
+msgstr "ip地址，默认10.0.0.1"
+
+msgid "mtu"
+msgstr "MTU值"
+
+msgid "mtu; default: 1300"
+msgstr "MTU值；默认：1300"
+
+msgid "route"
+msgstr "路由"
+
+msgid "setting"
+msgstr "设置"
+
+msgid "supernode"
+msgstr "超级节点"
+
+msgid "supernode IP"
+msgstr "超级节点"
+
+msgid "supernode desc"
+msgstr "在这里你可以建立自己的超级节点，超级节点必须拥有外网ip，这样客户端才能访问。"
+
+msgid "supernode port"
+msgstr "超级节点端口"
+
+msgid "N2N VPN supernode port.; default: 82"
+msgstr "超级节点端口 ；默认82"

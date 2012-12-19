@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/libmhash/Makefile
+Package: mhash
+Version: 0.9.9.9-1
+Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Title: mhash library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mhash-0.9.9.9.tar.bz2
+Type: ipkg
+Description: 	libmhash is hash library that conveniently brings
+	together a variety of ciphers for convenient use.
+http://mhash.sourceforge.net/
+@@
+
+

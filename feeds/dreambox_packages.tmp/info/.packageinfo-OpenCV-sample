@@ -1,0 +1,15 @@
+Source-Makefile: feeds/dreambox_packages/OpenCV-sample/Makefile
+Package: opencv-sample
+Version: 1.0-1
+Depends: +OpenCV
+Provides: 
+Section: utils
+Category: Utilities
+Title: OpenCV sample
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: 	Tool for opencv
+@@
+
+

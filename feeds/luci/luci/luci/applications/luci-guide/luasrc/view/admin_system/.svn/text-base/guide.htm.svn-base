@@ -1,0 +1,349 @@
+<%#
+LuCI - Lua Configuration Interface
+Copyright 2010 openwrtcn <openwrtcn@gmail.com>
+Copyright 2011 flyzjhz<flyzjhz@gmail.com>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+$Id: guide.htm 4520 2010-04-07 23:46:56Z openwrt.org.cn $
+
+-%>
+
+<%
+local is6358 = luci.util.exec("cat /proc/cpuinfo|grep -c 96358VW2") or 0 
+local is6358 = tonumber(is6358) 
+%>
+
+
+<%
+		function default_sel(value)
+			local sel=nil;
+			if ( value == model ) then
+				sel = "\"selected\""
+			end 
+			return sel
+		end
+		function default_sel1(value)
+			local sel=nil;
+			if ( value == model ) then
+				sel = "selected="
+			end 
+			return sel
+		end
+%>
+
+<%+header%>
+
+<script type="text/javascript">
+function quitx()
+{
+//	document.location="/systeminfo.asp";
+	document.getElementById('guide_quit').value="1";
+	document.location="<%=controller%>/admin/";
+}
+
+
+function goback()
+{
+	history.back();
+	document.location="<%=REQUEST_URI%>?step=0";
+}
+
+</script>
+
+
+
+<h2><a id="content" name="content"><%:Quick Guide%></a></h2>
+<br />
+
+<form method="post" action="<%=REQUEST_URI%>" enctype="multipart/form-data">
+	<div>
+		<script type="text/javascript" src="/luci-static/resources/cbi.js"></script>
+	</div>
+
+	<div class="cbi-map" id="cbi-network">
+
+	<fieldset class="cbi-section" id="cbi-network-wan">
+<% if step == 0 then %>
+		<legend><%:Quick guide%></legend>
+		<br />
+		<%:Quick guide Fast configuration route %>
+<br />
+<br />
+
+<% if  is6358 >= 1 then %>
+		<div class="cbi-value" id="cbi-route-model"><label class="cbi-value-title" for="cbid.route.model"><%:route model %></label>
+			<div class="cbi-value-field">	
+			<select class="cbi-input-select" onchange="cbi_d_update(this.id)" id="cbid.route.model" name="cbid.route.model" size="1">
+			<option id="cbi-route-model-default" value="0"  >default</option>
+			<option id="cbi-route-model-db120" value="1"  >db120</option>
+			<option id="cbi-route-model-rg100a" value="2" >rg100a</option>
+<!--
+			<option id="cbi-network-wan-proto-ppp" value="ppp" <%=default_sel1("ppp")%><%=default_sel("ppp")%> >PPP</option>
+-->
+			<option id="cbi-route-model-941v2" value="3"  >941v2</option>
+			<option id="cbi-route-model-3420" value="4" >3420</option>
+<!--
+			<option id="cbi-network-wan-proto-none" value="none" <%=default_sel1("none")%><%=default_sel("none")%> ><%:none%></option>
+-->
+			</select>
+
+			</div>
+		</div>
+<% end -%>
+<br />
+<br />
+		<input type="hidden" name="step" value="1" />
+		<input type="hidden" id="guide_quit" name="quit" value="0" />
+		<input class="cbi-button cbi-button-apply" type="submit" value="<%:Guide Next Step%>" style="float: right" />
+		<input class="cbi-button cbi-button-reset" type="reset" onClick=quitx() value="<%:Guide Quit%>" style="float: left"/>
+		<br />
+
+<% elseif step == 1 then %>
+<%
+		local uci = luci.model.uci.cursor()
+		local proto,ifname,ipaddr,netmask,macaddr,gateway,dns,macaddr
+		uci:load("network")
+		proto=uci:get("network", "wan", "proto")
+		ifname=uci:get("network", "wan", "ifname")
+		ipaddr=uci:get("network", "wan", "ipaddr")
+		netmask=uci:get("network", "wan", "netmask")
+		macaddr=uci:get("network", "wan", "macaddr")
+		gateway=uci:get("network", "wan", "gateway")
+		dns=uci:get("network", "wan", "dns")
+		macaddr=uci:get("network", "wan", "macaddr")
+
+		function default_sel(value)
+			local sel=nil;
+			if ( value == proto ) then
+				sel = "\"selected\""
+			end 
+			return sel
+		end
+		function default_sel1(value)
+			local sel=nil;
+			if ( value == proto ) then
+				sel = "selected="
+			end 
+			return sel
+		end
+		
+%>
+		<legend><%:guide_config WAN Configuration %></legend>
+		<br />
+
+
+		<div class="cbi-value" id="cbi-network-wan-proto"><label class="cbi-value-title" for="cbid.network.wan.proto"><%:protocol Protocol%></label>
+			<div class="cbi-value-field">
+
+			<select class="cbi-input-select" onchange="cbi_d_update(this.id)" id="cbid.network.wan.proto" name="cbid.network.wan.proto" size="1">
+			<option id="cbi-network-wan-proto-static" value="static"  <%=default_sel1("static")%><%=default_sel("static")%>><%:static%></option>
+			<option id="cbi-network-wan-proto-dhcp" value="dhcp" <%=default_sel1("dhcp")%><%=default_sel("dhcp")%> >DHCP</option>
+<!--
+			<option id="cbi-network-wan-proto-ppp" value="ppp" <%=default_sel1("ppp")%><%=default_sel("ppp")%> >PPP</option>
+-->
+			<option id="cbi-network-wan-proto-pppoe" value="pppoe" <%=default_sel1("pppoe")%><%=default_sel("pppoe")%> >PPPoE</option>
+<!--
+			<option id="cbi-network-wan-proto-none" value="none" <%=default_sel1("none")%><%=default_sel("none")%> ><%:none%></option>
+-->
+			</select>
+
+			</div>
+		</div>
+		
+		
+		<div class="cbi-value" id="cbi-network-wan-ipaddr"><label class="cbi-value-title" for="cbid.network.wan.ipaddr"><%:ipaddress Address%></label>
+		<div class="cbi-value-field">
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.ipaddr" id="cbid.network.wan.ipaddr" value="<%=ipaddr%>" />
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-ipaddr">
+			cbi_d_add("cbi-network-wan-ipaddr", {"cbid.network.wan.proto":"static"}, "cbip-network-wan-ipaddr");
+		</script>
+
+
+		<div class="cbi-value" id="cbi-network-wan-netmask"><label class="cbi-value-title" for="cbid.network.wan.netmask"><%:netmask Netmask%></label>
+		<div class="cbi-value-field">
+
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.netmask" id="cbid.network.wan.netmask" value="<%=netmask%>" />
+			<script type="text/javascript">
+			cbi_combobox_init('cbid.network.wan.netmask', {"255.255.255.0":"255.255.255.0","255.255.0.0":"255.255.0.0","255.0.0.0":"255.0.0.0"}, '', '<%:cbi_manual%>');
+			</script>
+	
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-netmask">
+			cbi_d_add("cbi-network-wan-netmask", {"cbid.network.wan.proto":"static"}, "cbip-network-wan-netmask");
+		</script>
+
+
+		<div class="cbi-value" id="cbi-network-wan-gateway"><label class="cbi-value-title" for="cbid.network.wan.gateway"><%:gateway Gateway%></label>
+			<div class="cbi-value-field">
+
+				<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.gateway" id="cbid.network.wan.gateway" value="<%=gateway%>" />
+				<div class="cbi-value-description">
+					<br />
+					<span class="cbi-value-helpicon"><img src="/luci-static/resources/cbi/help.gif" alt="" /></span>
+					<%:guide_gateway_desc If you don t know, just to contact your ISP%>
+				</div>
+	
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-gateway">
+			cbi_d_add("cbi-network-wan-gateway", {"cbid.network.wan.proto":"static"}, "cbip-network-wan-gateway");
+		</script>
+
+
+		<div class="cbi-value" id="cbi-network-wan-server"><label class="cbi-value-title" for="cbid.network.wan.server"><abbr title="Point-to-Point Tunneling Protocol">PPTP</abbr><%:server%></label>
+			<div class="cbi-value-field">
+
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.server" id="cbid.network.wan.server" value="<%=server%>" />
+	
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-server">
+			cbi_d_add("cbi-network-wan-server", {"cbid.network.wan.proto":"pptp"}, "cbip-network-wan-server");
+		</script>
+
+
+		<div class="cbi-value" id="cbi-network-wan-username"><label class="cbi-value-title" for="cbid.network.wan.username"><%:username Username%></label>
+			<div class="cbi-value-field">
+
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.username" id="cbid.network.wan.username" value="<%=username%>" />
+	
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-username">
+			cbi_d_add("cbi-network-wan-username", {"cbid.network.wan.proto":"pptp"}, "cbip-network-wan-username");cbi_d_add("cbi-network-wan-username", {"cbid.network.wan.proto":"pppoe"}, "cbip-network-wan-username");cbi_d_add("cbi-network-wan-username", {"cbid.network.wan.proto":"pppoa"}, "cbip-network-wan-username");cbi_d_add("cbi-network-wan-username", {"cbid.network.wan.proto":"ppp"}, "cbip-network-wan-username");cbi_d_add("cbi-network-wan-username", {"cbid.network.wan.proto":"3g"}, "cbip-network-wan-username");
+		</script>
+
+
+		<div class="cbi-value" id="cbi-network-wan-password"><label class="cbi-value-title" for="cbid.network.wan.password"><%:password Password%></label>
+			<div class="cbi-value-field">
+
+			<input type="password" class="cbi-input-password" onchange="cbi_d_update(this.id)" name="cbid.network.wan.password" id="cbid.network.wan.password" value="<%=password%>" />
+	
+		</div></div>
+
+		<script type="text/javascript" id="cbip-network-wan-password">
+			cbi_d_add("cbi-network-wan-password", {"cbid.network.wan.proto":"pptp"}, "cbip-network-wan-password");cbi_d_add("cbi-network-wan-password", {"cbid.network.wan.proto":"pppoe"}, "cbip-network-wan-password");cbi_d_add("cbi-network-wan-password", {"cbid.network.wan.proto":"pppoa"}, "cbip-network-wan-password");cbi_d_add("cbi-network-wan-password", {"cbid.network.wan.proto":"ppp"}, "cbip-network-wan-password");cbi_d_add("cbi-network-wan-password", {"cbid.network.wan.proto":"3g"}, "cbip-network-wan-password");
+		</script>
+		
+		<div class="cbi-value" id="cbi-network-wan-dns"><label class="cbi-value-title" for="cbid.network.wan.dns"><%:dnsserver%></label>
+			<div class="cbi-value-field">
+				<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.dns" id="cbid.network.wan.dns" value="<%=dns%>" />
+				<div class="cbi-value-description">
+					<br />
+					<span class="cbi-value-helpicon"><img src="/luci-static/resources/cbi/help.gif" alt="" /></span>
+					<%:guide_dns_desc If you don t know, just to contact your ISP%>
+				</div>
+			</div>
+		</div>
+		
+		<script type="text/javascript" id="cbip-network-wan-dns">
+			cbi_d_add("cbi-network-wan-dns", {"cbid.network.wan.proto":"static"}, "cbip-network-wan-dns");
+		</script>
+
+		<div class="cbi-value" id="cbi-network-wan-macaddr"><label class="cbi-value-title" for="cbid.network.wan.macaddr"><%:macaddress MAC%></label>
+			<div class="cbi-value-field">
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.wan.macaddr" id="cbid.network.wan.macaddr" value="<%=macaddr%>" />
+			<div class="cbi-value-description">
+				<br />
+				<span class="cbi-value-helpicon"><img src="/luci-static/resources/cbi/help.gif" alt="" /></span>
+				<%:guide_mac_desc Just leave blank and use the default mac generally%>
+			</div>
+
+			</div>
+		</div>
+
+		<br />
+		<br />
+
+		<input type="hidden" name="step" value="2" />
+
+    <input class="cbi-button cbi-button-apply" type="submit" value="<%:Guide Next Step%>" style="float: right" />
+		<input class="cbi-button cbi-button-reset" type="reset" onClick=quitx() value="<%:Guide Quit%>" style="float: left"/>
+
+<% elseif step == 2 then  %>
+<%
+		local uci2 = luci.model.uci.cursor()
+		local lan_ipaddr,netmask,macaddr
+		
+		uci2:load("network")
+		
+		lan_ipaddr=uci2:get("network", "lan", "ipaddr")
+		netmask=uci2:get("network", "lan", "netmask")
+		macaddr=uci2:get("network", "lan", "macaddr")
+%>
+		<legend><%:guide_lan_config LAN Configuration %></legend>
+		<br />
+		<div class="cbi-value" id="cbi-network-lan-ipaddr"><label class="cbi-value-title" for="cbid.network.lan.ipaddr"><%:ipaddress Address%></label>
+			<div class="cbi-value-field">
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.lan.ipaddr" id="cbid.network.lan.ipaddr" value="<%=lan_ipaddr%>" />
+			</div>
+		</div>
+
+		<div class="cbi-value" id="cbi-network-lan-netmask"><label class="cbi-value-title" for="cbid.network.lan.netmask"><%:netmask Netmask%></label>
+			<div class="cbi-value-field">
+
+				<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.lan.netmask" id="cbid.network.lan.netmask" value="<%=netmask%>" />
+				<script type="text/javascript">
+					cbi_combobox_init('cbid.network.lan.netmask', {"255.255.255.0":"255.255.255.0","255.255.0.0":"255.255.0.0","255.0.0.0":"255.0.0.0"}, '', '<%:cbi_manual%>');
+				</script>
+	
+			</div>
+		</div>
+		<div class="cbi-value" id="cbi-network-lan-macaddr"><label class="cbi-value-title" for="cbid.network.lan.macaddr"><%:macaddress MAC%></label>
+			<div class="cbi-value-field">
+			<input type="text" class="cbi-input-text" onchange="cbi_d_update(this.id)" name="cbid.network.lan.macaddr" id="cbid.network.lan.macaddr" value="<%=macaddr%>" />
+			<div class="cbi-value-description">
+				<br />
+				<span class="cbi-value-helpicon"><img src="/luci-static/resources/cbi/help.gif" alt="" /></span>
+				<%:guide_mac_desc Just leave blank and use the default mac generally%>
+			</div>
+			</div>
+		</div>
+		<br />
+		<br />
+		<input type="hidden" name="step" value="3" />
+		<input class="cbi-button cbi-button-apply" type="submit" value="<%:Guide Next Step%>" style="float: right"/>
+		<input class="cbi-button cbi-button-reset" type="reset" onClick=quitx() value="<%:Guide Quit%>" style="float: left"/>
+
+<% elseif step == 3 then %>
+		<br />
+		<%:guide_end_desc The guide is now OK. Please click button "apply" to apply or Click button "quit" to quit %>
+		<br />
+		<br />
+		<br />
+		<input type="hidden" name="step" value="4" />
+		<input type="hidden" id="guide_quit" name="quit" value="0" />
+
+		<input class="cbi-button cbi-button-apply" type="submit" value="<%:guide_apply Apply%>" style="float: right"/>
+		<input class="cbi-button cbi-button-reset" type="reset" onClick=quitx() value="<%:guide_quit Quit%>" style="float: left"/>
+
+<% elseif step == 4 then %>
+		<br />
+		<br />
+		<%:guide_ok_desc Everything is OK, Just enjoy it. System is now jumping to main page..... %>
+		<br />
+		<br />
+		<script type="text/javascript">setTimeout("location='<%=controller%>/admin/system/system/'", 1000)</script>
+		
+<% end	 %>	
+	
+	</fieldset>
+	<br />	
+	</div>
+	<script type="text/javascript">cbi_d_update();</script>
+
+</form>
+
+
+
+<%+footer%>
+
+

@@ -1,0 +1,8 @@
+#!/bin/sh 
+
+[ -n "${IPKG_INSTROOT}" ] || {
+	( . /etc/uci-defaults/luci-ipid ) && rm -f /etc/uci-defaults/luci-ipid
+	chmod 755 /etc/init.d/ipid  >/dev/null 2>&1
+/etc/init.d/ipid enable  >/dev/null 2>&1	
+	exit 0
+}

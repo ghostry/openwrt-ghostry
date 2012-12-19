@@ -1,0 +1,18 @@
+Source-Makefile: feeds/packages/lang/pyusb/Makefile
+Package: pyusb
+Submenu: Python
+Version: 0.4.2-1
+Depends: +python-mini +libusb
+Provides: 
+Build-Depends: python
+Section: lang
+Category: Languages
+Title: pyusb
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: pyusb-0.4.2.tar.gz
+Type: ipkg
+Description:   usb port python bindings
+http://pyusb.sourceforge.net
+@@
+
+

@@ -1,0 +1,24 @@
+--- a/device-common.c
++++ b/device-common.c
+@@ -47,20 +47,13 @@
+ 		return (-1);
+ 	}
+ 
+-	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_MULTICAST))
++	if (! iface->UnicastOnly && !iface->ClientList && !(ifr.ifr_flags & IFF_MULTICAST))
+ 	{
+ 		flog(LOG_WARNING, "interface %s does not support multicast",
+ 			iface->Name);
+ 		flog(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
+ 	}
+ 
+-	if (! iface->UnicastOnly && !(ifr.ifr_flags & IFF_BROADCAST))
+-	{
+-		flog(LOG_WARNING, "interface %s does not support broadcast",
+-			iface->Name);
+-		flog(LOG_WARNING, "   do you need to add the UnicastOnly flag?");
+-	}
+-
+ 	return 0;
+ }
+ 

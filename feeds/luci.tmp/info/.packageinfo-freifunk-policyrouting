@@ -1,0 +1,16 @@
+Source-Makefile: feeds/luci/freifunk-policyrouting/Makefile
+Package: freifunk-policyrouting
+Submenu: 9. Freifunk
+Version: 1
+Depends: +firewall +ip
+Provides: 
+Section: luci
+Category: LuCI
+Title: Freifunk policy routing addon
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:   Allows you to send your own traffic via your own default gateway while sending traffic received from the mesh to a gateway in the mesh.
+@@
+
+

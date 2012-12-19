@@ -1,0 +1,18 @@
+Source-Makefile: feeds/luci/iwinfo/Makefile
+Package: libiwinfo
+Submenu: 8. Libraries
+Default: PACKAGE_luci-lib-sys
+Version: 16
+Depends: +PACKAGE_kmod-mac80211:libnl-tiny +liblua +lua
+Provides: 
+Section: luci
+Category: LuCI
+Title: Generalized Wireless Information Library (iwinfo)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:   Wireless information library with consistent interface for proprietary Broadcom,
+  madwifi, nl80211 and wext driver interfaces.
+@@
+
+

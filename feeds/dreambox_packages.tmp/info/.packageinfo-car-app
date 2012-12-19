@@ -1,0 +1,15 @@
+Source-Makefile: feeds/dreambox_packages/car-app/Makefile
+Package: car-app
+Version: 1.0-1
+Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: WiFi-Car Server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: 	Servers for wifi-car
+@@
+
+

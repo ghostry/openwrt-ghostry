@@ -1,0 +1,86 @@
+Source-Makefile: feeds/packages/net/ntpd/Makefile
+Package: ntpd
+Submenu: Time Synchronization
+Version: 4.2.6p3-1
+Depends: 
+Provides: 
+Build-Variant: nossl
+Build-Depends: libelf libtool libintl libiconv
+Section: net
+Category: Network
+Title: ISC ntp server
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: ntp-4.2.6p3.tar.gz
+Type: ipkg
+Description:  The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/montior local NTP
+ servers.
+ .
+ This package contains the ntpd server.
+http://www.ntp.org/
+@@
+
+Package: ntpd-ssl
+Submenu: Time Synchronization
+Version: 4.2.6p3-1
+Depends: +libopenssl
+Provides: 
+Build-Variant: ssl
+Build-Depends: libelf libtool libintl libiconv
+Section: net
+Category: Network
+Title: ISC ntp server (with OpenSSL support)
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: ntp-4.2.6p3.tar.gz
+Type: ipkg
+Description:  The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/montior local NTP
+ servers.
+ .
+ This package contains the ntpd server with OpenSSL support.
+http://www.ntp.org/
+@@
+
+Package: ntpdate
+Submenu: Time Synchronization
+Version: 4.2.6p3-1
+Depends: 
+Provides: 
+Build-Variant: nossl
+Build-Depends: libelf libtool libintl libiconv
+Section: net
+Category: Network
+Title: ISC ntp date
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: ntp-4.2.6p3.tar.gz
+Type: ipkg
+Description:  The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/montior local NTP
+ servers.
+ .
+ This package contains ntpdate.
+http://www.ntp.org/
+@@
+
+Package: ntp-utils
+Submenu: Time Synchronization
+Version: 4.2.6p3-1
+Depends: +libncurses
+Provides: 
+Build-Variant: nossl
+Build-Depends: libelf libtool libintl libiconv
+Section: net
+Category: Network
+Title: ISC ntp utilities
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: ntp-4.2.6p3.tar.gz
+Type: ipkg
+Description:  The ISC ntp suite is a collection of tools used to synchronize the
+ system clock with remote NTP time servers and run/montior local NTP
+ servers.
+ .
+ This package contains ntpdc and ntpq.
+http://www.ntp.org/
+@@
+
+

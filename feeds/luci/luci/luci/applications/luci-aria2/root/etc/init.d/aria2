@@ -1,0 +1,106 @@
+#!/bin/sh /etc/rc.common
+# RA MOD
+START=99
+aria2_config() {
+
+	cfg="$1"
+	
+	config_get enable "$cfg" enable 0
+
+	[ "$enable" -eq 0 ] && stop && exit 0
+
+	config_get device "$cfg" device
+
+	[ ! -d "$device" ] && exit 1
+
+	config_get download_folder "$cfg" download_folder Downloads
+	config_get diskcache "$cfg" diskcache '1M'
+	config_get fileallocation "$cfg" fileallocation 'trunc'
+	config_get download_limit "$cfg" download_limit 0
+	config_get upload_limit "$cfg" upload_limit 0
+	config_get btmaxpeers "$cfg" btmaxpeers 25
+	config_get maxjobs "$cfg" maxjobs 5
+	config_get maxthread "$cfg" maxthread 5
+	config_get tcp_port "$cfg" tcp_port 51413
+	config_get udp_port "$cfg" udp_port 51413
+	config_get seedtime "$cfg" seedtime 525600
+	config_get rpc_user "$cfg" rpc_user ""
+	config_get rpc_passwd "$cfg" rpc_passwd ""
+
+	local misc
+
+	aria2_conf_path="$device/.aria2"
+	aria2_downloadlist="$aria2_conf_path/aria2file.txt"
+	aria2_DHT="$aria2_conf_path/dht.dat"
+	aria2_downloadfolder="$device/$download_folder"
+
+	[ ! -d "$aria2_conf_path" ] && mkdir -p "$aria2_conf_path"
+	[ ! -f "$aria2_downloadlist" ] && touch "$aria2_downloadlist"
+	[ ! -f "$aria2_DHT" ] && touch "$aria2_DHT"
+
+	[ -f "/rom/etc/aria2/aria2.conf" ] && aria2_configfile="/rom/etc/aria2/aria2.conf"
+	[ -f "/etc/aria2/aria2.conf" ] && aria2_configfile="/etc/aria2/aria2.conf"
+	[ ! -f "$aria2_configfile" ] && {
+		aria2_configfile="/etc/aria2/aria2.conf"
+		cat > "$aria2_configfile" << EOF
+# General Setting
+#
+continue
+peer-id-prefix=-TR2610-
+user-agent=Transmission/2.61 (13407)
+event-poll=epoll
+on-download-complete=/etc/aria2/post
+
+# Connection Setting
+#
+disable-ipv6
+check-certificate=false
+min-split-size=5M
+
+# BitTorrent Setting
+#
+enable-dht
+enable-dht6=false
+enable-peer-exchange
+bt-enable-lpd
+bt-seed-unverified
+bt-save-metadata
+bt-hash-check-seed
+bt-remove-unselected-file
+bt-stop-timeout=900
+seed-ratio=0.0
+EOF
+	}
+
+	# Check if previous session not saved and torrents exist then load them to aria2
+	[ -s "$aria2_downloadlist" ] || {
+		[ -d "$aria2_downloadfolder" -a `ls $aria2_downloadfolder/*.torrent | wc -l` -ge 1 ] && {
+			for i in $aria2_downloadfolder/*.torrent
+			do
+				echo "$i" >> "$aria2_downloadlist"
+			done
+			misc="--pause"
+		}
+	}
+
+	aria2c -c -D --enable-rpc --rpc-listen-all=true --rpc-allow-origin-all $misc \
+	--seed-time=$seedtime --conf-path="$aria2_configfile" --dir="$aria2_downloadfolder" \
+	--input-file="$aria2_downloadlist" --save-session="$aria2_downloadlist" --disk-cache="$diskcache" \
+	--dht-file-path="$aria2_DHT" --file-allocation="$fileallocation" --rpc-user=$rpc_user --rpc-passwd=$rpc_passwd \
+	--max-overall-download-limit=$download_limit --max-overall-upload-limit=$upload_limit \
+	--bt-max-peers=$btmaxpeers --split=$maxthread --max-connection-per-server=$maxthread \
+	--max-concurrent-downloads=$maxjobs --listen-port=$tcp_port --dht-listen-port=$udp_port
+}
+
+start() {
+	[ -n "`mount | grep /dev/sda | cut -d " " -f3`" ] && {
+		config_load aria2
+		config_foreach aria2_config aria2
+	}
+}
+
+stop() {
+	# must interrupt it to save session
+	killall -2 aria2c
+	sleep 3	
+}

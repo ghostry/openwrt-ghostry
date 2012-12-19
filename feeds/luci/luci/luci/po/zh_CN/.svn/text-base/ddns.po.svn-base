@@ -1,0 +1,100 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-04-02 13:44+0100\n"
+"PO-Revision-Date: 2011-04-20 22:59+0800\n"
+"Last-Translator: Openwrt <openwrt@openwrt.org>\n"
+"Language-Team: China\n"
+"Language: zh-cn\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Dynamic DNS"
+msgstr "动态DNS"
+
+msgid ""
+"Dynamic DNS allows that your router can be reached with a fixed hostname "
+"while having a dynamically changing IP address."
+msgstr "动态DNS允许路由在动态IP环境下使用固定域名。"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Service"
+msgstr "服务"
+
+msgid "custom"
+msgstr "自定义"
+
+msgid "Custom update-URL"
+msgstr "更新的URL"
+
+msgid "Hostname"
+msgstr "域名"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Source of IP address"
+msgstr "IP地址来源"
+
+msgid "network"
+msgstr "网络"
+
+msgid "interface"
+msgstr "接口"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "Network"
+msgstr "网络"
+
+msgid "Interface"
+msgstr "接口"
+
+msgid "Check for changed IP every"
+msgstr "检测IP变化的时间间隔"
+
+msgid "Check-time unit"
+msgstr "时间单位"
+
+# Minutes (not minimum)
+msgid "min"
+msgstr "分钟"
+
+# Hours
+msgid "h"
+msgstr "小时"
+
+msgid "Force update every"
+msgstr "强制更新"
+
+msgid "Force-time unit"
+msgstr "时间单位"
+
+#~ msgid "interval minute"
+#~ msgstr "间隔时间，单位分钟，0关闭"
+
+msgid "ddns update time"
+msgstr "ddns更新时间"
+
+msgid "ip address"
+msgstr "当前ip地址"
+
+#~ msgid "Intranet"
+#~ msgstr "内网"
+
+#~ msgid "Secondary route setting"
+#~ msgstr "用于二级路由，更新外网的ip地址"
+
+#~ msgid "register url"
+#~ msgstr "注册网址"
+
+#~ msgid "Enable intelvel update"
+#~ msgstr "开启定时更新"

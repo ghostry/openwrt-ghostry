@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/OpenCV/Makefile
+Package: OpenCV
+Version: 2.4.0-1
+Depends: +libjpeg +libpng +libffmpeg +libswscale +libiconv +bzip2 +gtk +gtkmm +gtkperf +BUILD_NLS:libiconv-full
+Provides: 
+Build-Depends: libtool libintl libiconv !BUILD_NLS:libiconv !BUILD_NLS:gettext
+Section: multimedia
+Category: Multimedia
+Title: OpenCV
+Maintainer: lintel <lintel.huang@gmail.com>
+Source: OpenCV-2.4.0.tar.bz2
+Type: ipkg
+Description:  Weechat is fast, light & extensible IRC client.
+http://www.OpenCV.org/
+@@
+
+

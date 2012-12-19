@@ -1,0 +1,6 @@
+#!/bin/sh
+[ -n "${IPKG_INSTROOT}" ] || {
+	( . /etc/uci-defaults/luci-nfsd ) && rm -f /etc/uci-defaults/luci-nfsd
+	/etc/init.d/nfsd enabled || /etc/init.d/nfsd enable
+	exit 0
+}

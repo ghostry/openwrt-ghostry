@@ -1,0 +1,249 @@
+Source-Makefile: feeds/packages/net/xtables-addons/Makefile
+Package: kmod-ipt-compat-xtables
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core 
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: API compatibilty layer netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: API compatibilty layer netfilter module
+@@
+
+Package: iptables-mod-chaos
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-chaos
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: CHAOS iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: CHAOS iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-chaos
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables +kmod-ipt-delude +kmod-ipt-tarpit
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: CHAOS netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: CHAOS netfilter module
+@@
+
+Package: iptables-mod-condition
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-condition
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: Condition iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: Condition iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-condition
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core 
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: Condition netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: Condition netfilter module
+@@
+
+Package: iptables-mod-delude
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-delude
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: DELUDE iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: DELUDE iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-delude
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: DELUDE netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: DELUDE netfilter module
+@@
+
+Package: iptables-mod-tarpit
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-tarpit
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: TARPIT iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: TARPIT iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-tarpit
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: TARPIT netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: TARPIT netfilter module
+@@
+
+Package: iptables-mod-geoip
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-geoip
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: GEOIP iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: GEOIP iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-geoip
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: GEOIP netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: GEOIP netfilter module
+@@
+
+Package: iptables-mod-ipp2p
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-ipp2p
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: IPP2P iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: IPP2P iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-ipp2p
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: IPP2P netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: IPP2P netfilter module
+@@
+
+Package: kmod-ipt-rawpost
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: RAWPOST netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: RAWPOST netfilter module
+@@
+
+Package: iptables-mod-rawnat
+Submenu: Firewall
+Version: 1.31-1
+Depends: @!LINUX_2_4 iptables +kmod-ipt-rawnat
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: net
+Category: Network
+Title: RAWNAT iptables extension
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: RAWNAT iptables extension
+http://xtables-addons.sourceforge.net/
+@@
+
+Package: kmod-ipt-rawnat
+Submenu: Netfilter Extensions
+Version: <LINUX_VERSION>+1.31-1
+Depends: @!LINUX_2_4 kmod-ipt-core +kmod-ipt-compat-xtables
+Provides: 
+Build-Depends: iptables libtool libintl libiconv
+Section: kernel
+Category: Kernel modules
+Title: RAWNAT netfilter module
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xtables-addons-1.31.tar.xz
+Type: ipkg
+Description: RAWNAT netfilter module
+@@
+
+

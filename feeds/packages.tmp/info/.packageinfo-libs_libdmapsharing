@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/libs/libdmapsharing/Makefile
+Package: libdmapsharing
+Version: 2.9.12-1
+Depends: +libsoup +mdnsresponder +gstreamer +gst-plugins-base
+Provides: 
+Build-Depends: libtool libintl libiconv !BUILD_NLS:libiconv !BUILD_NLS:gettext
+Section: libs
+Category: Extra packages
+Title: libdmapsharing
+Maintainer: W. Michael Petullo <mike@flyn.org>
+Source: libdmapsharing-2.9.12.tar.gz
+Type: ipkg
+Description: libdmapsharing
+http://www.flyn.org/projects/libdmapsharing/
+@@
+
+

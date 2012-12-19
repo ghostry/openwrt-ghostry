@@ -1,0 +1,32 @@
+
+config 'setting'
+	option 'enable' '0'
+
+config 'conf'
+	option 'stimeout' '10'
+	option 'serverip' '10.0.0.1'
+	option 'clientip' '10.0.0.2-254'
+
+config 'pptpd'
+	option 'mppe' '1'
+	option 'nat' '1'
+	option 'dns' '10.0.0.1 8.8.8.8'
+	option 'name' 'pptp-server'
+	option 'lcp_echo_failure' '3'
+	option 'lcp_echo_interval' '60'
+	option 'mtu' '1482'
+	option 'mru' '1482'
+
+config 'pptpduser'
+	option 'enable' '0'
+	option 'USERNAME' '001'
+	option 'PROVIDER' '*'
+	option 'PASSWORD' '001'
+	option 'IPADDRESS' '*'
+
+config 'pptpduser'
+	option 'enable' '0'
+	option 'USERNAME' '002'
+	option 'PROVIDER' '*'
+	option 'PASSWORD' '002'
+	option 'IPADDRESS' '10.0.0.2'

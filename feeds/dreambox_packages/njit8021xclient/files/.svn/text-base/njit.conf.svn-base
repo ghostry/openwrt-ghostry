@@ -1,0 +1,10 @@
+
+config njit
+	option enabled '0'
+
+config user
+	option enable '0'
+	option username '111'
+	option ifname 'eth0.2'
+	option password 'xxx'
+

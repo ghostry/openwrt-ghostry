@@ -1,0 +1,85 @@
+#
+# Copyright (C) 2006-2008 OpenWrt.org
+#
+# This is free software, licensed under the GNU General Public License v2.
+# See /LICENSE for more information.
+#
+# $Id: Makefile 10884 2008-04-20 11:07:12Z nico $
+
+include $(TOPDIR)/rules.mk
+
+PKG_NAME:=OpenCV
+PKG_VERSION:=2.2.0
+PKG_RELEASE:=1
+
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+
+## stable release
+#PKG_VERSION:=1.0.0
+#PKG_SOURCE_URL:=@SF/OpenCVlibrary
+
+## CVS version (latest) - will have to fix to date (TODO)
+#PKG_SOURCE_PROTO:=cvs
+PKG_SOURCE_URL:=:pserver:OpenCVlibrary.cvs.sourceforge.net:/cvsroot/OpenCVlibrary
+PKG_SOURCE_SUBDIR:=OpenCV
+PKG_SOURCE_VERSION:=2.2.0
+PKG_BUILD_DIR:=$(BUILD_DIR)/OpenCV-2.2.0
+
+PKG_FIXUP = libtool
+
+include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
+include $(INCLUDE_DIR)/cmake.mk
+
+TARGET_LDFLAGS += \
+	-L$(ICONV_PREFIX)/lib \
+	-Wl,-rpath-link,$(STAGING_DIR)/usr/lib
+
+TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include
+
+define Package/OpenCV
+  SECTION:=multimedia
+  CATEGORY:=Multimedia
+  DEPENDS:=+libjpeg +libpng +libffmpeg +libswscale +libiconv +bzip2 $(ICONV_DEPENDS)
+  MAINTAINER:=Bruno Randolf <bruno@thinktube.com>
+  TITLE:=OpenCV
+endef
+
+define Package/OpenCV/description
+ OpenCV (Open Source Computer Vision) is a library of programming functions
+ mainly aimed at real time computer vision.
+endef
+
+
+define Build/Compile
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		DESTDIR="$(PKG_INSTALL_DIR)" \
+		all install
+endef
+
+define Build/InstallDev
+	mkdir -p $(1)/usr/include
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/OpenCV $(1)/usr/include/
+	mkdir -p $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/*.{a,so*} $(1)/usr/lib/
+endef
+
+CMAKE_OPTIONS+= \
+	-DCMAKE_STRIP=ON \
+	-DCMAKE_INSTALL_PREFIX=$(STAGING_DIR)/usr \
+	-BZIP2_LIBRARIES=$(STAGING_DIR)/usr/lib \
+# 	--enable-static \
+	-DHAVE_CUDA=OFF \
+	-DBUILD_TESTS=OFF \
+	-ZLIB_INCLUDE_DIR=$(STAGING_DIR)/usr/include \
+	-ZLIB_LIBRARY=$(STAGING_DIR)/usr/lib \
+	-DWITH_QT=ON \
+	-WITH_QT_OPENGL=OFF \
+	
+
+define Package/OpenCV/install
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/lib*.so.* $(1)/usr/lib/
+endef
+
+$(eval $(call BuildPackage,OpenCV))

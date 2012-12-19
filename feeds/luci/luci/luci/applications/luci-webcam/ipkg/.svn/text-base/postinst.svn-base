@@ -1,0 +1,6 @@
+#!/bin/sh
+/etc/init.d/mjpg-streamer enable
+/etc/init.d/mjpg-streamer start
+cp /usr/lib/lua/luci/i18n/webcam.zh-cn.lmo /usr/lib/lua/luci/i18n/webcam.cn.lmo
+rm /var/luci-indexcache >/dev/null 2>&1
+echo '[sutuo] qq:270204069 '

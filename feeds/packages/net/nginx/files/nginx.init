@@ -1,0 +1,27 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2009-2012 OpenWrt.org
+
+START=50
+NGINX_BIN=/usr/sbin/nginx
+
+
+start() {
+	mkdir -p /var/log/nginx
+	mkdir -p /var/lib/nginx
+	/usr/bin/spawn-fcgi -a 127.0.0.1 -p 9000 -C 2 -f /usr/bin/php-cgi
+	$NGINX_BIN
+}
+
+stop() {
+	$NGINX_BIN -s stop
+	killall -9 php-cgi
+}
+
+reload() {
+	$NGINX_BIN -s reload
+}
+
+shutdown() {
+	$NGINX_BIN -s quit
+}
+

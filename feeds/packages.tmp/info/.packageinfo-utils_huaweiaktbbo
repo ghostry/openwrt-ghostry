@@ -1,0 +1,15 @@
+Source-Makefile: feeds/packages/utils/huaweiaktbbo/Makefile
+Package: huaweiaktbbo
+Version: 1
+Depends: +libusb +kmod-usb-serial +kmod-usb-serial-option +kmod-usb-acm +usb-modeswitch +usb-modeswitch-data
+Provides: 
+Section: utils
+Category: Utilities
+Title: Huawei E156/E169/E220 activation tool
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: Huawei E156/E169/E220 activation tool
+@@
+
+

@@ -1,0 +1,14 @@
+#!/bin/sh 
+
+uci -q batch <<-EOF >/dev/null
+          delete ucitrack.@transmission[-1]
+          add ucitrack transmission
+          set ucitrack.@transmission[-1].init=transmission
+          delete ucitrack.@trextra[-1]
+          add ucitrack trextra
+          set ucitrack.@trextra[-1].init=trextra
+          commit ucitrack
+EOF
+
+rm -f /tmp/luci-indexcache
+exit 0

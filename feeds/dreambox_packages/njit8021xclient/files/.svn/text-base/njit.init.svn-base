@@ -1,0 +1,38 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2012 OpenWrt.org.cn 
+# Copyright (C) 2012 <feixiang>feixiang@openwrt.org.cn
+
+START=82
+
+logfile=/tmp/njit
+
+njit_config() {
+
+local username password ifname enable
+
+	config_get enable  "$1" 'enable' 0
+	[ "$enable" == "0" ]&& return 0
+	config_get username "$1" username
+	config_get password "$1" password
+	config_get ifname "$1" ifname
+
+ njit-client $username $password $ifname&
+
+}
+
+start()
+{
+
+enabled=$(uci get njit.@njit[0].enabled)
+[ "$enabled" == 1 ]&&{
+
+		config_load njit
+		config_foreach njit_config user
+
+}
+}
+stop()
+{
+kill njit-client
+echo "stop"
+}

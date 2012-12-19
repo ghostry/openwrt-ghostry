@@ -1,0 +1,112 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-10 03:40+0200\n"
+"PO-Revision-Date: 2011-04-22 01:15-0800\n"
+"Last-Translator: Our Teammates\n"
+"Language-Team: QQ Group 75543259 <axishero@foxmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Translate Toolkit 1.1.1\n"
+
+msgid "PPTP VPN Server"
+msgstr"PPTP VPN服务器"
+
+msgid "This is PPTP VPN Server ."
+msgstr"这是一个PPTP VPN服务器，在Windows下集成VPN客户端,不用安装客户端软件,使用非常方便 "
+
+msgid "setting"
+msgstr"设置"
+
+msgid "Enable or Disable VPN Server."
+msgstr"启用或关闭VPN服务器"
+
+msgid "stimeout"
+msgstr"连接超时时间"
+
+msgid "Server IP"
+msgstr"服务器ip"
+
+msgid "VPN Server IP addr. ; default: 10.0.0.1"
+msgstr"服务器ip 默认10.0.0.1"
+
+msgid "Client ip"
+msgstr "客户端IP"
+
+msgid "VPN Client IP addr.; default: 10.0.0.2-254"
+msgstr"VPN客户端IP地址.   默认: 10.0.0.2-254 "
+
+msgid "DNS"
+msgstr"客户端DNS"
+
+msgid "DNS IP addr.; default: 8.8.8.8"
+msgstr"DNS服务器IP地址.    默认: 8.8.8.8"
+
+msgid "MPPE Encryption"
+msgstr "MPPE加密"
+
+msgid "Enable or Disable  MPPE Encryption."
+msgstr"启用或关闭VPN MPPE加密功能"
+
+msgid "NAT Forward"
+msgstr"NAT转发"
+
+msgid "Enable or Disable  NAT Forward."
+msgstr" 打开或关闭VPN服务器NAT转发功能，使客户端能通过服务器访问外网"
+
+msgid "mtu"
+msgstr"MTU"
+
+msgid "mtu; default: 1482"
+msgstr"MTU 默认1482"
+
+msgid "mru"
+msgstr"MRU"
+
+msgid "mru; default: 1482"
+msgstr"MRU 默认：1482"
+
+msgid "name"
+msgstr"服务器名字"
+
+msgid "ppptpd name.; default: pptp-server"
+msgstr"ppptpd 服务器名字 默认pptp-server"
+
+msgid "lcp_echo_failure"
+msgstr""
+
+msgid "lcp_echo_failure.; default: 3"
+msgstr""
+
+msgid "lcp_echo_interval"
+msgstr""
+
+msgid "lcp_echo_interval.; default: 60"
+msgstr""
+
+msgid "enable"
+msgstr""
+
+msgid "USERNAME"
+msgstr"用户名"
+
+msgid "PROVIDER"
+msgstr"服务商"
+
+msgid "PROVIDER;default: *"
+msgstr"PROVIDER；默认*"
+
+msgid "PASSWORD"
+msgstr"密码"
+
+msgid "IPADDRESS"
+msgstr"ip地址"
+
+msgid "IPADDRESS; default: *"
+msgstr"ip地址; default: *"
+
+msgid "<br /><a href=\"http://hi.baidu.com/f_fx/blog/category/Linux%20Openwrt\" target=\"_blank\">sutuo&#39;s blog</a>"
+msgstr""
+

@@ -1,0 +1,10 @@
+#!/bin/sh 
+
+uci -q batch <<-EOF >/dev/null
+          delete ucitrack.@pppoeserver[-1]
+          add ucitrack pppoeserver
+          set ucitrack.@pppoeserver[-1].init=pppoeserver  
+          commit ucitrack
+EOF
+rm -f /tmp/luci-indexcahe
+exit 0

@@ -1,0 +1,83 @@
+10
+
+dir
+560
+svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/Xorg
+svn://svn.openwrt.org.cn/dreambox
+
+
+
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+xserver
+dir
+
+xorg
+dir
+
+app
+dir
+
+wm
+dir
+
+generate.sh
+file
+
+
+
+
+2012-12-19T03:19:39.502308Z
+4ff2ac53b418d9b0f8ad35e8f912ae4b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+911
+
+font
+dir
+
+lib
+dir
+
+driver
+dir
+

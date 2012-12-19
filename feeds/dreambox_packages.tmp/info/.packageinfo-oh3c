@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/oh3c/Makefile
+Package: oh3c
+Submenu: CERNET
+Version: 1.0-1
+Depends: +python-mini
+Provides: 
+Section: net
+Category: Network
+Title: OH3C 802.1X client
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: oh3c-1.0.tar.bz2
+Type: ipkg
+Description:  OH3C 802.1X client  
+http://github.com/nanpuyue/oh3c
+@@
+
+

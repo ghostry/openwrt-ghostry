@@ -1,0 +1,132 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+
+START=60
+BIN=pptpd
+DEFAULT=/etc/default/$BIN
+RUN_D=/var/run
+PID_F=$RUN_D/$BIN.pid
+
+
+. /etc/functions.sh
+
+conf_get_pptpd_conf(){
+
+ config_get option $1 option
+ config_get speed $1 speed 
+ config_get stimeout $1 stimeout
+ config_get clientip $1 clientip 
+ config_get serverip $1 serverip
+
+echo "" >/etc/pptpd.conf
+echo "option  /var/ppp/options.pptpd" >/etc/pptpd.conf
+#echo "speed $speed" >/etc/pptpd.conf
+echo "stimeout $stimeout" >>/etc/pptpd.conf
+echo "localip $serverip" >>/etc/pptpd.conf
+echo "remoteip $clientip" >>/etc/pptpd.conf
+
+iptables -t nat -L |grep -q ${clientip%.*}|| iptables -t nat -A POSTROUTING -s ${clientip%.*}.0/24 -j MASQUERADE
+
+}
+
+conf_get_option_pptpd(){
+
+ config_get mtu  $1 mtu
+ config_get mru  $1 mru 
+ config_get name $1 name
+ config_get lcp_echo_failure $1 lcp_echo_failure
+ config_get lcp_echo_interval $1 lcp_echo_interval
+ config_get mppe $1 mppe
+ config_get nat $1 nat
+ config_get dns $1 dns
+
+	cp /etc/ppp/options.pptpd /var/ppp/options.pptpd	
+	sed -i "s/|name|/$name/g" /var/ppp/options.pptpd	
+	sed -i "s/|mtu|/$mtu/g" /var/ppp/options.pptpd
+	sed -i "s/|mru|/$mru/g" /var/ppp/options.pptpd
+	sed -i "s/|lcp-echo-failure|/$lcp_echo_failure/g" /var/ppp/options.pptpd
+	sed -i "s/|lcp-echo-interval|/$lcp_echo_interval/g" /var/ppp/options.pptpd
+	[ "$mppe" == "1" ]&&echo "mppe required,no40,no56,stateless" >>/var/ppp/options.pptpd
+	[ "$nat" == "1" ]&& [ ! $(uci show firewall|grep firewall.@defaults|grep .forward=ACCEPT) ] && {
+	 	 uci set firewall.@defaults[0].output=ACCEPT
+		  uci set firewall.@defaults[0].forward=ACCEPT
+		  uci commit firewall
+		  /etc/init.d/firewall restart
+		}
+for ppptpddns in $dns ;do
+echo "ms-dns $ppptpddns" >>/var/ppp/options.pptpd
+done
+
+}
+
+conf_get_pptpduser(){
+ config_get enable $1 enable
+ config_get USERNAME  $1 USERNAME
+ config_get PROVIDER  $1 PROVIDER   
+ config_get PASSWORD  $1 PASSWORD
+ config_get IPADDRESS $1 IPADDRESS
+[ "$PROVIDER" == "all" ]&&PROVIDER=*
+[ "$IPADDRESS" == "all" ]&&IPADDRESS=*
+[ "$enable" == "1" ]&& echo "$USERNAME  $PROVIDER  $PASSWORD  $IPADDRESS" >> /etc/ppp/chap-secrets
+
+}
+
+add_firewall(){
+lanip=$(uci get network.lan.ipaddr)
+	iptables  -L zone_wan -v |grep -q 1723||{
+	iptables -A zone_wan -p tcp -m tcp --dport 1723 -j ACCEPT 
+	iptables -A zone_wan -p tcp --dport 47 -j ACCEPT
+	iptables -A zone_wan -p gre -j ACCEPT
+	}
+
+	[ ! $(uci show firewall|grep  _name=pptpvpn) ] && {
+	  node=$(uci add firewall rule)
+	  uci set firewall.$node._name=pptpvpn
+	  uci set firewall.$node.src=wan
+	  uci set firewall.$node.proto=tcpudp
+	  uci set firewall.$node.dest_port=1723
+	  uci set firewall.$node.target=ACCEPT
+	  uci commit firewall
+	}
+}
+
+conf_get_setting(){
+
+ unset enable
+ config_get enable $1 enable
+if [ "$enable" == "1" ] ;then
+mkdir -p /var/ppp
+echo "#USERNAME  PROVIDER  PASSWORD  IPADDRESS" > /etc/ppp/chap-secrets
+config_foreach conf_get_pptpd_conf conf
+config_foreach conf_get_option_pptpd pptpd
+config_foreach conf_get_pptpduser pptpduser
+add_firewall
+else 
+exit 0
+fi
+
+}
+
+
+config_load pptpd
+
+start() {
+
+
+	config_foreach conf_get_setting setting
+
+
+	[ -f $DEFAULT ] && . $DEFAULT
+	mkdir -p $RUN_D
+	for m in arc4 sha1 slhc crc-ccitt ppp_generic ppp_async ppp_mppe_mppc; do
+		insmod $m >/dev/null 2>&1
+	done
+	$BIN $OPTIONS
+}
+
+stop() {
+	[ -f $PID_F ] && kill $(cat $PID_F)
+}
+
+
+

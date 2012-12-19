@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+WAN_INTERFACE=$(echo ${INTERFACE} |grep -c wan)
+
+if [ "$WAN_INTERFACE" -ge "1" ] && [ "$ACTION" = "ifup" ]
+then
+sh /usr/lib/ddns/dynamic_dns_updater.sh ifup
+
+fi
+
+

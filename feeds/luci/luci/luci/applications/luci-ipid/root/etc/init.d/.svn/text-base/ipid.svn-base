@@ -1,0 +1,57 @@
+#!/bin/sh /etc/rc.common
+
+START=95
+
+
+
+
+ipid_ttl_get(){
+
+ config_get ipid_pace $1 ipid_pace 0
+ config_get ttl_enable $1 ttl_enable 0
+ config_get ttl_set $1 ttl_set
+ config_get ttl_inc $1 ttl_inc
+mkdir -p /var/ipid
+WAN_LIST=$(uci show -P /var/state/ nwan |grep gateway= |cut -d"." -f2 | cut -d"." -f1) 
+for INTERFACE in $WAN_LIST; do
+ifname=$(uci get -p /var/state network.${INTERFACE}.ifname)
+[ "$ipid_pace" == "1" ]&&{
+sh /var/ipid/${INTERFACE}.ipid
+iptables -t mangle -A POSTROUTING -o $ifname -j IPID --ipid-pace 1
+echo "iptables -t mangle -D POSTROUTING -o $ifname -j IPID --ipid-pace 1" > /var/ipid/${INTERFACE}.ipid
+}
+[ "$ttl_enable" == "1" ]&&{
+sh /var/ipid/${INTERFACE}.ttl.inc
+iptables -t mangle -A PREROUTING -i $ifname -j TTL --ttl-inc $ttl_inc
+echo "iptables -t mangle -D PREROUTING -i $ifname -j TTL --ttl-inc $ttl_inc" > /var/ipid/${INTERFACE}.ttl.inc
+sh /var/ipid/${INTERFACE}.ttl.set
+iptables -t mangle -A POSTROUTING -o $ifname -j TTL --ttl-set $ttl_set
+echo "iptables -t mangle -D POSTROUTING -o $ifname -j TTL --ttl-set $ttl_set" > /var/ipid/${INTERFACE}.ttl.set
+}
+
+done
+
+}
+
+
+
+start(){
+
+  config_load ipid
+  config_foreach ipid_ttl_get ipid_ttl  >/dev/null 2>&1
+
+}
+
+stop(){
+
+WAN_LIST=$(uci show -P /var/state/ nwan |grep gateway= |cut -d"." -f2 | cut -d"." -f1) 
+for INTERFACE in $WAN_LIST; do
+ifname=$(uci get -p /var/state network.${INTERFACE}.ifname)
+sh /var/ipid/${INTERFACE}.ipid >/dev/null 2>&1
+sh /var/ipid/${INTERFACE}.ttl.inc >/dev/null 2>&1
+sh /var/ipid/${INTERFACE}.ttl.set >/dev/null 2>&1
+done
+}
+
+
+

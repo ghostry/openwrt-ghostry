@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/Xorg/xorg/app/xrandr/Makefile
+Package: xrandr
+Submenu: app
+Version: 1.3.2-1
+Depends: +libX11 +libXrandr +libXrender +libX11
+Provides: 
+Section: xorg-app
+Category: Xorg
+Title: xrandr
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: xrandr-1.3.2.tar.bz2
+Type: ipkg
+Description: xrandr
+http://xorg.freedesktop.org/
+@@
+
+

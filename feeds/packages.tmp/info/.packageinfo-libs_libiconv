@@ -1,0 +1,16 @@
+Source-Makefile: feeds/packages/libs/libiconv/Makefile
+Package: libiconv
+Version: 5
+Depends: 
+Provides: 
+Build-Types: host
+Section: libs
+Category: Libraries
+Title: Tiny drop-in replacement for the GNU Character set conversion library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: Tiny drop-in replacement for the GNU Character set conversion library
+@@
+
+

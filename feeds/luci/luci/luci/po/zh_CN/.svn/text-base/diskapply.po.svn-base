@@ -1,0 +1,657 @@
+#  usbapply
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: feixiang <flyzjhz@gmail.com>\n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(default = false) Run a script at torrent completion."
+msgstr "默认关闭 ，运行一个脚本，当种子下载完成"
+
+msgid ""
+"(default = false) When true. Transmission will only seed seed_queue_size "
+"non_stalled torrents at once."
+msgstr "默认关闭，当开启后，Transmission需要填写做种子的数量"
+
+msgid ""
+"(default = true) When true, torrents that have not shared data for "
+"queue_stalled_minutes are treated as 'stalled' and are not counted against "
+"the queue_download_size and seed_queue_size limits."
+msgstr "默认开启，当开启，"
+
+msgid "/dev/md0"
+msgstr ""
+
+msgid "/dev/md1"
+msgstr ""
+
+msgid "/dev/md2"
+msgstr ""
+
+msgid "/dev/md3"
+msgstr ""
+
+msgid "/dev/md4"
+msgstr ""
+
+msgid "2"
+msgstr ""
+
+msgid "3"
+msgstr ""
+
+msgid "4"
+msgstr ""
+
+msgid "<a target=\"_blank\" href='http://"
+msgstr ""
+
+msgid "Cache Size in mb"
+msgstr "缓存大小MB"
+
+msgid "Device"
+msgstr ""
+
+msgid "Device1"
+msgstr ""
+
+msgid "Device2"
+msgstr ""
+
+msgid "Device3"
+msgstr ""
+
+msgid "Device4"
+msgstr ""
+
+msgid "Directory"
+msgstr ""
+
+msgid "Downloading Cache Size in mb"
+msgstr "下载用缓存大小 MB"
+
+msgid "Edit Script"
+msgstr ""
+
+msgid "Edit transmission.script."
+msgstr ""
+
+# vsftpd
+msgid "Enable"
+msgstr "开启"
+
+msgid "Enable FTP Serve"
+msgstr "打开/关闭 FTP 服务器"
+
+msgid "FTP server for UNIX-like systems"
+msgstr "FTP 服务器"
+
+msgid "File"
+msgstr ""
+
+msgid "Filesystem"
+msgstr ""
+
+msgid "General Settings"
+msgstr ""
+
+msgid "Key words"
+msgstr ""
+
+msgid "Key words Help"
+msgstr ""
+
+msgid "Mkdir"
+msgstr "建立目录"
+
+msgid "Number (default = 10) See seed_queue_enabled."
+msgstr "填写数字。默认10 "
+
+msgid "Number (default = 30) See queue_stalled_enabled."
+msgstr "做种检测时间 单位分钟，默认 30."
+
+msgid "Number (default = 5) See download_queue_enabled."
+msgstr "做种数，默认5"
+
+msgid "Open the MLDonkey Web"
+msgstr "点击打开MLDonkey网页管理页面"
+
+msgid "Open the Transmission Web"
+msgstr "点击此链接可打开 Transmission Web 管理界面"
+
+msgid "Other write"
+msgstr "其它权限"
+
+msgid "Probably the most secure and fastest FTP server for UNIX-like systems."
+msgstr ""
+"VSFTPD是一个基于GPL发布的类Unix系统上使用的FTP服务器软件，它的全称是Very "
+"Secure FTP，一个安全、高速、稳定的FTP服务器。服务器开启后，可通过FTP 客户端"
+"（如filezillar、flashfxp等）访问连接路由的的U盘、移动硬盘等存储设备，默认用户"
+"名、密码为“ftp“、“ftp“。"
+
+msgid "RAID"
+msgstr ""
+
+msgid "RAID0"
+msgstr ""
+
+msgid "RAID1"
+msgstr ""
+
+msgid "RAID5"
+msgstr ""
+
+msgid "RAID6"
+msgstr ""
+
+msgid "Rss"
+msgstr ""
+
+msgid "Rss Torrent downloads for PT"
+msgstr ""
+
+msgid "Rssurl"
+msgstr ""
+
+msgid "Rssurl Help"
+msgstr ""
+
+msgid "String Path to script."
+msgstr "运行的脚本的文件"
+
+msgid ""
+"The device file of the memory or partition (<abbr title=\"for example\">e.g."
+"</abbr> <code>/dev/sda1</code>)"
+msgstr ""
+
+msgid ""
+"The filesystem that was used to format the memory (<abbr title=\"for example"
+"\">e.g.</abbr> <samp><abbr title=\"Third Extended Filesystem\">ext3</abbr></"
+"samp>)"
+msgstr ""
+
+msgid "The raiddevice"
+msgstr ""
+
+msgid "The raidtype)"
+msgstr ""
+
+msgid ""
+"Transmission will only download download_queue_size non_stalled torrents at "
+"once."
+msgstr "Transmission 只会下载队列设定的种子数"
+
+msgid "Transmission_enable"
+msgstr "启用Transmission 脱机下载"
+
+msgid "Transmission_set"
+msgstr "Transmission设置"
+
+msgid "Transmission_title"
+msgstr "脱机下载-Transmission "
+
+msgid "Transmission_title_desc"
+msgstr ""
+"Transmission是一个轻量级、界面友好、适合嵌入式设备的bt脱机下载工具，启用前必"
+"需插入U盘或者移动硬盘，并且已经挂载好相应的分区。强烈建议脱机存储设备采用"
+"<abbr title=\"Third Extended Filesystem\">ext3</abbr>文件格式，并限速800KB/s"
+"以下，以免系统不堪重负而当机"
+
+msgid "Upload"
+msgstr "上传文件"
+
+msgid "Write"
+msgstr "可写"
+
+msgid "allowed_ips"
+msgstr "允许ip范围"
+
+#, fuzzy
+msgid "allowed_ips_desc"
+msgstr "此为放置下载文件的目录路径，一般情况下使用默认即可"
+
+msgid "anon_mkdir_write_enable"
+msgstr "允许用户建立目录 "
+
+msgid "anon_other_write_enable"
+msgstr "允许用户具有建立目录，上传之外的权限，如重命名，删除等 "
+
+msgid "anon_upload_enable"
+msgstr "允许用户上传文件"
+
+msgid "anonymous_enable"
+msgstr "其它权限"
+
+msgid "check_interval"
+msgstr ""
+
+msgid "check_interval 0=off"
+msgstr ""
+
+# transmission.po
+msgid "config_dir"
+msgstr "配置目录"
+
+msgid "config_dir_desc"
+msgstr "此为放置配置文件的目录路径，一般情况下使用默认即可"
+
+msgid "delete file"
+msgstr ""
+
+msgid "delete file form server"
+msgstr ""
+
+msgid "device num"
+msgstr ""
+
+msgid "device num)"
+msgstr ""
+
+msgid "diskformat"
+msgstr ""
+
+msgid "diskformat is a utility program for diskformat tools."
+msgstr ""
+
+msgid "download_dir"
+msgstr "下载目录"
+
+msgid "download_dir_desc"
+msgstr "此为放置下载文件的目录路径，一般情况下使用默认即可"
+
+msgid "download_queue_enabled"
+msgstr "开启队列下载和做种功能"
+
+msgid "download_queue_size"
+msgstr "最大下载数"
+
+msgid "filebrowser"
+msgstr ""
+
+msgid "gui_port"
+msgstr "gui远程控制端口 "
+
+#, fuzzy
+msgid "gui_port_desc"
+msgstr "远程控制端口、一般默认值9091即可，内网最好做端口映射 "
+
+msgid "http_port"
+msgstr "http远程控制端口 "
+
+#, fuzzy
+msgid "http_port_desc"
+msgstr "远程控制端口、一般默认值9091即可，内网最好做端口映射 "
+
+msgid "mark"
+msgstr ""
+
+msgid "mark help"
+msgstr ""
+
+msgid "max_hard_download_rate"
+msgstr ""
+
+msgid "max_hard_download_rate_2"
+msgstr ""
+
+#, fuzzy
+msgid "max_hard_download_rate_2_desc"
+msgstr "此为放置下载文件的目录路径，一般情况下使用默认即可"
+
+#, fuzzy
+msgid "max_hard_download_rate_desc"
+msgstr "此为放置下载文件的目录路径，一般情况下使用默认即可"
+
+msgid "max_hard_upload_rate"
+msgstr ""
+
+msgid "max_hard_upload_rate_2"
+msgstr ""
+
+msgid "max_hard_upload_rate_2_desc"
+msgstr ""
+
+#, fuzzy
+msgid "max_hard_upload_rate_desc"
+msgstr ""
+"设置你要接收邮件的E-mail邮箱地址，可开启下载完成后通知，和速度低于指定值通"
+"知，速度指定值为0时，关闭速度通知功能"
+
+msgid "max_opened_connections"
+msgstr ""
+
+msgid "max_opened_connections_2"
+msgstr ""
+
+msgid "max_opened_connections_2_desc"
+msgstr ""
+
+#, fuzzy
+msgid "max_opened_connections_desc"
+msgstr "最好不要超过50个"
+
+# mldonkey.po
+msgid "mldonkey_desc"
+msgstr "MLDonkey"
+
+msgid "mldonkey_desc about"
+msgstr ""
+"MLDonkey是一个开源免费、界面友好的多协议p2p客户端工具，支持ED2K、overnet、"
+"kad、BT、HTTP、FTP等协议。启用前您必须挂载好U盘或者移动硬盘，设置正确的下载目"
+"录，U盘或者移动硬盘推荐格式化成EXT3/4格式。另外，需要挂载好swap分区，或者swap"
+"文件，推荐64M以上。注意：第一次开启需较长时间，欲了解更多功能设置，请参考<a "
+"href='http://mldonkey.sourceforge.net/Main_Page'>Main Page</a><br />推荐使用"
+"GUI管理工具 sancho 主页：<a href='http://sancho.awardspace.com/'>http://"
+"sancho.awardspace.com/</a>"
+
+msgid "mldonkey_set"
+msgstr "MLDonkey设置"
+
+msgid "name"
+msgstr "名称"
+
+msgid "name_desc"
+msgstr "填入您自己的名称，由字母和数字组成，系统将为你自动前缀[CHN][VeryCD]"
+
+msgid "password"
+msgstr ""
+
+msgid "peer_limit_global"
+msgstr "全局最大允许下载链接数"
+
+msgid "peer_limit_global_desc"
+msgstr "设置同时与您互连共享的最大连接数目，一般默认值即可"
+
+msgid "peer_limit_per_torrent"
+msgstr "单个下载任务的最大允许连接数"
+
+msgid "peer_limit_per_torrent_desc"
+msgstr "设置单个下载任务的最大连接数目，一般默认值即可"
+
+msgid "peer_port"
+msgstr "下载端口"
+
+msgid "peer_port_desc"
+msgstr "下载端口 一般默认值51413即可，内网最好做端口映射 "
+
+msgid "preallocation"
+msgstr "磁盘预分配"
+
+msgid "preallocation_desc"
+msgstr "0 不分配，1 分配 ，2 完全分配"
+
+msgid "queue_stalled_enabled"
+msgstr "队列下载功能"
+
+msgid "queue_stalled_minutes"
+msgstr "队列检测间隔时间"
+
+msgid "raid is a utility program raid 0 1 5 6 0+1 tools."
+msgstr ""
+
+msgid "raiddevice"
+msgstr ""
+
+msgid "raidtype"
+msgstr ""
+
+msgid "rpc password_desc"
+msgstr "登录控制端口的密码，请按需设置"
+
+msgid "rpc_authentication_required"
+msgstr "启用控制端口登录验证"
+
+msgid "rpc_password"
+msgstr "登录密码"
+
+msgid "rpc_port"
+msgstr "远程控制端口 "
+
+msgid "rpc_port_desc"
+msgstr "远程控制端口、一般默认值9091即可，内网最好做端口映射 "
+
+msgid "rpc_username"
+msgstr "登录用户名"
+
+msgid "rpc_username_desc"
+msgstr "登录控制端口的用户名，请自行设置"
+
+msgid "rpc_whitelist"
+msgstr "白名单"
+
+msgid "rpc_whitelist_desc"
+msgstr "一般默认值127.0.0.1,192.168.*.*即可"
+
+msgid "rpc_whitelist_enabled"
+msgstr "启用白名单"
+
+msgid "script_torrent_done_enabled"
+msgstr "下载完成执行脚本"
+
+msgid "script_torrent_done_filename"
+msgstr "下载完成执行的文件"
+
+msgid "seed_queue_enabled"
+msgstr "开启做种队列"
+
+msgid "seed_queue_size"
+msgstr "做种队列数"
+
+msgid "speed_limit_down"
+msgstr "下载速度限制"
+
+msgid "speed_limit_down_desc"
+msgstr "单位为 KB/s ,根据你的宽带调整"
+
+msgid "speed_limit_down_enabled"
+msgstr "启用下载速率限制"
+
+msgid "speed_limit_up"
+msgstr "上传速率限制"
+
+msgid "speed_limit_up_desc"
+msgstr "单位为 KB/s ,根据你的宽带调整"
+
+msgid "speed_limit_up_enabled"
+msgstr "启用上传速率限制"
+
+#, fuzzy
+msgid "telnet_port"
+msgstr "下载端口"
+
+#, fuzzy
+msgid "telnet_port_desc"
+msgstr "下载端口 一般默认值51413即可，内网最好做端口映射 "
+
+msgid "username"
+msgstr ""
+
+msgid "watch_dir"
+msgstr "监视目录"
+
+msgid "watch_dir_desc"
+msgstr "种子文件监视的目录"
+
+msgid "watch_dir_enabled"
+msgstr "开启监视"
+
+msgid "watch_dir_enabled_desc"
+msgstr "选取，开启种子文件监视，需要内核开启INOTIFY。"
+
+msgid "write_enable"
+msgstr "全局配置可写 "
+
+msgid "xunlei"
+msgstr ""
+
+msgid "xunlei lixian download......."
+msgstr ""
+
+#~ msgid "EPG"
+#~ msgstr "EPG电子节目表"
+
+#~ msgid "Email enable"
+#~ msgstr "开启E-mail通知"
+
+#, fuzzy
+#~ msgid "Enable NFS Serve"
+#~ msgstr "打开/关闭 FTP 服务器"
+
+#, fuzzy
+#~ msgid "NFS server for UNIX-like systems"
+#~ msgstr "FTP 服务器"
+
+#~ msgid "Name"
+#~ msgstr "名字"
+
+#~ msgid "OSCAM"
+#~ msgstr "OSCAM"
+
+#~ msgid "Open the oscam Web"
+#~ msgstr "点击打开OSCAM网页管理,默认端口8899,用户名：oscam，密码oscam"
+
+#  Others
+# oscam.po
+#~ msgid "Others"
+#~ msgstr "其它"
+
+#~ msgid "Path"
+#~ msgstr "路径"
+
+#, fuzzy
+#~ msgid ""
+#~ "Probably the most secure and fastest NFS server for UNIX-like systems."
+#~ msgstr ""
+#~ "VSFTPD是一个基于GPL发布的类Unix系统上使用的FTP服务器软件，它的全称是Very "
+#~ "Secure FTP，一个安全、高速、稳定的FTP服务器。服务器开启后，可通过FTP 客户"
+#~ "端（如filezillar、flashfxp等）访问连接路由的的U盘、移动硬盘等存储设备，默"
+#~ "认用户名、密码为“ftp“、“ftp“。"
+
+#~ msgid "Transmission Extra"
+#~ msgstr "Transmission 附加功能"
+
+#~ msgid "Transmission Extra desc"
+#~ msgstr ""
+#~ "Transmission 附加功能，主要资源来自中文openwrt论坛，和英文openwrt论坛，E-"
+#~ "mail通知请使用能<abbr title=\"SMTP（Simple Mail Transfer Protocol）即简单"
+#~ "邮件传输协议,它是一组用于由源地址到目的地址传送邮件的规则,由它来控制信件的"
+#~ "中转方式\">\"SMTP\"</abbr>发送的邮箱并打开该功能"
+
+# trextra.po
+#~ msgid "Trextra set"
+#~ msgstr "功能增强设置"
+
+#~ msgid "Use Email"
+#~ msgstr "开启当前地址"
+
+#~ msgid "dowload address"
+#~ msgstr "下载epg源地址"
+
+#~ msgid "downaddress"
+#~ msgstr "下载地址"
+
+#~ msgid "email set"
+#~ msgstr "E-mail 通知"
+
+#~ msgid "enable"
+#~ msgstr "开启"
+
+#~ msgid "epg_desc"
+#~ msgstr ""
+#~ "epg电子节目表。在dm500的A版下使用，修改 dm500的epg源地址为：http://路由ip/"
+#~ "atmosphere/epg/epg.xml"
+
+#~ msgid "epg_title"
+#~ msgstr "EPG电子节目表"
+
+#~ msgid "epgset"
+#~ msgstr "EPG设定"
+
+#~ msgid "intelvel queue"
+#~ msgstr "排队间隔时间"
+
+#~ msgid "interval"
+#~ msgstr "间隔时间"
+
+#~ msgid "interval_desc"
+#~ msgstr "定时重启oscam间隔时间 ，单位分钟，设置0关闭"
+
+#~ msgid "low_speed"
+#~ msgstr " 低速报警，单位KB/s"
+
+#~ msgid "oscam desc"
+#~ msgstr ""
+#~ "oscam是可以转发cccam账号的一个软件，你可以在这里进行简单的设定后，让路由转"
+#~ "发你的主账号，让局域网，或者外网的机器共享你的主账号，可能会带来被封掉你主"
+#~ "账号的可能 , 谨慎使用！客户端的使用格式为 “c: 路由ip 设置的cccam端口 用户"
+#~ "名 密码” 。参考主账号"
+
+#~ msgid "queue set"
+#~ msgstr "Tr 队列下载"
+
+#~ msgid "queue_enabled"
+#~ msgstr "开启队列下载功能"
+
+#~ msgid "queue_interval"
+#~ msgstr "排队检查间隔"
+
+#~ msgid "queue_interval_desc"
+#~ msgstr "默认30，单位分钟"
+
+#~ msgid "queue_max_downloadings"
+#~ msgstr "允许同时下载的任务数"
+
+#~ msgid "queue_max_downloadings_desc"
+#~ msgstr "建议5个左右，最好不超过10个"
+
+#~ msgid "queue_max_seedings"
+#~ msgstr "允许同时做种的任务数"
+
+#~ msgid "queue_max_seedings_desc"
+#~ msgstr "最好不要超过50个"
+
+#~ msgid "sattv"
+#~ msgstr "卫星电视"
+
+#, fuzzy
+#~ msgid "set"
+#~ msgstr "EPG设定"
+
+#~ msgid "download"
+#~ msgstr "脱机下载"
+
+#~ msgid "USBapply"
+#~ msgstr "USB应用"
+
+#~ msgid "usbapply"
+#~ msgstr "USB应用"
+
+#~ msgid "sataapply"
+#~ msgstr "sata应用"
+
+#~ msgid "trextra"
+#~ msgstr "Tr增强"
+
+#~ msgid "enable_epg"
+#~ msgstr "开启"
+
+#~ msgid "enable_oscam"
+#~ msgstr "开启"
+
+#~ msgid "serverenable"
+#~ msgstr "开启"
+
+#~ msgid "userenable"
+#~ msgstr "开启"
+
+#~ msgid "local_root setting"
+#~ msgstr "本地root设定"
+
+#~ msgid "vsftpd_local_root"
+#~ msgstr "vsftpd本地root"

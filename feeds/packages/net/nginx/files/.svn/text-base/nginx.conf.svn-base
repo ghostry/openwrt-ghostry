@@ -1,0 +1,30 @@
+
+user nobody nogroup;
+worker_processes  1;
+pid	/var/run/nginx.pid;
+error_log  /var/log/nginx_error.log;
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+    tcp_nodelay        on;
+    
+    gzip  on;
+    gzip_disable "MSIE \[1\-6\]\\.\(\?\!\.\*SV1\)";
+    fastcgi_buffers 8 128k;
+    send_timeout 60;
+    
+    
+    include /etc/nginx/conf.d/*.conf;
+    include /etc/nginx/sites-enabled/*;
+}

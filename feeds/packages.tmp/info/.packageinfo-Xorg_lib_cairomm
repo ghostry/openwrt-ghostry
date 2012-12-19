@@ -1,0 +1,18 @@
+Source-Makefile: feeds/packages/Xorg/lib/cairomm/Makefile
+Package: cairomm
+Submenu: libraries
+Version: 1.8.4-1
+Depends: +libsigcxx +cairo
+Provides: 
+Build-Depends: libtool libintl libiconv
+Section: xorg-libraries
+Category: Xorg
+Title: Multi-platform 2D graphics library
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: cairomm-1.8.4.tar.gz
+Type: ipkg
+Description: c++-bindings for cairo
+http://cairographics.org/cairomm/
+@@
+
+

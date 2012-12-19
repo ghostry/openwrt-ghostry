@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/net/ddns-scripts/Makefile
+Package: ddns-scripts
+Submenu: IP Addresses and Names
+Version: 1.0.0-15
+Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Dynamic DNS Scripts
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: 	A highly configurable set of scripts for doing
+	dynamic dns updates
+@@
+
+

@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/mplayer/Makefile
+Package: mplayer
+Version: 1.0rc3-1
+Depends: 
+Provides: 
+Section: sound
+Category: Sound
+Title: MPlayer
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: MPlayer-1.0rc3.tar.bz2
+Type: ipkg
+Description: MPlayer can play most standard video formats out of the box
+and almost all others with the help of external codecs.
+http://www.mplayerhq.hu/
+@@
+
+

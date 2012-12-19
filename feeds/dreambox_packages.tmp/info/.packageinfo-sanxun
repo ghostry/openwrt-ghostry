@@ -1,0 +1,15 @@
+Source-Makefile: feeds/dreambox_packages/sanxun/Makefile
+Package: sanxun
+Version: 1
+Depends: +ppp
+Provides: 
+Section: net
+Category: Network
+Title: sanxun ppp plugin
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:  sanxun ppp plugin.
+@@
+
+

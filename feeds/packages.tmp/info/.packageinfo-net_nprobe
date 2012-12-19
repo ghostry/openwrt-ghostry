@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/net/nprobe/Makefile
+Package: nprobe
+Version: 4.1-2
+Depends: +libpcap +libpcre +libpthread +NPROBE_MYSQL_SUPPORT:libmysqlclient
+Provides: 
+Build-Depends: libtool libintl libiconv
+Section: utils
+Category: Utilities
+Title: nProbe
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: nProbe-4.1.tgz
+Type: ipkg
+Description: 		nprobe
+http://invisible-island.net/dialog/
+@@
+Config:
+	config NPROBE_MYSQL_SUPPORT
+		depends on PACKAGE_nprobe
+		bool "MySQL support"
+
+@@
+
+

@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/libs/elfutils/Makefile
+Package: libdw
+Version: 0.152-1
+Depends: +BUILD_NLS:libintl-full +USE_UCLIBC:argp-standalone @BROKEN
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:gettext
+Section: libs
+Category: Libraries
+Title: ELF manipulation libraries (libdw)
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: elfutils-0.152.tar.bz2
+Type: ipkg
+Description: ELF manipulation libraries (libdw)
+https://fedorahosted.org/elfutils/
+@@
+
+

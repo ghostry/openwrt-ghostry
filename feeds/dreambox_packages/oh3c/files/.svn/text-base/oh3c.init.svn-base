@@ -1,0 +1,46 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2012 OpenWrt.org.cn 
+# Copyright (C) 2012 <feixiang>feixiang@openwrt.org.cn
+
+START=80
+
+logfile=/tmp/oh3c
+oh3csetup=/usr/share/oh3c
+
+oh3c_config() {
+local username password macaddr ifname enable
+
+	config_get enable  "$1" 'enable' 0
+	[ "$enable" == "0" ]&& return 0
+	config_get username "$1" username
+	config_get password "$1" password
+	config_get ifname "$1" ifname
+	config_get macaddr "$1" macaddr
+
+cat <<EOT >> /etc/oh3c
+[$username]
+password = $password
+device = $ifname
+macaddr = $macaddr
+EOT
+
+
+}
+
+start()
+{
+rm -rf /etc/oh3c
+touch /etc/oh3c
+enabled=$(uci get oh3c.@oh3c[0].enabled)
+[ "$enabled" == 1 ]&&{
+
+		config_load oh3c
+		config_foreach oh3c_config user
+python $oh3csetup/oh3c.py > $logfile &
+}
+}
+stop()
+{
+kill "python $oh3csetup/oh3c.py"
+echo "stop"
+}

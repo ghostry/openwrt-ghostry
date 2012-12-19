@@ -1,0 +1,98 @@
+Source-Makefile: feeds/packages/net/openssh/Makefile
+Package: openssh-client
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libopenssl +zlib +libgcc
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH client
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH client.
+http://www.openssh.com/
+@@
+
+Package: openssh-client-utils
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libopenssl +zlib +libgcc +openssh-client +openssh-keygen
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH client utilities
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH client utilities.
+http://www.openssh.com/
+@@
+
+Package: openssh-keygen
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libopenssl +zlib +libgcc
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH keygen
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH keygen.
+http://www.openssh.com/
+@@
+
+Package: openssh-server
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libopenssl +zlib +libgcc +openssh-keygen
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH server
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH server.
+http://www.openssh.com/
+@@
+
+Package: openssh-sftp-client
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libopenssl +zlib +libgcc
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH SFTP client
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH SFTP client.
+http://www.openssh.com/
+@@
+
+Package: openssh-sftp-server
+Submenu: SSH
+Version: 5.8p2-1
+Depends: +libgcc
+Provides: 
+Build-Depends: libopenssl
+Section: net
+Category: Network
+Title: OpenSSH SFTP server
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: openssh-5.8p2.tar.gz
+Type: ipkg
+Description: OpenSSH SFTP server.
+http://www.openssh.com/
+@@
+
+

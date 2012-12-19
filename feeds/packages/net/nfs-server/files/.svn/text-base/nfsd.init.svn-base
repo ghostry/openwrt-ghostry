@@ -1,0 +1,41 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006 OpenWrt.org
+START=50
+STOP=50
+
+
+nfs_add_share() {
+	local name
+	local path
+	local enable
+
+	config_get name $1 name
+	config_get path $1 path
+	config_get enable $1 enable
+[ $enable == 1 ]&&{
+[ -z "$path" ] && return
+
+echo -e "\n$path (ro,all_squash,insecure)" >> /etc/exports
+}
+}
+
+start() {
+
+nfsenable=$(uci get nfsd.@nfsd[0].enable)
+[ $nfsenable = 1 ]&&{ 
+  echo "" > /etc/exports
+	config_load nfsd
+	config_foreach nfs_add_share nfsshare
+
+  /etc/init.d/portmap restart
+	/usr/sbin/rpc.mountd -r
+	/usr/sbin/rpc.nfsd
+}
+}
+
+stop() {
+	killall rpc.nfsd
+	killall rpc.mountd
+	killall portmap
+}
+

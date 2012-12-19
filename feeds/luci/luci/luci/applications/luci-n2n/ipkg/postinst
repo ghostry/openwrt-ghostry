@@ -1,0 +1,6 @@
+#!/bin/sh
+[ -n "${IPKG_INSTROOT}" ] || {
+	( . /etc/uci-defaults/luci-n2n ) && rm -f /etc/uci-defaults/luci-n2n
+	/etc/init.d/n2n enabled || /etc/init.d/n2n enable
+	exit 0
+}

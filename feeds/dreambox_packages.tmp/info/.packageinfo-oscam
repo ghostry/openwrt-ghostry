@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/oscam/Makefile
+Package: oscam
+Version: svn5339-1
+Depends: +openssl +libopenssl 
+Provides: 
+Section: custom
+Category: Custom packages
+Title: Open Source Conditional Access Module software
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: oscam-svn5339.tar.gz
+Type: ipkg
+Description: 	An Open Source Conditional Access Module software,
+based on the very good MpCS version 0.9d created by dukat.
+http://streamboard.gmc.to/oscam/
+@@
+
+

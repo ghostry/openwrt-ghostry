@@ -1,0 +1,16 @@
+Source-Makefile: feeds/dreambox_packages/cngeoip/Makefile
+Package: cngeoip
+Version: 0.1.0-1
+Depends: +iptables +iptables-mod-filter +kmod-ipt-geoip +iptables-mod-geoip
+Provides: 
+Section: utils
+Category: Base system
+Title: band fair share among PCs
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description:  The geoip database for china, you know what this mean! 
+ you have to patch xtables-addons Makefile to produce xt_geoip ipks. 
+@@
+
+

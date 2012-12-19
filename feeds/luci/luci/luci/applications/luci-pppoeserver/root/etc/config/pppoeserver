@@ -1,0 +1,28 @@
+
+config 'global'
+	option 'enable' '0'
+
+config 'conf'
+	option 'stimeout' '10'
+	option 'timeout' '60'
+	option 'num' '50'
+	option 'lcp_echo_failure' '2'
+	option 'lcp_echo_interval' '10'
+	option 'mtu' '1480'
+	option 'mru' '1480'
+	option 'serverip' '10.0.0.1'
+	option 'clientip' '10.0.0.2'
+
+config 'pppoeuser'
+	option 'USERNAME' '001'
+	option 'PROVIDER' '*'
+	option 'PASSWORD' '001'
+	option 'IPADDRESS' '*'
+	option 'enable' '1'
+
+config 'pppoeuser'
+	option 'USERNAME' '002'
+	option 'PROVIDER' '*'
+	option 'PASSWORD' '002'
+	option 'enable' '1'
+	option 'IPADDRESS' '*'

@@ -1,0 +1,18 @@
+Source-Makefile: feeds/packages/utils/bash/Makefile
+Package: bash
+Version: 4.2-1
+Depends: +libncurses
+Provides: 
+Section: utils
+Category: Utilities
+Title: The GNU Bourne Again SHell
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: bash-4.2.tar.gz
+Type: ipkg
+Description: 	Bash is an sh-compatible command language interpreter that executes 
+	commands read from the standard input or from a file. Bash also 
+	incorporates useful features from the Korn and C shells (ksh and csh).
+http://www.gnu.org/software/bash/
+@@
+
+

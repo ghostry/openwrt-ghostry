@@ -1,0 +1,118 @@
+#!/bin/sh /etc/rc.common
+
+. /etc/functions.sh
+
+START=50
+
+RUN_D=/var/run/vsftpd
+
+
+
+kill_vsftpd()
+{
+local otherpids
+local execute
+otherpids=$(ps -a 2>&1 | grep "/usr/sbin/vsftpd" | grep -v grep | awk -F " " '{print $1}')
+echo "$otherpids" | while read execute
+do
+kill -9 ${execute} 
+done
+}
+
+
+vsftpd() {
+	unset anonymous_enable
+	unset local_enable
+	unset write_enable
+	unset local_umask
+	unset check_shell
+	unset chroot_local_user
+	unset anon_upload_enable
+	unset anon_mkdir_write_enable
+	unset anon_other_write_enable
+		
+	config_get anonymous_enable $1 anonymous_enable
+#config_get local_enable $1 local_enable
+	config_get write_enable $1 write_enable
+	config_get anon_upload_enable $1 anon_upload_enable
+	config_get anon_mkdir_write_enable $1 anon_mkdir_write_enable
+	config_get anon_other_write_enable $1 anon_other_write_enable
+#	config_get check_shell $1 check_shell
+	config_get enable $1 enable
+	
+  [ $enable == "" -o $enable == "0" ]&& enable=0
+  [ $anonymous_enable == "" -o $anonymous_enable == "0" ]&& anonymous_enable=NO
+  [ $write_enable == "" -o $write_enable == "0" ]&& write_enable=NO
+  [ $anon_upload_enable == "" -o $anon_upload_enable == "0"  ]&& anon_upload_enable=NO
+  [ $anon_mkdir_write_enable == "" -o $anon_mkdir_write_enable == "0" ]&& anon_mkdir_write_enable=NO
+  [ $anon_other_write_enable == "" -o $anon_other_write_enable == "0" ]&& anon_other_write_enable=NO
+            
+  
+#	[ -z "$check_shell" ] && check_shell=NO
+#	[ -z "$anonymous_enable" ] && anonymous_enable=NO
+#	[ -z "$write_enable" ] && write_enable=NO
+#	[ -z "$local_enable" ] && local_enable=YES
+#	[ -z "$anon_upload_enable" ] && anon_upload_enable=NO
+#	[ -z "$anon_mkdir_write_enable" ] && anon_mkdir_write_enable=NO
+#	[ -z "$anon_other_write_enable" ] && anon_other_write_enable=NO
+#	[ -z "$local_mask" ] && local_mask=022
+#	[ -z "$chroot_local_user" ] && chroot_local_user=NO
+
+ [ "$anonymous_enable" == "1" ] && anonymous_enable=YES
+
+#	[ "$anonymous_enable" == "0" ] && anonymous_enable=NO	
+
+  [ "$write_enable" == "1" ] && write_enable=YES
+
+	 
+#	[ "$write_enable" == "0" ] && write_enable=NO	
+
+  [ "$anon_upload_enable" == "1" ]&&anon_upload_enable=YES
+
+#	[ "$anon_upload_enable" == "0" ] && anon_upload_enable=NO	
+
+	[ "$anon_mkdir_write_enable" == "1" ] && anon_mkdir_write_enable=YES	
+
+#	[ "$anon_mkdir_write_enable" == "0" ] && anon_mkdir_write_enable=NO	
+
+	[ "$anon_other_write_enable" == "1" ] && anon_other_write_enable=YES
+
+#	[ "$anon_other_write_enable" == "0" ] && anon_other_write_enable=NO	
+
+
+	cp /etc/vsftpd/vsftpd.conf.template /tmp/vsftpd.conf
+	[ -L /etc/vsftpd.conf ] || ln -nsf /tmp/vsftpd.conf /etc/vsftpd.conf
+	sed -i "s/|anonymous_enable|/${anonymous_enable}/g" /tmp/vsftpd.conf
+	sed -i "s/|write_enable|/${write_enable}/g" /tmp/vsftpd.conf
+	sed -i "s/|anon_upload_enable|/${anon_upload_enable}/g" /tmp/vsftpd.conf
+	sed -i "s/|anon_mkdir_write_enable|/${anon_mkdir_write_enable}/g" /tmp/vsftpd.conf
+	sed -i "s/|anon_other_write_enable|/${anon_other_write_enable}/g" /tmp/vsftpd.conf
+#	sed -i "s/|DESCRIPTION|/${description}/g" /tmp/vsftpd.conf
+#	[ "$homes" == "1" ] && {
+#		echo -e "\n[homes]\n\tcomment = Home Directories\n\tbrowseable = no\n\tread only = no\n\tcreate mode = 0750" >> /tmp/smb.conf
+#	}
+
+}
+
+
+start() {
+
+	config_load vsftpd
+	config_foreach vsftpd vsftpd
+#	cp /tmp/vsftpd.conf /etc/vsftpd.conf 
+echo "enable=$enable"
+    if [ "$enable" == "1" ];then  
+   	echo "start vsftpd...."
+	[ -d $RUN_D ] || mkdir -p $RUN_D
+	/usr/sbin/vsftpd                                            
+   fi                                                                  
+}
+
+
+
+stop() {
+	echo "stop vsftpd...."
+kill_vsftpd
+}
+
+

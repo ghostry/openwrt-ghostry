@@ -1,0 +1,6 @@
+#!/bin/sh
+uci delete ucitrack.@epg[-1] >/dev/null 2>&1
+uci delete ucitrack.@oscam[-1] >/dev/null 2>&1
+uci commit ucitrack
+
+

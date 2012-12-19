@@ -1,0 +1,19 @@
+Source-Makefile: feeds/dreambox_packages/njit8021xclient/Makefile
+Package: njit8021xclient
+Submenu: CERNET
+Version: 1.2-1
+Depends: +libpcap +libopenssl +libpthread 
+Provides: 
+Section: net
+Category: Network
+Title: NJIT 802.1X client program
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: njit8021xclient-1.2.tar.gz
+Type: ipkg
+Description:  802.1X client from Nanjing Institude of Technology,
+ compatable with H3C iNode 802.1X client.
+ Support H3C/iNode's private authentication protocol V2.40-V3.60
+http://liuqun.github.com/njit8021xclient
+@@
+
+

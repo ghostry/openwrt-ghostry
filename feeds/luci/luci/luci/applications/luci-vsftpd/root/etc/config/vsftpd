@@ -1,0 +1,12 @@
+
+config 'vsftpd'
+	option 'local_umask' '022'
+	option 'check_shell' '0'
+	option 'local_enable' '1'
+	option 'anonymous_enable' '1'
+	option 'enable' '1'
+	option 'write_enable' '1'
+	option 'anon_upload_enable' '1'
+	option 'anon_mkdir_write_enable' '1'
+	option 'anon_other_write_enable' '1'
+

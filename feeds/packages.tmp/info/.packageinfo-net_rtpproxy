@@ -1,0 +1,17 @@
+Source-Makefile: feeds/packages/net/rtpproxy/Makefile
+Package: rtpproxy
+Submenu: Telephony
+Version: 1.2.1-1
+Depends: +libpthread
+Provides: 
+Section: net
+Category: Network
+Title: RTP (Realtime Transport Protocol) proxy
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: rtpproxy-1.2.1.tar.gz
+Type: ipkg
+Description: RTP (Realtime Transport Protocol) proxy
+http://www.rtpproxy.org/
+@@
+
+

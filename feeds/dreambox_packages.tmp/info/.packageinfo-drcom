@@ -1,0 +1,18 @@
+Source-Makefile: feeds/dreambox_packages/drcom/Makefile
+Package: drcom
+Submenu: CERNET
+Version: 1.4.8.3-1
+Depends: +libpthread
+Provides: 
+Section: net
+Category: Network
+Title: An CERNET client daemon
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: drcom-1.4.8.3.tar.gz
+Type: ipkg
+Description: An CERNET client daemon,
+Most usually used in China collages.
+http://sourceforge.net/projects/drcom-client/
+@@
+
+

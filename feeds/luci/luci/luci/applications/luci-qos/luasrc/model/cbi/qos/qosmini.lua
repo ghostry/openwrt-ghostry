@@ -1,0 +1,81 @@
+--[[
+LuCI - Lua Configuration Interface
+
+Copyright 2008 Steven Barth <steven@midlink.org>
+Copyright 2008 Jo-Philipp Wich <xm@leipzig.freifunk.net>
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+$Id: qosmini.lua 7239 2011-06-25 23:17:54Z jow $
+]]--
+
+local wa = require "luci.tools.webadmin"
+local fs = require "nixio.fs"
+
+m = Map("qos")
+
+s = m:section(NamedSection, "wan", "interface", translate("Internet Connection"))
+
+s:option(Flag, "enabled", translate("Quality of Service"))
+s:option(Value, "download", translate("Downlink"), "kbit/s")
+s:option(Value, "upload", translate("Uplink"), "kbit/s")
+--[[
+s = m:section(TypedSection, "classify")
+s.template = "cbi/tblsection"
+
+s.anonymous = true
+s.addremove = true
+s.sortable  = true
+
+t = s:option(ListValue, "target")
+t:value("Priority", translate("priority"))
+t:value("Express", translate("express"))
+t:value("Normal", translate("normal"))
+t:value("Bulk", translate("low"))
+t.default = "Normal"
+
+srch = s:option(Value, "srchost")
+srch.rmempty = true
+srch:value("", translate("all"))
+wa.cbi_add_knownips(srch)
+
+dsth = s:option(Value, "dsthost")
+dsth.rmempty = true
+dsth:value("", translate("all"))
+wa.cbi_add_knownips(dsth)
+
+l7 = s:option(ListValue, "layer7", translate("Service"))
+l7.rmempty = true
+l7:value("", translate("all"))
+l7:value("", translate("all"))
+l7:value("ssh", translate("ssh"))
+l7:value("http", translate("http"))
+l7:value("hf", translate("hf"))
+l7:value("qq", translate("qq"))
+l7:value("thunder", translate("thunder"))
+l7:value("warcraft3", translate("warcraft3"))
+l7:value("bittorrent", translate("bittorrent"))
+l7:value("pplive", translate("pplive"))
+l7:value("ppstream", translate("ppstream"))
+l7:value("sip", translate("sip"))
+l7:value("rdp", translate("rdp"))
+l7:value("vnc", translate("vnc"))
+
+p = s:option(ListValue, "proto", translate("Protocol"))
+p:value("", translate("all"))
+p:value("tcp", "TCP")
+p:value("udp", "UDP")
+p:value("icmp", "ICMP")
+p.rmempty = true
+
+ports = s:option(Value, "ports", translate("Ports"))
+ports.rmempty = true
+ports:value("", translate("allf", translate("all")))
+
+bytes = s:option(Value, "connbytes", translate("qos_connbytes"))
+]]--
+return m

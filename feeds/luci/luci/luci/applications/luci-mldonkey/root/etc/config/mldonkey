@@ -1,0 +1,15 @@
+config mldonkey
+        option 	enable 0
+        option	name mldonkey_openwrtcn
+        option 	download_dir /mnt/sda1/mldonkey
+ 	option  gui_port  4001
+ 	option  http_port 4080
+ 	option  telnet_port 4000
+ 	option  allowed_ips 0.0.0.0-255.255.255.255
+ 	option  max_hard_upload_rate  20
+ 	option  max_hard_download_rate  300
+ 	option  max_hard_upload_rate_2  200
+ 	option  max_hard_download_rate_2  50
+  	option  max_opened_connections  50
+ 	option  max_opened_connections_2  50
+

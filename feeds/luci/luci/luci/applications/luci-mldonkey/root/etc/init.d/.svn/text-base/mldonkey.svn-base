@@ -1,0 +1,220 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2010 OpenWrt.org.cn
+
+START=99
+
+MLDONKEY_BIN=""
+MLDONKEY_TMP_DIR="/tmp/mldonkey"
+mkdir -p ${MLDONKEY_TMP_DIR}/
+log_debug=0
+
+install_mldonkey() {
+
+mldonkey_down_url="http://openwrt.8800.org:82/mldonkey/mlnet.byte.static.tar.gz"
+md5_mldonkey="383564da35f36a067f9dfa00215cdb6a"
+now_md5_mldonkey="0"
+
+md5_mldonkey_lib="2ca61684bfeb790ee4a3da4bdf37db4c"
+now_md5_mldonkey_lib="0"
+
+md5_mldonkey_gz="d83e0b40b6aafeebd8138bb92c8b98f2"
+now_md5_mldonkey_gz="0"
+
+[ -f ${download_dir}/mlnet.byte.static ] && now_md5_mldonkey=$(md5sum ${download_dir}/mlnet.byte.static|cut -d " " -f1)
+[  $log_debug == 1 ]&&echo "now_md5_mldonkey=$now_md5_mldonkey"
+
+[ -f ${download_dir}/lib/libc.so.6 ] && now_md5_mldonkey_lib=$(md5sum ${download_dir}/lib/libc.so.6|cut -d " " -f1)
+[  $log_debug == 1 ]&&echo "now_md5_mldonkey_lib=$now_md5_mldonkey_lib"
+
+		[  $now_md5_mldonkey != $md5_mldonkey -o $now_md5_mldonkey_lib != $md5_mldonkey_lib ]&&{
+		[  $log_debug == 1 ]&&echo "line 28 download"
+		[ -f ${download_dir}/mlnet.byte.static.tar.gz ]&& now_md5_mldonkey_gz=$(md5sum ${download_dir}/mlnet.byte.static.tar.gz|cut -d " " -f1)
+		[  $log_debug == 1 ]&&echo "now_md5_mldonkey_gz=$now_md5_mldonkey_gz"
+		[  $now_md5_mldonkey_gz != $md5_mldonkey_gz ]&& wget -O- -t2 -T20 $mldonkey_down_url > ${download_dir}/mlnet.byte.static.tar.gz
+		[  $log_debug == 1 ]&&echo "line 32 download......"
+		cd ${download_dir}
+		rm -r ${download_dir}/mlnet.byte.static
+		rm -rf ${download_dir}/lib
+		gunzip "${download_dir}/mlnet.byte.static.tar.gz"
+		tar xvf "${download_dir}/mlnet.byte.static.tar"
+		rm -r ${download_dir}/mlnet.byte.static.tar
+		}
+}
+
+install_mldonkey_ddnas() {
+
+mldonkey_down_url="http://ddnas.openmobilefree.net:8000/raw-attachment/wiki/mldonkey/mlnet.byte.static_ddnas.tar.gz"
+md5_mldonkey="5708ad126797a6a628b59dff11f5fd52"
+now_md5_mldonkey="0"
+
+md5_mldonkey_lib="72b92bb741f969625a834dd8fdaebf62"
+now_md5_mldonkey_lib="0"
+
+md5_mldonkey_gz="80c791f44c65df3b2aeffbb2861a4dcd"
+now_md5_mldonkey_gz="0"
+
+[ -f ${download_dir}/mlnet.byte.static ] && now_md5_mldonkey=$(md5sum ${download_dir}/mlnet.byte.static|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey=$now_md5_mldonkey"
+[ -f ${download_dir}/lib/libc.so.6 ] && now_md5_mldonkey_lib=$(md5sum ${download_dir}/lib/libc.so.6|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey_lib=$now_md5_mldonkey_lib"
+[  $now_md5_mldonkey != $md5_mldonkey -o $now_md5_mldonkey_lib != $md5_mldonkey_lib ]&&{
+ [  $log_debug == 1 ]&&echo "line 28 download"
+[ -f ${download_dir}/mlnet.byte.static_ddnas.tar.gz ]&& now_md5_mldonkey_gz=$(md5sum ${download_dir}/mlnet.byte.static_ddnas.tar.gz|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey_gz=$now_md5_mldonkey_gz"
+[  $now_md5_mldonkey_gz != $md5_mldonkey_gz ]&& wget -O- -t2 -T20 $mldonkey_down_url > ${download_dir}/mlnet.byte.static_ddnas.tar.gz
+ [  $log_debug == 1 ]&&echo "line 32 download......"
+			cd ${download_dir}
+rm -r ${download_dir}/mlnet.byte.static
+rm -rf ${download_dir}/lib
+			gunzip "${download_dir}/mlnet.byte.static_ddnas.tar.gz"
+			tar xvf "${download_dir}/mlnet.byte.static_ddnas.tar"
+    rm -r ${download_dir}/mlnet.byte.static_ddnas.tar
+chmod 755 mlnet.byte.static
+}
+
+}
+
+install_mldonkey_ddnas_utf8() {
+
+mldonkey_down_url="http://ddnas.openmobilefree.net:8000/raw-attachment/wiki/mldonkey/mlnet.byte.static_ddnas_utf8.tar.gz"
+md5_mldonkey="c64778f1e70ca1c09a6495f57f2a7eb0"
+now_md5_mldonkey="0"
+
+md5_mldonkey_lib="72b92bb741f969625a834dd8fdaebf62"
+now_md5_mldonkey_lib="0"
+
+md5_mldonkey_gz="ef8d4fee8bc65ed74930bc9ac4eae650"
+now_md5_mldonkey_gz="0"
+
+[ -f ${download_dir}/mlnet.byte.static ] && now_md5_mldonkey=$(md5sum ${download_dir}/mlnet.byte.static|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey=$now_md5_mldonkey"
+[ -f ${download_dir}/lib/libc.so.6 ] && now_md5_mldonkey_lib=$(md5sum ${download_dir}/lib/libc.so.6|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey_lib=$now_md5_mldonkey_lib"
+[  $now_md5_mldonkey != $md5_mldonkey -o $now_md5_mldonkey_lib != $md5_mldonkey_lib ]&&{
+ [  $log_debug == 1 ]&&echo "line 28 download"
+[ -f ${download_dir}/mlnet.byte.static_ddnas.tar.gz ]&& now_md5_mldonkey_gz=$(md5sum ${download_dir}/mlnet.byte.static_ddnas_utf8.tar.gz|cut -d " " -f1)
+ [  $log_debug == 1 ]&&echo "now_md5_mldonkey_gz=$now_md5_mldonkey_gz"
+[  $now_md5_mldonkey_gz != $md5_mldonkey_gz ]&& wget -O- -t2 -T20 $mldonkey_down_url > ${download_dir}/mlnet.byte.static_ddnas_utf8.tar.gz
+ [  $log_debug == 1 ]&&echo "line 32 download......"
+			cd ${download_dir}
+rm -r ${download_dir}/mlnet.byte.static
+rm -rf ${download_dir}/lib
+			gunzip "${download_dir}/mlnet.byte.static_ddnas_utf8.tar.gz"
+			tar xvf "${download_dir}/mlnet.byte.static_ddnas_utf8.tar"
+			rm -r ${download_dir}/mlnet.byte.static_ddnas_utf8.tar
+chmod 755 mlnet.byte.static
+}
+
+}
+
+mldonkey_config() {
+	
+	local cfg="$1"
+
+	config_get enable "$cfg" enable
+	enable="${enable:-0}"
+	
+	[ "$enable" == "0" ] && {
+		stop
+		#killall mldonkey
+		#killall MLDONKEYWEB
+		return 0
+	}
+	
+	config_get download_dir "$cfg" download_dir
+	config_get name "$cfg" name
+#	config_get passwd "$cfg" passwd
+#	config_get check_swap "$cfg" check_swap
+
+config_get  gui_port "$cfg" gui_port 
+config_get  http_port "$cfg" http_port 
+config_get  telnet_port "$cfg" telnet_port 
+config_get  allowed_ips "$cfg" allowed_ips 
+config_get  max_hard_upload_rate "$cfg"  max_hard_upload_rate
+config_get  max_hard_download_rate "$cfg" max_hard_download_rate
+config_get  max_hard_upload_rate_2 "$cfg" max_hard_upload_rate_2
+config_get  max_hard_download_rate_2 "$cfg" max_hard_download_rate_2
+config_get  max_opened_connections "$cfg" max_opened_connections
+config_get  max_opened_connections_2 "$cfg" max_opened_connections_2
+
+ [  $log_debug == 1 ]&& echo "$max_opened_connections_2 line 76"
+	cp /etc/downloads.ini.template ${MLDONKEY_TMP_DIR}/download.ini
+
+	sed -i "s/|YOUR_NAME|/$name/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|gui_port|/$gui_port/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s:|download_dir|:$download_dir:g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|http_port|/$http_port/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|telnet_port|/$telnet_port/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|allowed_ips|/$allowed_ips/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|max_hard_upload_rate|/$max_hard_upload_rate/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|max_hard_download_rate|/$max_hard_download_rate/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|max_hard_upload_rate_2|/$max_hard_upload_rate_2/g" ${MLDONKEY_TMP_DIR}/download.ini
+
+	sed -i "s/|max_hard_download_rate_2|/$max_hard_download_rate_2/g" ${MLDONKEY_TMP_DIR}/download.ini
+	sed -i "s/|max_opened_connections|/$max_opened_connections/g" ${MLDONKEY_TMP_DIR}/download.ini	
+  sed -i "s/|max_opened_connections_2|/$max_opened_connections_2/g" ${MLDONKEY_TMP_DIR}/download.ini
+  
+
+
+	
+	
+	[ -d "$download_dir" ] || {
+		mkdir -p "$download_dir"
+	}
+
+	isddnas=$(cat /proc/cpuinfo|grep -c DDNAS)
+if [ "$isddnas" -ge "1" ] ;then
+	#install_mldonkey_ddnas
+	install_mldonkey_ddnas_utf8
+echo "isddnas"
+else
+install_mldonkey
+echo "isnotddnas"
+fi
+
+
+
+	MLDONKEY_BIN="${download_dir}/mlnet.byte.static"
+
+#	passwd=`echo -n $passwd | md5sum | cut -d ' ' -f 1`
+#	ECPassword="$passwd"	
+
+	sleep 1
+
+	cp ${MLDONKEY_TMP_DIR}/download.ini ${download_dir}/downloads.ini	
+	rm ${download_dir}/*.tmp 2>/dev/null
+	rm ${download_dir}/downloads.ini.tmp 2>/dev/null
+	rm ${download_dir}/users.ini.tmp  2>/dev/null         
+	rm ${download_dir}/mlnet.log 2>/dev/null         
+	rm ${download_dir}/*.pid 2>/dev/null 
+
+      export LANG=zh_CN.UTF-8
+      export LC_ALL=zh_CN.UTF-8
+      export LD_LIBRARY_PATH=/usr/lib:${download_dir}/lib
+      export MLDONKEY_DIR=${download_dir}
+
+	$MLDONKEY_BIN & 
+
+
+}
+
+
+start() {
+
+	config_load mldonkey
+	config_foreach mldonkey_config mldonkey	
+	 [  $log_debug == 1 ]&&echo "mldonkey start at line 132....."	
+}
+
+
+stop() {
+	unset download_dir
+	MLDONKEY_BIN="mlnet.byte.static"	
+	killall -9 "$MLDONKEY_BIN"
+		 [  $log_debug == 1 ]&&	echo "stop at line 140 ....."		
+
+}
+
+
+
+

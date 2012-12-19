@@ -1,0 +1,15 @@
+Source-Makefile: feeds/dreambox_packages/new-dialer/Makefile
+Package: new-dialer
+Version: 1.2.2007.5
+Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: new-dialer
+Maintainer: Emong <emongxx@gmail.com>
+Source: 
+Type: ipkg
+Description:  new-dialer helps you do something.
+@@
+
+

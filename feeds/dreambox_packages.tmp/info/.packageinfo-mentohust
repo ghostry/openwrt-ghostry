@@ -1,0 +1,18 @@
+Source-Makefile: feeds/dreambox_packages/mentohust/Makefile
+Package: mentohust
+Submenu: CERNET
+Version: 0.3.1-1
+Depends: +libpcap
+Provides: 
+Section: net
+Category: Network
+Title: An CERNET client daemon
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mentohust-0.3.1.tar.gz
+Type: ipkg
+Description: An CERNET client daemon,
+Most usually used in China collages.
+http://code.google.com/p/mentohust/
+@@
+
+

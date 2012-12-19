@@ -1,0 +1,16 @@
+Source-Makefile: feeds/packages/net/restund/Makefile
+Package: restund
+Version: 0.2.0-1
+Depends: +libre @BROKEN
+Provides: 
+Section: net
+Category: Network
+Title: libre stun server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: restund-0.2.0.tar.gz
+Type: ipkg
+Description: libre stun server
+http://www.creytiv.com/
+@@
+
+

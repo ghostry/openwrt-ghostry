@@ -1,0 +1,6 @@
+#!/bin/sh
+[ -n "${IPKG_INSTROOT}" ] || {
+	( . /etc/uci-defaults/luci-vsftpd ) && rm -f /etc/uci-defaults/luci-vsftpd
+	/etc/init.d/vsftpd enabled || /etc/init.d/vsftpd enable
+	exit 0
+}

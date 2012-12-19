@@ -1,0 +1,16 @@
+Source-Makefile: feeds/dreambox_packages/car-driver/Makefile
+Package: kmod-car-driver
+Submenu: Other modules
+Version: <LINUX_VERSION>-1
+Depends: @GPIO_SUPPORT
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: Car-Drivers for WiFi-Car
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: 
+Type: ipkg
+Description: Car-Drivers for WiFi-Car
+@@
+
+

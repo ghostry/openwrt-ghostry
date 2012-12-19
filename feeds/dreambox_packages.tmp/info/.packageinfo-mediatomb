@@ -1,0 +1,17 @@
+Source-Makefile: feeds/dreambox_packages/mediatomb/Makefile
+Package: mediatomb
+Version: 0.12.1-1
+Depends: +libexif +libsqlite3 +id3lib +libiconv-full +libcharset +iconv +file +libexpat +libpthread
+Provides: 
+Build-Depends: libexif sqlite3 id3lib libiconv file expat libpthread
+Section: multimedia
+Category: Multimedia
+Title: A powerfull UPNP media server
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: mediatomb-0.12.1.tar.gz
+Type: ipkg
+Description: A powerfull UPNP media server
+http://www.mediatomb.cc/
+@@
+
+

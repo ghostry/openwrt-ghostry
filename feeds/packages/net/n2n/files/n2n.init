@@ -1,0 +1,70 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008 OpenWrt.org
+START=90
+
+config_cb() {
+	local cfg="$CONFIG_SECTION"
+	config_get configname "$cfg" TYPE
+
+	case "$configname" in
+	setting)
+     		 config_get enable "$cfg" enable 0     
+     		 config_get server_cline "$cfg" server_cline 0
+		if [ "$server_cline" == "1" -a "$enable" == "1" ]; then
+			uci set network.n2n=interface
+			uci set network.n2n.proto=dhcp
+			uci set network.n2n.ifname=edge0
+			uci set network.n2n.defaultroute=0
+			fw_wan_list=$(uci show network |grep =interface |grep -v lan|\
+			grep -v loopback |cut -d"." -f2 | awk -F "=" '{printf $1" "}') 
+			uci set firewall.@zone[1].network="$fw_wan_list"
+			uci commit firewall
+			uci commit network
+		else
+			uci delete network.n2n=interface
+			fw_wan_list=$(uci show network |grep =interface |grep -v lan|\
+			grep -v loopback |cut -d"." -f2 | awk -F "=" '{printf $1" "}') 
+			uci set firewall.@zone[1].network="$fw_wan_list"
+			uci commit firewall
+			uci commit network
+		fi
+
+ 		[ "$enable" == "0" ]&&exit 0
+    		  ;;
+		edge)
+			config_get ipaddr "$cfg" ipaddr
+			config_get supernode "$cfg" supernode
+			config_get port "$cfg" port
+			config_get community "$cfg" community
+			config_get key "$cfg" key
+			config_get mtu "$cfg" mtu
+    			config_get enable "$cfg" enable 0
+			config_get_bool route "$cfg" route 0
+			[ "$route" = "1" ] && args='-r'
+			if [ "$ipaddr" != "" ]; then
+				edge -f $args -a $ipaddr -c $community -k $key -l ${supernode}:${port}
+    			  ifconfig edge0 mtu $mtu 
+			fi
+
+		;;
+		supernode)
+			config_get port "$cfg" port
+     			 config_get enable "$cfg" enable 0
+			if [ "$port" != "" -a  "$enable" == "1" ]; then
+				supernode -l $port &
+			fi
+		;;
+	esac
+}
+
+config
+
+start() {
+	config_load n2n
+
+}
+stop() {
+	killall -9 edge
+	killall -9 supernode
+}
+

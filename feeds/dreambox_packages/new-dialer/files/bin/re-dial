@@ -1,0 +1,25 @@
+#!/bin/sh
+
+log_file=/var/log/re-dial
+start() {
+	echo 11 > $log_file
+	wan_ghca=$(uci get network.wan.ghcat)
+	[ -z "$wan_ghca" ] && wan_ghca="0"
+	[ "$wan_ghca" = "1" ] && {
+		while [ 1 ]
+		do
+		    sleep 60
+		    dial=$(ps |grep ppp|grep bin)
+		    wan_up=$(awk -F = '$1=="network.wan.up" {printf("%s",$2)'} /var/state/network)
+		    [ -z "$wan_up" ] && wan_up=0
+		    [ -z "$dial" ] && wan_up=1
+#echo $wan_up
+		    [ "$wan_up" != "1" ] && {
+		        echo "wan with ghca fail,retry" >> $log_file
+		        ifup wan
+		    }
+		done
+		}
+}
+
+start

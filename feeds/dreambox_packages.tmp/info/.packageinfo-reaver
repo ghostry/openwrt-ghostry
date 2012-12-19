@@ -1,0 +1,21 @@
+Source-Makefile: feeds/dreambox_packages/reaver/Makefile
+Package: reaver
+Submenu: wireless
+Version: 1.4-1
+Depends: +libpcap
+Provides: 
+Section: net
+Category: Network
+Title: Brute force attack against Wifi Protected Setup
+Maintainer: OpenWrt Developers Team <openwrt-devel@openwrt.org>
+Source: reaver-1.4.tar.gz
+Type: ipkg
+Description:   Reaver targets the external registrar functionality mandated by the WiFi
+  Protected Setup specification.
+  Access points will provide authenticated registrars with their current
+  wireless configuration (including the WPA PSK), and also accept a new
+  configuration from the registrar.
+https://code.google.com/p/reaver-wps/
+@@
+
+

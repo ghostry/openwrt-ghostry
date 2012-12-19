@@ -1,0 +1,5 @@
+#!/bin/sh
+rm -f /etc/pptpd.conf
+rm -f /etc/ppp/options.pptpd
+rm -f /etc/ppp/chap-secrets
+rm -f /etc/init.d/pptpd

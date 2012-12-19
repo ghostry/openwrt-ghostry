@@ -1,0 +1,35 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2011 OpenWrt.org
+
+
+START=99
+
+get_email_set(){
+ config_get email_enable $1 email_enable
+ config_get smtp_address $1 smtp_address
+ config_get smtp_user $1 smtp_user
+ config_get smtp_password $1 smtp_password
+ config_get from_address $1 from_address
+
+ 	echo -e "" >  /etc/msmtprc
+	echo -e "account default \n" >> /etc/msmtprc
+	[ -n "$smtp_address" ] && echo  "host  $smtp_address" >> /etc/msmtprc
+	echo "auth login" >> /etc/msmtprc
+	[ -n "$smtp_user" ] && echo "user $smtp_user"  >> /etc/msmtprc
+	[ -n "$smtp_password" ] && echo  "password $smtp_password"  >> /etc/msmtprc
+    	echo "auto_from off"  >> /etc/msmtprc
+	[ -n "$from_address" ] && echo "from  $from_address"  >> /etc/msmtprc
+  	echo  "syslog LOG_MAIL"  >> /etc/msmtprc  
+  	echo  "logfile /var/log/msmtp.log"  >> /etc/msmtprc
+
+}
+
+start() {
+	config_load email
+	config_foreach get_email_set emailserver
+
+}
+
+stop() {
+	echo "stop"
+}
