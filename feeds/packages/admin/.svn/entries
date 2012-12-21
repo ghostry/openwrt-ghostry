@@ -1,73 +1,0 @@
-10
-
-dir
-561
-svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/admin
-svn://svn.openwrt.org.cn/dreambox
-
-
-
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-syslog-ng
-dir
-
-nsca
-dir
-
-debootstrap
-dir
-
-monit
-dir
-
-nagios-plugins
-dir
-
-gkrellmd
-dir
-
-muninlite
-dir
-
-nrpe
-dir
-
-syslog-ng3
-dir
-
-pmacct
-dir
-
-osiris
-dir
-
-htop
-dir
-
-sudo
-dir
-
-zabbix
-dir
-
-nagios
-dir
-

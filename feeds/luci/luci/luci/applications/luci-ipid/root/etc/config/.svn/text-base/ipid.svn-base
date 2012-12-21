@@ -1,6 +1,0 @@
-
-config 'ipid_ttl'
-	option 'ipid_pace' '0'
-	option 'ttl_enable' '0'
-
-

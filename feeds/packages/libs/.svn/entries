@@ -1,637 +1,0 @@
-10
-
-dir
-561
-svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/libs
-svn://svn.openwrt.org.cn/dreambox
-
-
-
-2012-07-08T06:47:09.001477Z
-510
-zjhzzyf
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-libaudiofile
-dir
-
-libyaml
-dir
-
-iksemel
-dir
-
-libdaemon
-dir
-
-libpar2
-dir
-
-opal
-dir
-
-giflib
-dir
-
-libgcrypt
-dir
-
-libdvdread
-dir
-
-openh323
-dir
-
-libnetfilter-log
-dir
-
-libiconv
-dir
-
-dbus-glib
-dir
-
-fcgi
-dir
-
-gdbm
-dir
-
-nacl
-dir
-
-libart
-dir
-
-libxslt
-dir
-
-classpath
-dir
-
-popt
-dir
-
-librsync
-dir
-
-gsl
-dir
-
-gsm
-dir
-
-phidget21
-dir
-
-radlib
-dir
-
-ossp-js
-dir
-
-protobuf
-dir
-
-libogg
-dir
-
-libtwin
-dir
-
-libdirectfb
-dir
-
-ptlib
-dir
-
-libsndfile
-dir
-
-firewall-mod-save
-dir
-
-libffi-sable
-dir
-
-file
-dir
-
-libusb
-dir
-
-expat
-dir
-
-apr
-dir
-
-gettext-full
-dir
-
-slang2
-dir
-
-radiusclient-ng
-dir
-
-pcre
-dir
-
-libconfig
-dir
-
-libcroco
-dir
-
-libelf
-dir
-
-zaptel
-dir
-
-db47
-dir
-
-libspe2
-dir
-
-pthsem
-dir
-
-libol
-dir
-
-libidn
-dir
-
-openldap
-dir
-
-lzo
-dir
-
-libnetfilter-queue
-dir
-
-rblibtorrent
-dir
-
-libpfm
-dir
-
-libxml2
-dir
-
-libpng
-dir
-
-libpthread-stubs
-dir
-
-faad2
-dir
-
-pwlib
-dir
-
-libgssapi
-dir
-
-libsoup
-dir
-
-gconf2
-dir
-
-libmodbus
-dir
-
-libdnet
-dir
-
-gmp
-dir
-
-opencdk
-dir
-
-alsa-lib
-dir
-
-gettext
-dir
-
-boost
-dir
-
-elfutils
-dir
-
-uclibc++
-dir
-
-sysfsutils
-dir
-
-libnfsidmap
-dir
-
-libgpg-error
-dir
-
-libv4l
-dir
-
-libcrypto++
-dir
-
-poco
-dir
-
-serdisplib
-dir
-
-libnetfilter-conntrack
-dir
-
-liboping
-dir
-
-libvncserver
-dir
-
-libmicrohttpd
-dir
-
-mysql
-dir
-
-id3lib
-dir
-
-aalib
-dir
-
-libupnp
-dir
-
-libtheora
-dir
-
-liboil
-dir
-
-c-ares
-dir
-
-libftdi
-dir
-
-libnet-1.0.x
-dir
-
-argtable
-dir
-
-librpcsecgss
-dir
-
-libmms
-dir
-
-libtorrent
-dir
-
-libao
-dir
-
-libnatpmp
-dir
-
-ustl
-dir
-
-avahi
-dir
-
-fftw3
-dir
-
-gd
-dir
-
-st2205tool
-dir
-
-ezxml
-dir
-
-orbit2
-dir
-
-taglib
-dir
-
-gperf
-dir
-
-intltool
-dir
-
-zaptel-1.4.x
-dir
-
-flac
-dir
-
-libiconv-full
-dir
-
-spandsp
-dir
-
-check
-dir
-
-libtasn1
-dir
-
-keynote
-dir
-
-libcelt
-dir
-
-libsdl_sound
-dir
-
-freetype
-dir
-
-libosip2
-dir
-
-ucl
-dir
-
-jpeg
-dir
-
-matrixssl
-dir
-
-libamsel
-dir
-
-wxbase
-dir
-
-cgilib
-dir
-
-axtls
-dir
-
-polarssl
-dir
-
-neon
-dir
-
-libinklevel
-dir
-
-confuse
-dir
-
-libid3tag
-dir
-
-libsigc++
-dir
-
-libpam
-dir
-
-glibmm
-dir
-
-libowfat
-dir
-
-libsynce
-dir
-
-libevent
-dir
-
-credis
-dir
-
-sctp
-dir
-
-tcp_wrappers
-dir
-
-gnutls
-dir
-
-newt
-dir
-
-libdvbpsi
-dir
-
-argp-standalone
-dir
-
-libnet-1.1.x
-dir
-
-libexif
-dir
-
-libnids
-dir
-
-libdbi
-dir
-
-tiff
-dir
-
-xmpp4r
-dir
-
-libffi
-dir
-
-libvorbis
-dir
-
-tokyocabinet
-dir
-
-libnfc
-dir
-
-libcli
-dir
-
-glib2
-dir
-
-nmeap
-dir
-
-libmcrypt
-dir
-
-libmpdclient
-dir
-
-libmpd
-dir
-
-fribidi
-dir
-
-libsdl
-dir
-
-libgphoto2
-dir
-
-libusb-1.0
-dir
-
-mxml
-dir
-
-libvorbisidec
-dir
-
-vips
-dir
-
-libmpcdec
-dir
-
-gconv-modules
-dir
-
-sqlite2
-dir
-
-eventlog
-dir
-
-sqlite3
-dir
-
-xmlrpc-c
-dir
-
-libptmalloc3
-dir
-
-libatomicops
-dir
-
-rrdtool-1.0.x
-dir
-
-libmad
-dir
-
-libshout
-dir
-
-libevent2
-dir
-
-apr-util
-dir
-
-libaio
-dir
-
-liblo
-dir
-
-postgresql
-dir
-
-clinkc
-dir
-
-libdlna
-dir
-
-cyrus-sasl
-dir
-
-curl
-dir
-
-re
-dir
-
-libmikmod
-dir
-
-libxapian
-dir
-
-bluez-libs
-dir
-
-libcunit
-dir
-
-howl
-dir
-
-clearsilver
-dir
-
-glib
-dir
-
-libsdl_mixer
-dir
-
-libnfnetlink
-dir
-
-libIDL2
-dir
-
-libdmapsharing
-dir
-
-libsamplerate
-dir
-
-speex
-dir
-
-ortp
-dir
-

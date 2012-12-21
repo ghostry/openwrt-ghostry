@@ -1,244 +1,0 @@
-10
-
-dir
-561
-svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/lang
-svn://svn.openwrt.org.cn/dreambox
-
-
-
-2012-07-08T06:47:09.001477Z
-510
-zjhzzyf
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-pysqlite
-dir
-
-xapian-bindings
-dir
-
-python2-chardet
-dir
-
-gst-python
-dir
-
-pymysql
-dir
-
-distribute
-dir
-
-luaexpat
-dir
-
-luafilesystem
-dir
-
-python-json
-dir
-
-perl-html-tagset
-dir
-
-luasocket
-dir
-
-pybluez
-dir
-
-pygtk
-dir
-
-php-pear-db
-dir
-
-perl-html-tree
-dir
-
-sqlite3-ruby
-dir
-
-kid
-dir
-
-numpy
-dir
-
-python-sip
-dir
-
-php4
-dir
-
-php-pear
-dir
-
-php5
-dir
-
-luasec
-dir
-
-python-gnome-desktop2
-dir
-
-ruby
-dir
-
-tcl
-dir
-
-twisted
-dir
-
-luaprofiler
-dir
-
-jsonpath
-dir
-
-yapsnmp
-dir
-
-perl-www-curl
-dir
-
-ipython
-dir
-
-pyopenssl
-dir
-
-perl-html-parser
-dir
-
-perl-uri
-dir
-
-logilab-common
-dir
-
-lsqlite3
-dir
-
-luasql
-dir
-
-cython
-dir
-
-jamvm
-dir
-
-pyyaml
-dir
-
-python-dbus
-dir
-
-telepathy-python
-dir
-
-perl-compress-bzip2
-dir
-
-logilab-astng
-dir
-
-python-curl
-dir
-
-psycopg
-dir
-
-perl-www-mechanize
-dir
-
-mako
-dir
-
-pyserial
-dir
-
-pyxdg
-dir
-
-pypcap
-dir
-
-perl-dbi
-dir
-
-python-crypto
-dir
-
-egenix-mx
-dir
-
-perl
-dir
-
-python-ifconfig
-dir
-
-sigscheme
-dir
-
-php-pear-xmlrpc
-dir
-
-perl-lockfile-simple
-dir
-
-pyqt4
-dir
-
-python
-dir
-
-perl-www
-dir
-
-pygobject
-dir
-
-eggdrop
-dir
-
-pyevent
-dir
-
-python-cjson
-dir
-
-urbi
-dir
-
-pyusb
-dir
-
-luaposix
-dir
-
-pycairo
-dir
-
-erlang
-dir
-
