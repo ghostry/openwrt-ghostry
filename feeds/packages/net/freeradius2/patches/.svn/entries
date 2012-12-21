@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/freeradius2/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-004-ldap_configure.patch
-file
-
-
-
-
-2012-12-19T03:19:51.238308Z
-3e1263d9ebfd4d9ff505a637b8a11496
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-141256
-
-002-config.patch
-file
-
-
-
-
-2012-12-19T03:19:51.274308Z
-6cf0b6a84dcb5fb10958faa1c8edf874
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-14565
-
 009-sql_sqlite_c.patch
 file
 
 
 
 
-2012-12-19T03:19:51.274308Z
+2012-12-19T07:47:11.958048Z
 c39f8efbe60e39331b8a2bc0b612a151
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:51.274308Z
+2012-12-19T07:47:11.970048Z
 0f15bef4070e028aa4c5d389855eac21
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +93,72 @@ lintel.huang@gmail.com
 
 
 585
+
+004-ldap_configure.patch
+file
+
+
+
+
+2012-12-19T07:47:11.958048Z
+3e1263d9ebfd4d9ff505a637b8a11496
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+141256
+
+002-config.patch
+file
+
+
+
+
+2012-12-19T07:47:11.958048Z
+6cf0b6a84dcb5fb10958faa1c8edf874
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+14565
 

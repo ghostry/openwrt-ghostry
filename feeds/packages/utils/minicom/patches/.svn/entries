@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/minicom/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-12-19T03:19:40.542308Z
+2012-12-19T07:47:00.866049Z
 5799095373b0b1fd10108af6e6994004
 2011-09-15T14:06:21.195238Z
 1

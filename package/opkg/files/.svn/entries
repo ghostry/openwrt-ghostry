@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/opkg/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:05.023420Z
+2012-12-19T07:25:10.582067Z
 4a37d63d98272d1a57fa72eb571b7599
 2012-05-07T16:24:55.092083Z
 443

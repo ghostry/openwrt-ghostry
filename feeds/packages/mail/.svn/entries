@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/mail
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,18 +26,6 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-xmail
-dir
-
-fetchmail
-dir
-
-imapfilter
-dir
-
-msmtp
-dir
-
 dovecot
 dir
 
@@ -54,5 +42,17 @@ mini_sendmail
 dir
 
 mutt
+dir
+
+xmail
+dir
+
+fetchmail
+dir
+
+imapfilter
+dir
+
+msmtp
 dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/gec6410
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-profiles
-dir
-
 base-files
 dir
 
@@ -38,7 +35,7 @@ file
 
 
 
-2012-11-17T08:16:51.507421Z
+2012-12-19T07:23:56.794068Z
 692381f5b7fcd49fe75a7f0effed9368
 2011-11-03T11:47:35.537595Z
 243
@@ -72,7 +69,7 @@ file
 
 
 
-2012-11-17T08:16:51.507421Z
+2012-12-19T07:23:56.794068Z
 c8d691e6994a6a37cba06004c0d9a9fb
 2011-11-03T11:47:35.537595Z
 243
@@ -106,7 +103,7 @@ file
 
 
 
-2012-11-17T08:16:51.507421Z
+2012-12-19T07:23:56.794068Z
 61157b84d20f6d9c761ce8ca1075cce9
 2011-11-03T11:47:35.537595Z
 243
@@ -133,4 +130,7 @@ lintel.huang@gmail.com
 
 
 103403
+
+profiles
+dir
 

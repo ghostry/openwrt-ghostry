@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/gec6410/base-files/etc/acpi
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:51.495421Z
+2012-12-19T07:23:56.778068Z
 54455436e9ac967cfc69e952ee600398
 2011-11-03T11:47:35.537595Z
 243

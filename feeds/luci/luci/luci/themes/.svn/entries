@@ -26,21 +26,6 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-freifunk-bno
-dir
-
-fledermaus
-dir
-
-freifunk-hannover
-dir
-
-freifunk
-dir
-
-oxygen
-dir
-
 XEyE
 dir
 
@@ -60,5 +45,20 @@ openwrtcn
 dir
 
 freifunk-generic
+dir
+
+freifunk-bno
+dir
+
+fledermaus
+dir
+
+freifunk-hannover
+dir
+
+freifunk
+dir
+
+oxygen
 dir
 

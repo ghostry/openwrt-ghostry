@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/quagga
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-patches-old
-dir
-
 patches
 dir
 
@@ -38,7 +35,7 @@ file
 
 
 
-2012-12-19T03:19:50.946308Z
+2012-12-19T07:47:11.890048Z
 1da3ff026ae7edc37906038a217648ab
 2011-09-15T14:06:21.195238Z
 1
@@ -67,5 +64,8 @@ lintel.huang@gmail.com
 7502
 
 files
+dir
+
+patches-old
 dir
 

@@ -26,9 +26,9 @@ haliyoute
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-cgi-bin
+luci-static
 dir
 
-luci-static
+cgi-bin
 dir
 

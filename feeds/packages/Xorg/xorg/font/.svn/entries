@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/Xorg/xorg/font
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,10 +26,25 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-font-ibm-type1
+font-alias
+dir
+
+font-micro-misc
+dir
+
+font-misc-cyrillic
+dir
+
+encodings
+dir
+
+font-cursor-misc
 dir
 
 font-daewoo-misc
+dir
+
+font-ibm-type1
 dir
 
 packages
@@ -38,7 +53,7 @@ file
 
 
 
-2012-12-19T03:19:37.678308Z
+2012-12-19T07:46:58.382049Z
 68936c360fa2b28f59d1d5e7f0700db4
 2011-09-15T14:06:21.195238Z
 1
@@ -72,7 +87,7 @@ file
 
 
 
-2012-12-19T03:19:37.674308Z
+2012-12-19T07:46:58.378049Z
 c60660038f823f96a505c28d9b2369c9
 2011-09-15T14:06:21.195238Z
 1
@@ -106,30 +121,15 @@ dir
 font-bh-75dpi
 dir
 
-font-misc-misc
+font-dec-misc
 dir
 
-font-dec-misc
+font-misc-misc
 dir
 
 font-xfree86-type1
 dir
 
 font-isas-misc
-dir
-
-font-alias
-dir
-
-font-micro-misc
-dir
-
-font-misc-cyrillic
-dir
-
-encodings
-dir
-
-font-cursor-misc
 dir
 

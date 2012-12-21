@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/toolchain/gcc/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -25,15 +25,6 @@ lintel.huang@gmail.com
 
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-3.4.6
-dir
-
-llvm
-dir
-
-4.1.2
-dir
 
 4.4.1
 dir
@@ -60,5 +51,14 @@ dir
 dir
 
 4.4.3+cs
+dir
+
+3.4.6
+dir
+
+llvm
+dir
+
+4.1.2
 dir
 

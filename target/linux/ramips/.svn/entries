@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,6 +26,12 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+rt305x
+dir
+
+base-files.old
+dir
+
 base-files
 dir
 
@@ -41,7 +47,7 @@ file
 
 
 
-2012-11-17T08:17:26.407420Z
+2012-12-19T07:24:31.826067Z
 bfd22300336219d4327765f2be93e0b8
 2012-07-22T08:39:44.306859Z
 519
@@ -78,7 +84,7 @@ file
 
 
 
-2012-11-17T08:17:26.407420Z
+2012-12-19T07:24:31.826067Z
 439a34f947962b50b671173df48f2bb1
 2012-07-22T06:40:21.573606Z
 517
@@ -110,11 +116,5 @@ files
 dir
 
 image
-dir
-
-rt305x
-dir
-
-base-files.old
 dir
 

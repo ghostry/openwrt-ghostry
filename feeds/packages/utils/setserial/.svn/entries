@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/setserial
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,19 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-files
-dir
-
-patches
-dir
-
 Makefile
 file
 
 
 
 
-2012-12-19T03:19:41.502308Z
+2012-12-19T07:47:01.814049Z
 f7a3a187050244083f3a804f9c219368
 2011-09-15T14:06:21.195238Z
 1
@@ -65,4 +59,10 @@ lintel.huang@gmail.com
 
 
 1270
+
+files
+dir
+
+patches
+dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s5pv210/files-2.6.35/drivers
 svn://svn.openwrt.org.cn/dreambox
 
@@ -25,6 +25,15 @@ richard.nee.cn
 
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+input
+dir
+
+media
+dir
+
+switch
+dir
 
 mtd
 dir
@@ -51,14 +60,5 @@ staging
 dir
 
 char
-dir
-
-input
-dir
-
-media
-dir
-
-switch
 dir
 

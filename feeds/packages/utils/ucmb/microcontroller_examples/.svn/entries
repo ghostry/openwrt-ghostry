@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/ucmb/microcontroller_examples
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,9 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-atmel_avr8
+atmel_avr8_optimized
 dir
 
-atmel_avr8_optimized
+atmel_avr8
 dir
 

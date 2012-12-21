@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/chaosvpn/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+chaosvpn_config.sh
+file
+
+
+
+
+2012-12-19T07:47:13.078048Z
+cfb7b419c2e0b24420ff5cdb7c1c6e2a
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+345
+
 chaosvpn.hotplug
 file
 
 
 
 
-2012-12-19T03:19:52.482308Z
+2012-12-19T07:47:13.078048Z
 443d9f3d0cb5912938797486ab61ec85
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:52.482308Z
+2012-12-19T07:47:13.078048Z
 5c92681bd67b764c224d5325d989b681
 2011-09-15T14:06:21.195238Z
 1
@@ -93,38 +127,4 @@ lintel.huang@gmail.com
 
 
 256
-
-chaosvpn_config.sh
-file
-
-
-
-
-2012-12-19T03:19:52.482308Z
-cfb7b419c2e0b24420ff5cdb7c1c6e2a
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-345
 

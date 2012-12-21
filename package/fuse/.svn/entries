@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/fuse
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,19 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-patches
-dir
-
-patches-kernel24
-dir
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:02.599420Z
+2012-12-19T07:25:08.158067Z
 257dcaa2fc71d8348ce4cb2eb646754c
 2011-09-15T14:06:21.195238Z
 1
@@ -65,4 +59,10 @@ lintel.huang@gmail.com
 
 
 5704
+
+patches
+dir
+
+patches-kernel24
+dir
 

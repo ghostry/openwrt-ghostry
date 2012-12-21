@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/base-files/etc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+config
+dir
+
 inittab
 file
 
 
 
 
-2012-11-17T08:16:51.579421Z
+2012-12-19T07:23:56.886068Z
 38b487aceda546d9dbb8a67bbf80b99e
 2011-11-03T11:47:35.537595Z
 243
@@ -69,7 +72,7 @@ file
 
 
 
-2012-11-17T08:16:51.579421Z
+2012-12-19T07:23:56.886068Z
 354b90b13be84eae787acc48f577099f
 2011-11-03T11:47:35.537595Z
 243
@@ -96,7 +99,4 @@ lintel.huang@gmail.com
 
 
 778
-
-config
-dir
 

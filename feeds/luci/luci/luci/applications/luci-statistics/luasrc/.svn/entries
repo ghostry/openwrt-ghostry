@@ -26,6 +26,9 @@ haliyoute
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+controller
+dir
+
 statistics
 dir
 
@@ -33,8 +36,5 @@ view
 dir
 
 model
-dir
-
-controller
 dir
 

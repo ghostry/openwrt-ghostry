@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/s3c2440
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,84 @@ richard.nee.cn
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+profiles
+dir
+
+.config
+file
+
+
+
+
+2012-12-19T07:24:59.934067Z
+af1cc408f90e17f292a4a3e7cbb7b4f5
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+50202
+
+.config.target
+file
+
+
+
+
+2012-12-19T07:24:59.938067Z
+09cfcd7aeffbba898a9bf8eba8831dcb
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+97802
+
 config-2.6.30
 file
 
 
 
 
-2012-11-17T08:17:54.267420Z
+2012-12-19T07:24:59.938067Z
 11d453ad38aba6a834ae4edd5a05a574
 2011-11-03T11:47:35.537595Z
 243
@@ -69,7 +140,7 @@ file
 
 
 
-2012-11-17T08:17:54.271420Z
+2012-12-19T07:24:59.938067Z
 51e4a7326ecd580a70ab2149c24d4bef
 2012-08-29T09:00:15.295625Z
 545
@@ -103,7 +174,7 @@ file
 
 
 
-2012-11-17T08:17:54.271420Z
+2012-12-19T07:24:59.942067Z
 d32faf44fe2ad31032bf81aad43d26d3
 2012-05-05T07:57:54.783202Z
 437
@@ -130,75 +201,4 @@ has-props
 
 
 99
-
-profiles
-dir
-
-.config
-file
-
-
-
-
-2012-11-17T08:17:54.263420Z
-af1cc408f90e17f292a4a3e7cbb7b4f5
-2011-11-03T11:47:35.537595Z
-243
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-50202
-
-.config.target
-file
-
-
-
-
-2012-11-17T08:17:54.267420Z
-09cfcd7aeffbba898a9bf8eba8831dcb
-2011-11-03T11:47:35.537595Z
-243
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-97802
 

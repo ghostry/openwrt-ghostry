@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/openntpd/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-ntpd.hotplug
-file
-
-
-
-
-2012-12-19T03:19:53.074308Z
-61ae1a3d4c1561ee13f5e1cf4fe3a6dd
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-348
-
 ntpd.init
 file
 
 
 
 
-2012-12-19T03:19:53.074308Z
+2012-12-19T07:47:13.510048Z
 13c926d27b1b394d6a9d855b02319ab1
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:53.074308Z
+2012-12-19T07:47:13.510048Z
 1887702929c70ed706dbbcd736541a36
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:53.074308Z
+2012-12-19T07:47:13.510048Z
 c0fb6445b4c74e6110265c82adb2328b
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +127,38 @@ lintel.huang@gmail.com
 
 
 93
+
+ntpd.hotplug
+file
+
+
+
+
+2012-12-19T07:47:13.510048Z
+61ae1a3d4c1561ee13f5e1cf4fe3a6dd
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+348
 

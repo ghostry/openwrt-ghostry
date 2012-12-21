@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,262 +26,34 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-rrdcollect
-dir
-
-sane-backends
-dir
-
-dosfstools
-dir
-
-devmem2
-dir
-
-schedtools
-dir
-
-coreutils
-dir
-
-restorefactory
-dir
-
 i2c-tools
-dir
-
-crypto-tools
-dir
-
-firmwarehotplug
-dir
-
-loop-aes
-dir
-
-lrzsz
-dir
-
-bzip2
-dir
-
-rcs
-dir
-
-avrdude
-dir
-
-pciutils
-dir
-
-ipmitool
-dir
-
-usb-modeswitch
-dir
-
-watchcat
-dir
-
-fowsr
-dir
-
-ccid
-dir
-
-setpwc
-dir
-
-valgrind
-dir
-
-sysstat
-dir
-
-usbutils
-dir
-
-flashrom
-dir
-
-fancontroled
-dir
-
-bluez-utils
-dir
-
-gnokii
-dir
-
-event_test
-dir
-
-retutahvo
-dir
-
-ink
-dir
-
-calvaria
-dir
-
-pv
-dir
-
-scponly
-dir
-
-cmdpad
-dir
-
-testusb
-dir
-
-lirc
-dir
-
-empty
-dir
-
-fortune-mod
-dir
-
-wifitoggle
-dir
-
-ap51-flash
-dir
-
-mksh
-dir
-
-at
-dir
-
-triggerhappy
-dir
-
-open2300
-dir
-
-wattsup
-dir
-
-io
-dir
-
-bandwidthd
-dir
-
-deco
-dir
-
-dash
-dir
-
-screen
-dir
-
-powertop
-dir
-
-pwgen
-dir
-
-gnupg
-dir
-
-dtach
-dir
-
-bc
-dir
-
-rrdtool
-dir
-
-tar
-dir
-
-cpusage
-dir
-
-sg3-utils
-dir
-
-setserial
-dir
-
-maemo-kexec
-dir
-
-rdiff-backup
-dir
-
-psmisc
-dir
-
-cdparanoia
-dir
-
-lsof
-dir
-
-anyremote
-dir
-
-huaweiaktbbo
-dir
-
-memtester
-dir
-
-less
-dir
-
-btrfs-progs
-dir
-
-pwcrypt
-dir
-
-mgetty
-dir
-
-psplash
-dir
-
-hplip
-dir
-
-cksfv
-dir
-
-fxload
-dir
-
-haserl
 dir
 
 owfs
 dir
 
-pipacs
+sierra-pcmcia
 dir
 
-cryptsetup
+event_test
 dir
 
-kmemtrace-user
+stress
 dir
 
-shadow
-dir
-
-avrusbboot
+pv
 dir
 
 ucmb
+dir
+
+tar
+dir
+
+sdparm
+dir
+
+gnuplot
 dir
 
 gpiotoggling
@@ -290,130 +62,100 @@ dir
 nano
 dir
 
-dialog
+maemo-kexec
 dir
 
 lilo
 dir
 
-usb-modeswitch-data
-dir
-
-broadcom-sdhc
-dir
-
-gzip
-dir
-
-sed
-dir
-
-upx
-dir
-
-joe
-dir
-
-bash
-dir
-
-sierra-pcmcia
-dir
-
-strace
-dir
-
-nvramtool
-dir
-
-lcdproc
-dir
-
-pps-tools
-dir
-
-gadgetfs-test
-dir
-
-dt
-dir
-
-microcom
-dir
-
-heyu
-dir
-
-pcmciautils
-dir
-
-alsa-utils
-dir
-
-lvm2
-dir
-
-ntfs-3g
-dir
-
-mtd-utils
-dir
-
-pcsc-lite
-dir
-
-stress
-dir
-
-bash-completion
-dir
-
-bemused
-dir
-
-sdparm
-dir
-
-unrar
-dir
-
-picocom
-dir
-
-minicom
-dir
-
-input-utils
-dir
-
-reiserfsprogs
-dir
-
-tmux
-dir
-
-cwiid
-dir
-
-mc
+wifitoggle
 dir
 
 tcpser
 dir
 
-lm-sensors
+ap51-flash
+dir
+
+gadgetfs-test
 dir
 
 foxboard-utils
 dir
 
-mg
-dir
-
-zile
+at
 dir
 
 ccrypt
+dir
+
+procps
+dir
+
+hd-idle
+dir
+
+io
+dir
+
+bandwidthd
+dir
+
+btrfs-progs
+dir
+
+gzip
+dir
+
+hdparm
+dir
+
+bash
+dir
+
+loop-aes
+dir
+
+retutahvo
+dir
+
+bc
+dir
+
+wx200d
+dir
+
+unrar
+dir
+
+ssldump
+dir
+
+pciutils
+dir
+
+ipmitool
+dir
+
+reiserfsprogs
+dir
+
+watchcat
+dir
+
+cwiid
+dir
+
+devmem2
+dir
+
+cdparanoia
+dir
+
+dbus-x
+dir
+
+usb-modeswitch-data
 dir
 
 unzip
@@ -422,76 +164,79 @@ dir
 devio
 dir
 
-procps
+valgrind
 dir
 
-hdparm
+heyu
 dir
 
-dmidecode
+usbutils
 dir
 
-ucmb-tools
+sed
 dir
 
-wx200d
+flashrom
 dir
 
-ntfsprogs
+upx
 dir
 
-gnuplot
+joe
 dir
 
-collectd
+firmwarehotplug
 dir
 
-dfu-util
+lvm2
 dir
 
-vim
+cryptsetup
 dir
 
-disktype
+calvaria
 dir
 
-dir300-flash
+avrusbboot
 dir
 
-dbus
+avrdude
 dir
 
-sispmctl
+sg3-utils
 dir
 
-logrotate
+setserial
 dir
 
-tcsh
+tmux
 dir
 
-digitemp
+zile
 dir
 
-dbus-x
+anyremote
 dir
 
-zip
+memtester
 dir
 
-hd-idle
-dir
-
-lcd4linux
-dir
-
-cifsmount
+open2300
 dir
 
 bluez-hcidump
 dir
 
-petitboot
+sysstat
+dir
+
+restorefactory
+dir
+
+pcmciautils
+dir
+
+powertop
 dir
 
 smartmontools
@@ -500,12 +245,267 @@ dir
 mdadm
 dir
 
+scponly
+dir
+
+testusb
+dir
+
+dir300-flash
+dir
+
+input-utils
+dir
+
+dbus
+dir
+
+usb-modeswitch
+dir
+
+sane-backends
+dir
+
+tcsh
+dir
+
+setpwc
+dir
+
+wattsup
+dir
+
+dt
+dir
+
+alsa-utils
+dir
+
+gnokii
+dir
+
+nvramtool
+dir
+
+lrzsz
+dir
+
+rrdtool
+dir
+
+bzip2
+dir
+
+cpusage
+dir
+
+cmdpad
+dir
+
+vim
+dir
+
+mc
+dir
+
+fowsr
+dir
+
+pps-tools
+dir
+
+zip
+dir
+
+lm-sensors
+dir
+
+mg
+dir
+
+pwcrypt
+dir
+
+psplash
+dir
+
+crypto-tools
+dir
+
+screen
+dir
+
+mtd-utils
+dir
+
+pcsc-lite
+dir
+
+ucmb-tools
+dir
+
 daemontools
 dir
 
-ssldump
+empty
+dir
+
+psmisc
+dir
+
+ccid
+dir
+
+microcom
+dir
+
+mgetty
+dir
+
+fxload
+dir
+
+dmidecode
+dir
+
+haserl
+dir
+
+fancontroled
+dir
+
+pipacs
+dir
+
+gnupg
+dir
+
+pwgen
+dir
+
+dtach
+dir
+
+kmemtrace-user
+dir
+
+shadow
+dir
+
+ntfsprogs
+dir
+
+lcdproc
+dir
+
+rcs
 dir
 
 macchanger
+dir
+
+lirc
+dir
+
+rrdcollect
+dir
+
+dialog
+dir
+
+dosfstools
+dir
+
+logrotate
+dir
+
+mksh
+dir
+
+triggerhappy
+dir
+
+lcd4linux
+dir
+
+schedtools
+dir
+
+cifsmount
+dir
+
+petitboot
+dir
+
+deco
+dir
+
+hplip
+dir
+
+cksfv
+dir
+
+bluez-utils
+dir
+
+dash
+dir
+
+strace
+dir
+
+ntfs-3g
+dir
+
+ink
+dir
+
+bemused
+dir
+
+bash-completion
+dir
+
+picocom
+dir
+
+dfu-util
+dir
+
+collectd
+dir
+
+minicom
+dir
+
+disktype
+dir
+
+rdiff-backup
+dir
+
+sispmctl
+dir
+
+fortune-mod
+dir
+
+digitemp
+dir
+
+lsof
+dir
+
+huaweiaktbbo
+dir
+
+broadcom-sdhc
+dir
+
+less
+dir
+
+coreutils
 dir
 

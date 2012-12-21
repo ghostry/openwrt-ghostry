@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/hotplug2
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,19 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+files
+dir
+
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:02.955420Z
+2012-12-19T07:25:08.506067Z
 9a17aa0d49f4ec54f0292ab9792153cf
 2011-09-15T14:06:21.195238Z
 1
@@ -59,10 +65,4 @@ lintel.huang@gmail.com
 
 
 1413
-
-files
-dir
-
-patches
-dir
 

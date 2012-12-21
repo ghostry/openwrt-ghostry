@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/ppp/files/etc/ppp
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-chap-secrets
-file
-
-
-
-
-2012-11-17T08:18:08.927420Z
-e29cbe6021f13bd9b14d780a80f188ab
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-41
-
 filter
 file
 
 
 
 
-2012-11-17T08:18:08.927420Z
+2012-12-19T07:25:14.562067Z
 16b01d9201be60c9d1f16dd98f449484
 2011-09-15T14:06:21.195238Z
 1
@@ -103,7 +69,7 @@ file
 
 
 
-2012-11-17T08:18:08.927420Z
+2012-12-19T07:25:14.562067Z
 cb04f5db858d49e4261b99ac9d861f14
 2011-09-15T14:06:21.195238Z
 1
@@ -137,7 +103,7 @@ file
 
 
 
-2012-11-17T08:18:08.931420Z
+2012-12-19T07:25:14.562067Z
 3169bf2a35ce81fca99cba47f3eb4fd4
 2011-09-15T14:06:21.195238Z
 1
@@ -164,4 +130,38 @@ lintel.huang@gmail.com
 
 
 198
+
+chap-secrets
+file
+
+
+
+
+2012-12-19T07:25:14.558067Z
+e29cbe6021f13bd9b14d780a80f188ab
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+41
 

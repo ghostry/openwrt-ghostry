@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ar71xx/base-files/etc/defconfig
 svn://svn.openwrt.org.cn/dreambox
 
@@ -25,6 +25,21 @@ lintel.huang@gmail.com
 
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
+
+dir-615-c1
+dir
+
+dir-825-b1
+dir
+
+wndr3700v2
+dir
+
+wrt160nl
+dir
+
+tl-wr1043nd
+dir
 
 tl-mr3420
 dir
@@ -93,20 +108,5 @@ wzr-hp-g300nh
 dir
 
 tl-wr941nd
-dir
-
-dir-615-c1
-dir
-
-dir-825-b1
-dir
-
-wndr3700v2
-dir
-
-wrt160nl
-dir
-
-tl-wr1043nd
 dir
 

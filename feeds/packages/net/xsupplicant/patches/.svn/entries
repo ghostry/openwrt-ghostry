@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/xsupplicant/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-002-disable-procfs-check.patch
-file
-
-
-
-
-2012-12-19T03:19:49.274308Z
-0c43ebb552467ee7e14bd41d354fa58e
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-613
-
 003-compile_fix.patch
 file
 
 
 
 
-2012-12-19T03:19:49.274308Z
+2012-12-19T07:47:09.538048Z
 5a22bb3e360f4783f375f5a0fd1f5ced
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:49.270308Z
+2012-12-19T07:47:09.538048Z
 b43aba0c852683a3dfe554a463369bd1
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:49.274308Z
+2012-12-19T07:47:09.538048Z
 13a78b7dbeac9c2bc216e75895d08788
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +134,7 @@ file
 
 
 
-2012-12-19T03:19:49.274308Z
+2012-12-19T07:47:09.538048Z
 5e9b022c7c64be50c67b381e1cd61a43
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +161,38 @@ lintel.huang@gmail.com
 
 
 2060
+
+002-disable-procfs-check.patch
+file
+
+
+
+
+2012-12-19T07:47:09.538048Z
+0c43ebb552467ee7e14bd41d354fa58e
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+613
 

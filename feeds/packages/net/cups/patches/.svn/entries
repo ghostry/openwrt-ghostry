@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/cups/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-100-makefile-targets.patch
-file
-
-
-
-
-2012-12-19T03:19:48.510308Z
-9af6441c8c056d196f32132fe796556b
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-363
-
-140-uname.patch
-file
-
-
-
-
-2012-12-19T03:19:48.514308Z
-75745242bf15f88544b35cf30dd140ba
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-234
-
 160-ppdc.patch
 file
 
 
 
 
-2012-12-19T03:19:48.514308Z
+2012-12-19T07:47:09.134048Z
 dd8a6f03b4720acd29466ce0744d1746
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:48.514308Z
+2012-12-19T07:47:09.134048Z
 6d536f1f9d43700981b1d48359013ef2
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +93,72 @@ lintel.huang@gmail.com
 
 
 1685
+
+100-makefile-targets.patch
+file
+
+
+
+
+2012-12-19T07:47:09.134048Z
+9af6441c8c056d196f32132fe796556b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+363
+
+140-uname.patch
+file
+
+
+
+
+2012-12-19T07:47:09.134048Z
+75745242bf15f88544b35cf30dd140ba
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+234
 

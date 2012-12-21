@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/base-files/files/lib/upgrade
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,16 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-keep.d
-dir
-
 common.sh
 file
 
 
 
 
-2012-11-17T08:18:03.511420Z
+2012-12-19T07:25:09.070067Z
 c22831fb6cb910875923cd3b3e902964
 2011-09-15T14:06:21.195238Z
 1
@@ -62,4 +59,7 @@ lintel.huang@gmail.com
 
 
 4136
+
+keep.d
+dir
 

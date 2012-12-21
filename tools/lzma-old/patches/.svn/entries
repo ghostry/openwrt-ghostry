@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/tools/lzma-old/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-110-ranlib.patch
-file
-
-
-
-
-2012-11-17T08:18:14.947420Z
-8fefd90cb56cf06688c13a2332ba0423
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-222
-
 100-lzma_zlib.patch
 file
 
 
 
 
-2012-11-17T08:18:14.947420Z
+2012-12-19T07:25:20.694067Z
 a869ac75c2aaa4bcd646af1cc7bac39d
 2012-01-02T08:45:22.339815Z
 347
@@ -93,4 +59,38 @@ lintel
 
 
 10686
+
+110-ranlib.patch
+file
+
+
+
+
+2012-12-19T07:25:20.694067Z
+8fefd90cb56cf06688c13a2332ba0423
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+222
 

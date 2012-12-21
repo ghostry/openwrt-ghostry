@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/base-files/etc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,56 +26,13 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-hotplug.d
-dir
-
-config
-dir
-
-uci-defaults
-dir
-
-inittab
-file
-
-
-
-
-2012-11-17T08:17:26.327420Z
-dfeb375fcdde55896e5c8ae21ace07b7
-2012-07-22T06:40:21.573606Z
-517
-lintel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-137
-
 diag.sh
 file
 
 
 
 
-2012-11-17T08:17:26.327420Z
+2012-12-19T07:24:31.722067Z
 fe80c570c393a6b8170ab48a8bdfedfb
 2012-07-26T15:18:48.236759Z
 523
@@ -102,4 +59,47 @@ has-props
 
 
 2450
+
+hotplug.d
+dir
+
+config
+dir
+
+uci-defaults
+dir
+
+inittab
+file
+
+
+
+
+2012-12-19T07:24:31.722067Z
+dfeb375fcdde55896e5c8ae21ace07b7
+2012-07-22T06:40:21.573606Z
+517
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+137
 

@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/psybnc/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-002-conf.patch
-file
-
-
-
-
-2012-12-19T03:19:58.594308Z
-310af9e2b781c53cc9a457ddeae69da4
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-466
-
-001-makefile.patch
-file
-
-
-
-
-2012-12-19T03:19:58.594308Z
-b0d35c2309747be254dfd5b4f9a51dc5
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2900
-
 003-psybnc.patch
 file
 
 
 
 
-2012-12-19T03:19:58.594308Z
+2012-12-19T07:47:19.234048Z
 984417f6d2b4e27ac74fe0f6f9158177
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:58.594308Z
+2012-12-19T07:47:19.234048Z
 2139efdeb29f44b2a8e3de661f4c7d8e
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:58.594308Z
+2012-12-19T07:47:19.230048Z
 c5e7970798cc867a3114065c19634056
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +127,72 @@ lintel.huang@gmail.com
 
 
 483
+
+002-conf.patch
+file
+
+
+
+
+2012-12-19T07:47:19.234048Z
+310af9e2b781c53cc9a457ddeae69da4
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+466
+
+001-makefile.patch
+file
+
+
+
+
+2012-12-19T07:47:19.234048Z
+b0d35c2309747be254dfd5b4f9a51dc5
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2900
 

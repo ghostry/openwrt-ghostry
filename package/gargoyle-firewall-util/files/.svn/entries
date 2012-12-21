@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/gargoyle-firewall-util/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-gargoyle_additions.firewall
-file
-
-
-
-
-2012-11-17T08:18:07.691420Z
-04615ed09d0882a7f96564d2e40cf951
-2011-10-08T06:11:36.107657Z
-151
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-80
-
 gargoyle_firewall.hotplug
 file
 
 
 
 
-2012-11-17T08:18:07.683420Z
+2012-12-19T07:25:13.558067Z
 546e27d2dad04156f72ecbc2c0565b68
 2011-10-08T06:11:36.107657Z
 151
@@ -100,7 +66,7 @@ file
 
 
 
-2012-11-17T08:18:07.691420Z
+2012-12-19T07:25:13.558067Z
 a3f102f781608f2d05ddff05ddbfd998
 2011-10-08T06:11:36.107657Z
 151
@@ -134,7 +100,7 @@ file
 
 
 
-2012-11-17T08:18:07.691420Z
+2012-12-19T07:25:13.558067Z
 0317f4b5b49218e97a1f9747fca09047
 2011-10-08T06:11:36.107657Z
 151
@@ -168,7 +134,7 @@ file
 
 
 
-2012-11-17T08:18:07.691420Z
+2012-12-19T07:25:13.558067Z
 21dc0d4afba954a309edcae1948fea8f
 2011-10-08T06:11:36.107657Z
 151
@@ -195,4 +161,38 @@ has-props
 
 
 910
+
+gargoyle_additions.firewall
+file
+
+
+
+
+2012-12-19T07:25:13.558067Z
+04615ed09d0882a7f96564d2e40cf951
+2011-10-08T06:11:36.107657Z
+151
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+80
 

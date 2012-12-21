@@ -26,9 +26,6 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-niu
-dir
-
 admin-core
 dir
 
@@ -42,5 +39,8 @@ admin-full
 dir
 
 freifunk
+dir
+
+niu
 dir
 

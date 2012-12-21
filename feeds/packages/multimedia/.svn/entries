@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/multimedia
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,43 +26,37 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-fswebcam
-dir
-
-linux-uvc
-dir
-
 gst-plugins-ugly
-dir
-
-imagemagick
 dir
 
 gst-ffmpeg
 dir
 
-ftpd-topfield
+gst-plugins-bad
 dir
 
 gst-plugins-good
 dir
 
-motion
-dir
-
 kissdx
 dir
 
-crtmpserver
+motion
 dir
 
-puppy
+icecast
 dir
 
 gmediaserver
 dir
 
-hasciicam
+mjpg-streamer
+dir
+
+nw802-2.4
+dir
+
+gphoto2
 dir
 
 gst-plugins-base
@@ -74,7 +68,7 @@ dir
 spca5xx-le
 dir
 
-gstreamer
+linux-uvc
 dir
 
 qc-usb
@@ -83,10 +77,13 @@ dir
 minidlna
 dir
 
+imagemagick
+dir
+
 mocp
 dir
 
-gst-plugins-bad
+ftpd-topfield
 dir
 
 spca5xx-view
@@ -104,21 +101,24 @@ dir
 palantir
 dir
 
-icecast
+crtmpserver
 dir
 
 graphicsmagick
 dir
 
-mjpg-streamer
+puppy
 dir
 
-nw802-2.4
+hasciicam
 dir
 
 spcaview
 dir
 
-gphoto2
+fswebcam
+dir
+
+gstreamer
 dir
 

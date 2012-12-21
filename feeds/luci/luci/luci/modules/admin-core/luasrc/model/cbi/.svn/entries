@@ -26,6 +26,12 @@ haliyoute
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+admin_services
+dir
+
+admin_system
+dir
+
 admin_index
 dir
 
@@ -33,11 +39,5 @@ admin_network
 dir
 
 admin_wifi
-dir
-
-admin_services
-dir
-
-admin_system
 dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/uml/patches-2.6.30
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-006-uml_libc_link_errors.patch
-file
-
-
-
-
-2012-11-17T08:17:26.451420Z
-1c0aa5928f89eabfc8294b309db0b31d
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1278
-
-002-gcc4_unfortify_source.patch
-file
-
-
-
-
-2012-11-17T08:17:26.451420Z
-181091cf1163a1c5e4f7e9ea215ef038
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-754
-
 003-fix_memcpy_export_on_x86_64.patch
 file
 
 
 
 
-2012-11-17T08:17:26.451420Z
+2012-12-19T07:24:31.878067Z
 74e43ac683689c5d217c3a2346181725
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:17:26.455420Z
+2012-12-19T07:24:31.878067Z
 97aab981d7d7e9b952bf6c8279c25193
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +100,7 @@ file
 
 
 
-2012-11-17T08:17:26.455420Z
+2012-12-19T07:24:31.878067Z
 45f2fb02d8f8daa09a755b8d472bc8cf
 2011-09-15T14:06:21.195238Z
 1
@@ -202,7 +134,7 @@ file
 
 
 
-2012-11-17T08:17:26.455420Z
+2012-12-19T07:24:31.878067Z
 3ef6df76ce1dd91b1d44189c37c8c5b0
 2011-09-15T14:06:21.195238Z
 1
@@ -236,7 +168,7 @@ file
 
 
 
-2012-11-17T08:17:26.455420Z
+2012-12-19T07:24:31.878067Z
 c76d973e41568c23fa37b416fd12d3b6
 2011-09-15T14:06:21.195238Z
 1
@@ -263,4 +195,72 @@ lintel.huang@gmail.com
 
 
 1003
+
+006-uml_libc_link_errors.patch
+file
+
+
+
+
+2012-12-19T07:24:31.874067Z
+1c0aa5928f89eabfc8294b309db0b31d
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1278
+
+002-gcc4_unfortify_source.patch
+file
+
+
+
+
+2012-12-19T07:24:31.874067Z
+181091cf1163a1c5e4f7e9ea215ef038
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+754
 

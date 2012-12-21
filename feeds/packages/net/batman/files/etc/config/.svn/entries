@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/batman/files/etc/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-batmand
-file
-
-
-
-
-2012-12-19T03:19:53.898308Z
-9f2980c48eded8fab7f525ee9123ca11
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-276
-
 vis
 file
 
 
 
 
-2012-12-19T03:19:53.898308Z
+2012-12-19T07:47:14.462048Z
 04ac6416ce4f8e2146e107ddebedba97
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 45
+
+batmand
+file
+
+
+
+
+2012-12-19T07:47:14.462048Z
+9f2980c48eded8fab7f525ee9123ca11
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+276
 

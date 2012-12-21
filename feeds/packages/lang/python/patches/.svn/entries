@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/lang/python/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,183 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-080-distutils-dont_adjust_files.patch
-file
-
-
-
-
-2012-12-19T03:19:43.770308Z
-c54ed782a9255061cb81ea951d89fa70
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2530
-
-020-dont-compile-python-files.patch
-file
-
-
-
-
-2012-12-19T03:19:43.770308Z
-85cf216d5be065304f2ffa9ea10b2c0c
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1266
-
-120-force-internal-modules-for-hashlib.patch
-file
-
-
-
-
-2012-12-19T03:19:43.770308Z
-7f2554a6117f8a3ecd8b13aba5405ec6
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1156
-
-030-fixup-include-dirs.patch
-file
-
-
-
-
-2012-12-19T03:19:43.770308Z
-c837d42d441fbcafb5e96c8b251de4c5
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1691
-
-000-cross-compile.patch
-file
-
-
-
-
-2012-12-19T03:19:43.770308Z
-0cf09e783639f2d115f5c2e987c0852b
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-4825
-
 010-cannot-run-test-programm.patch
 file
 
 
 
 
-2012-12-19T03:19:43.766308Z
+2012-12-19T07:47:04.298049Z
 05a7b0159cbc5587981c4fa4678601c9
 2011-09-15T14:06:21.195238Z
 1
@@ -236,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:43.766308Z
+2012-12-19T07:47:04.298049Z
 181f8aea97632734c9911132a37fc997
 2011-09-15T14:06:21.195238Z
 1
@@ -270,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:43.766308Z
+2012-12-19T07:47:04.298049Z
 3111b008de9440254cf07cdd6a19ab82
 2011-09-15T14:06:21.195238Z
 1
@@ -304,7 +134,7 @@ file
 
 
 
-2012-12-19T03:19:43.766308Z
+2012-12-19T07:47:04.302049Z
 fc935931c12beed16b9d834800920d92
 2011-09-15T14:06:21.195238Z
 1
@@ -338,7 +168,7 @@ file
 
 
 
-2012-12-19T03:19:43.770308Z
+2012-12-19T07:47:04.302049Z
 3e3c39272cd807e8d2ec5cad197c717e
 2011-09-15T14:06:21.195238Z
 1
@@ -365,4 +195,174 @@ lintel.huang@gmail.com
 
 
 865
+
+080-distutils-dont_adjust_files.patch
+file
+
+
+
+
+2012-12-19T07:47:04.302049Z
+c54ed782a9255061cb81ea951d89fa70
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2530
+
+020-dont-compile-python-files.patch
+file
+
+
+
+
+2012-12-19T07:47:04.302049Z
+85cf216d5be065304f2ffa9ea10b2c0c
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1266
+
+120-force-internal-modules-for-hashlib.patch
+file
+
+
+
+
+2012-12-19T07:47:04.302049Z
+7f2554a6117f8a3ecd8b13aba5405ec6
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1156
+
+030-fixup-include-dirs.patch
+file
+
+
+
+
+2012-12-19T07:47:04.302049Z
+c837d42d441fbcafb5e96c8b251de4c5
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1691
+
+000-cross-compile.patch
+file
+
+
+
+
+2012-12-19T07:47:04.302049Z
+0cf09e783639f2d115f5c2e987c0852b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4825
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/busybox/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -25,36 +25,6 @@ lintel.huang@gmail.com
 
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-loginutils
-dir
-
-archival
-dir
-
-sysklogd
-dir
-
-modutils
-dir
-
-console-tools
-dir
-
-findutils
-dir
-
-runit
-dir
-
-mailutils
-dir
-
-init
-dir
-
-debianutils
-dir
 
 procps
 dir
@@ -83,7 +53,7 @@ file
 
 
 
-2012-11-17T08:18:12.771420Z
+2012-12-19T07:25:18.426067Z
 1d35cca8fa3dc21cc8fa30aa3fe81986
 2011-09-15T14:06:21.195238Z
 1
@@ -121,5 +91,35 @@ networking
 dir
 
 selinux
+dir
+
+loginutils
+dir
+
+archival
+dir
+
+sysklogd
+dir
+
+modutils
+dir
+
+console-tools
+dir
+
+findutils
+dir
+
+runit
+dir
+
+mailutils
+dir
+
+init
+dir
+
+debianutils
 dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/kirkwood
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-image
-dir
-
 patches
 dir
 
@@ -38,7 +35,7 @@ file
 
 
 
-2012-11-17T08:16:56.551421Z
+2012-12-19T07:24:02.058068Z
 43ffb3b723831612372a7098f6eba784
 2011-09-17T05:59:27.696198Z
 16
@@ -78,7 +75,7 @@ file
 
 
 
-2012-11-17T08:16:56.551421Z
+2012-12-19T07:24:02.062068Z
 fb1e65c8e8f004af1570bac0657f7606
 2011-09-17T05:59:27.696198Z
 16
@@ -105,4 +102,7 @@ flyzjhz@gmail.com
 
 
 385
+
+image
+dir
 

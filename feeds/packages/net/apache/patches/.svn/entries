@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/apache/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-003-logdir_fix.patch
-file
-
-
-
-
-2012-12-19T03:19:54.402308Z
-ee96ce8f9a3501b6ccd758faabd9c20d
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-949
-
 005-httpd_conf.patch
 file
 
 
 
 
-2012-12-19T03:19:54.402308Z
+2012-12-19T07:47:14.910048Z
 c2334ce7e205fc7af9e4cbad63397ddc
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:54.398308Z
+2012-12-19T07:47:14.906048Z
 c69f2f111bae432657a25ab94f516548
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:54.398308Z
+2012-12-19T07:47:14.906048Z
 463863a663d36bc2b4146100b02f95d3
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +134,7 @@ file
 
 
 
-2012-12-19T03:19:54.402308Z
+2012-12-19T07:47:14.906048Z
 612a50c1e9056f328549ce4f37d49628
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +161,38 @@ lintel.huang@gmail.com
 
 
 345
+
+003-logdir_fix.patch
+file
+
+
+
+
+2012-12-19T07:47:14.910048Z
+ee96ce8f9a3501b6ccd758faabd9c20d
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+949
 

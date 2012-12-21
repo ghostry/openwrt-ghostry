@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/image/u-boot
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:16:51.075421Z
+2012-12-19T07:23:56.310068Z
 8e5ea15cda3839b501f9eb5254ebcb54
 2011-11-03T11:47:35.537595Z
 243
@@ -59,7 +62,4 @@ has-props
 
 
 898
-
-patches
-dir
 

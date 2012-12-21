@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ar93xx/base-files/etc/defconfig
 svn://svn.openwrt.org.cn/dreambox
 
@@ -25,12 +25,6 @@ flyzjhz@gmail.com
 
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-tl-wr1043nd
-dir
-
-tl-wa901nd
-dir
 
 rb-411
 dir
@@ -168,5 +162,11 @@ dir-615-c1
 dir
 
 eap7660d
+dir
+
+tl-wr1043nd
+dir
+
+tl-wa901nd
 dir
 

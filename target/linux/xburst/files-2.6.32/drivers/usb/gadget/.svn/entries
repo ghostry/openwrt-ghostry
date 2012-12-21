@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/xburst/files-2.6.32/drivers/usb/gadget
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-jz4740_udc.h
-file
-
-
-
-
-2012-11-17T08:17:20.435421Z
-3200a31e33d59a27cfa37b0fd09a6984
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2275
-
 jz4740_udc.c
 file
 
 
 
 
-2012-11-17T08:17:20.439421Z
+2012-12-19T07:24:25.834068Z
 e10e6a6888a28d6177de1a963e680fa2
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 59531
+
+jz4740_udc.h
+file
+
+
+
+
+2012-12-19T07:24:25.834068Z
+3200a31e33d59a27cfa37b0fd09a6984
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2275
 

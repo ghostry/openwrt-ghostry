@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/default_configs
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-brcm4716_defconfig
-file
-
-
-
-
-2012-11-17T08:18:14.071420Z
-37a21319d1ed3548d9cd591383701216
-2011-10-19T13:09:25.121257Z
-186
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-58742
-
 wrv54g.config
 file
 
 
 
 
-2012-11-17T08:18:14.071420Z
+2012-12-19T07:25:19.734067Z
 d29d31dcf15c1de707d8c45059700bd6
 2012-03-17T13:45:16.082285Z
 401
@@ -93,4 +59,38 @@ lintel
 
 
 120945
+
+brcm4716_defconfig
+file
+
+
+
+
+2012-12-19T07:25:19.742067Z
+37a21319d1ed3548d9cd591383701216
+2011-10-19T13:09:25.121257Z
+186
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+58742
 

@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/input-utils
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-12-19T03:19:41.926308Z
+2012-12-19T07:47:02.502049Z
 d84b12430e6a48f25b4cf0f6058ec66e
 2011-09-15T14:06:21.195238Z
 1
@@ -59,7 +62,4 @@ lintel.huang@gmail.com
 
 
 1051
-
-patches
-dir
 

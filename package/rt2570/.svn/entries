@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/rt2570
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:09.223420Z
+2012-12-19T07:25:14.862067Z
 710fdd077ff7abfd3321f847a2995fd6
 2011-09-15T14:06:21.195238Z
 1

@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/libs
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,319 +26,19 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-st2205tool
-dir
-
-libgcrypt
-dir
-
-orbit2
-dir
-
-taglib
-dir
-
-intltool
-dir
-
-flac
-dir
-
-zaptel-1.4.x
-dir
-
-dbus-glib
-dir
-
-libtasn1
-dir
-
-libsdl_sound
-dir
-
-libxslt
-dir
-
-classpath
-dir
-
-libosip2
-dir
-
-freetype
-dir
-
-gsl
-dir
-
-jpeg
-dir
-
-gsm
-dir
-
-phidget21
-dir
-
-libamsel
-dir
-
-cgilib
-dir
-
-wxbase
-dir
-
-ossp-js
-dir
-
-polarssl
-dir
-
-neon
-dir
-
-libpam
-dir
-
-libowfat
-dir
-
-glibmm
-dir
-
-libsynce
-dir
-
-libevent
-dir
-
-libtwin
-dir
-
-libdirectfb
-dir
-
-credis
-dir
-
-sctp
-dir
-
-tcp_wrappers
-dir
-
-ptlib
-dir
-
-gnutls
-dir
-
-newt
-dir
-
-firewall-mod-save
-dir
-
-libnet-1.1.x
-dir
-
-expat
-dir
-
-apr
-dir
-
-libdbi
-dir
-
-radiusclient-ng
-dir
-
-tiff
-dir
-
-xmpp4r
-dir
-
-libffi
-dir
-
-tokyocabinet
-dir
-
-libconfig
-dir
-
-libnfc
-dir
-
-libcli
-dir
-
-libspe2
-dir
-
-libol
-dir
-
-lzo
-dir
-
-libmpdclient
-dir
-
-libmpd
-dir
-
-libsdl
-dir
-
-libxml2
-dir
-
-libgphoto2
-dir
-
-libusb-1.0
-dir
-
-libgssapi
-dir
-
-libsoup
-dir
-
-mxml
-dir
-
-faad2
-dir
-
-pwlib
-dir
-
-libmodbus
-dir
-
-libdnet
-dir
-
-vips
-dir
-
-opencdk
-dir
-
-gmp
-dir
-
-eventlog
-dir
-
-gettext
-dir
-
-libptmalloc3
-dir
-
-libatomicops
-dir
-
-xmlrpc-c
-dir
-
-boost
-dir
-
-libmad
-dir
-
-libnfsidmap
-dir
-
-libshout
-dir
-
-libcrypto++
-dir
-
-apr-util
-dir
-
-libaio
-dir
-
-clinkc
-dir
-
-postgresql
-dir
-
-libmicrohttpd
-dir
-
-curl
-dir
-
-cyrus-sasl
-dir
-
-mysql
-dir
-
-re
-dir
-
-bluez-libs
-dir
-
-aalib
-dir
-
-libtheora
-dir
-
-howl
-dir
-
-libupnp
-dir
-
-libcunit
-dir
-
-glib
-dir
-
-libsdl_mixer
-dir
-
-libftdi
-dir
-
-libnfnetlink
-dir
-
-ortp
-dir
-
-libdmapsharing
-dir
-
-libnatpmp
-dir
-
-libao
-dir
-
 libaudiofile
 dir
 
-avahi
+libyaml
 dir
 
-fftw3
+iksemel
+dir
+
+libdaemon
+dir
+
+libpar2
 dir
 
 opal
@@ -347,7 +47,7 @@ dir
 giflib
 dir
 
-ezxml
+libgcrypt
 dir
 
 libdvdread
@@ -359,19 +59,13 @@ dir
 libnetfilter-log
 dir
 
-gperf
-dir
-
-libiconv-full
-dir
-
 libiconv
 dir
 
-fcgi
+dbus-glib
 dir
 
-spandsp
+fcgi
 dir
 
 gdbm
@@ -380,10 +74,301 @@ dir
 nacl
 dir
 
+libart
+dir
+
+libxslt
+dir
+
+classpath
+dir
+
+popt
+dir
+
+librsync
+dir
+
+gsl
+dir
+
+gsm
+dir
+
+phidget21
+dir
+
+radlib
+dir
+
+ossp-js
+dir
+
+protobuf
+dir
+
+libogg
+dir
+
+libtwin
+dir
+
+libdirectfb
+dir
+
+ptlib
+dir
+
+libsndfile
+dir
+
+firewall-mod-save
+dir
+
+libffi-sable
+dir
+
+file
+dir
+
+libusb
+dir
+
+expat
+dir
+
+apr
+dir
+
+gettext-full
+dir
+
+slang2
+dir
+
+radiusclient-ng
+dir
+
+pcre
+dir
+
+libconfig
+dir
+
+libcroco
+dir
+
+libelf
+dir
+
+zaptel
+dir
+
+db47
+dir
+
+libspe2
+dir
+
+pthsem
+dir
+
+libol
+dir
+
+libidn
+dir
+
+openldap
+dir
+
+lzo
+dir
+
+libnetfilter-queue
+dir
+
+rblibtorrent
+dir
+
+libpfm
+dir
+
+libxml2
+dir
+
+libpng
+dir
+
+libpthread-stubs
+dir
+
+faad2
+dir
+
+pwlib
+dir
+
+libgssapi
+dir
+
+libsoup
+dir
+
+gconf2
+dir
+
+libmodbus
+dir
+
+libdnet
+dir
+
+gmp
+dir
+
+opencdk
+dir
+
+alsa-lib
+dir
+
+gettext
+dir
+
+boost
+dir
+
+elfutils
+dir
+
+uclibc++
+dir
+
+sysfsutils
+dir
+
+libnfsidmap
+dir
+
+libgpg-error
+dir
+
+libv4l
+dir
+
+libcrypto++
+dir
+
+poco
+dir
+
+serdisplib
+dir
+
+libnetfilter-conntrack
+dir
+
+liboping
+dir
+
+libvncserver
+dir
+
+libmicrohttpd
+dir
+
+mysql
+dir
+
+id3lib
+dir
+
+aalib
+dir
+
+libupnp
+dir
+
+libtheora
+dir
+
+liboil
+dir
+
+c-ares
+dir
+
+libftdi
+dir
+
+libnet-1.0.x
+dir
+
+argtable
+dir
+
+librpcsecgss
+dir
+
+libmms
+dir
+
+libtorrent
+dir
+
+libao
+dir
+
+libnatpmp
+dir
+
+ustl
+dir
+
+avahi
+dir
+
+fftw3
+dir
+
+gd
+dir
+
+st2205tool
+dir
+
+ezxml
+dir
+
+orbit2
+dir
+
+taglib
+dir
+
+gperf
+dir
+
+intltool
+dir
+
+zaptel-1.4.x
+dir
+
+flac
+dir
+
+libiconv-full
+dir
+
+spandsp
+dir
+
 check
 dir
 
-libart
+libtasn1
 dir
 
 keynote
@@ -392,25 +377,40 @@ dir
 libcelt
 dir
 
-popt
+libsdl_sound
+dir
+
+freetype
+dir
+
+libosip2
 dir
 
 ucl
 dir
 
-librsync
+jpeg
 dir
 
 matrixssl
 dir
 
+libamsel
+dir
+
+wxbase
+dir
+
+cgilib
+dir
+
 axtls
 dir
 
-radlib
+polarssl
 dir
 
-protobuf
+neon
 dir
 
 libinklevel
@@ -425,10 +425,34 @@ dir
 libsigc++
 dir
 
-libogg
+libpam
 dir
 
-libsndfile
+glibmm
+dir
+
+libowfat
+dir
+
+libsynce
+dir
+
+libevent
+dir
+
+credis
+dir
+
+sctp
+dir
+
+tcp_wrappers
+dir
+
+gnutls
+dir
+
+newt
 dir
 
 libdvbpsi
@@ -437,13 +461,7 @@ dir
 argp-standalone
 dir
 
-libffi-sable
-dir
-
-file
-dir
-
-libusb
+libnet-1.1.x
 dir
 
 libexif
@@ -452,130 +470,127 @@ dir
 libnids
 dir
 
-gettext-full
+libdbi
 dir
 
-slang2
+tiff
 dir
 
-pcre
+xmpp4r
+dir
+
+libffi
 dir
 
 libvorbis
 dir
 
-libcroco
+tokyocabinet
 dir
 
-libelf
+libnfc
+dir
+
+libcli
 dir
 
 glib2
 dir
 
-zaptel
-dir
-
 nmeap
-dir
-
-db47
-dir
-
-pthsem
-dir
-
-libidn
-dir
-
-openldap
-dir
-
-libnetfilter-queue
 dir
 
 libmcrypt
 dir
 
+libmpdclient
+dir
+
+libmpd
+dir
+
 fribidi
 dir
 
-rblibtorrent
+libsdl
 dir
 
-libpfm
+libgphoto2
 dir
 
-libpng
+libusb-1.0
 dir
 
-libpthread-stubs
-dir
-
-gconf2
+mxml
 dir
 
 libvorbisidec
 dir
 
-gconv-modules
+vips
 dir
 
 libmpcdec
 dir
 
+gconv-modules
+dir
+
 sqlite2
 dir
 
-alsa-lib
+eventlog
 dir
 
 sqlite3
 dir
 
+xmlrpc-c
+dir
+
+libptmalloc3
+dir
+
+libatomicops
+dir
+
 rrdtool-1.0.x
 dir
 
-elfutils
+libmad
 dir
 
-uclibc++
-dir
-
-sysfsutils
+libshout
 dir
 
 libevent2
 dir
 
-libgpg-error
+apr-util
 dir
 
-libv4l
-dir
-
-serdisplib
-dir
-
-poco
+libaio
 dir
 
 liblo
 dir
 
-liboping
+postgresql
 dir
 
-libnetfilter-conntrack
-dir
-
-libvncserver
+clinkc
 dir
 
 libdlna
 dir
 
-id3lib
+cyrus-sasl
+dir
+
+curl
+dir
+
+re
 dir
 
 libmikmod
@@ -584,28 +599,31 @@ dir
 libxapian
 dir
 
-liboil
+bluez-libs
 dir
 
-c-ares
+libcunit
+dir
+
+howl
 dir
 
 clearsilver
 dir
 
-libnet-1.0.x
+glib
 dir
 
-argtable
+libsdl_mixer
+dir
+
+libnfnetlink
 dir
 
 libIDL2
 dir
 
-libmms
-dir
-
-librpcsecgss
+libdmapsharing
 dir
 
 libsamplerate
@@ -614,24 +632,6 @@ dir
 speex
 dir
 
-libtorrent
-dir
-
-ustl
-dir
-
-iksemel
-dir
-
-libyaml
-dir
-
-libdaemon
-dir
-
-gd
-dir
-
-libpar2
+ortp
 dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/multimedia/mjpg-streamer/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ flyzjhz@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-mjpg-streamer.hotplug
-file
-
-
-
-
-2012-12-19T03:20:07.934308Z
-8c9c1857e2242aa1401c85186439b742
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-179
-
 mjpg-streamer.init
 file
 
 
 
 
-2012-12-19T03:20:07.934308Z
+2012-12-19T07:47:28.530048Z
 d0b22ee0bb084876ef9afa3f4a5dd68b
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-12-19T03:20:07.934308Z
+2012-12-19T07:47:28.530048Z
 5868f0c7f3af0548de1586b1f6365fd1
 2011-09-25T07:00:03.116570Z
 115
@@ -127,4 +93,38 @@ flyzjhz@gmail.com
 
 
 201
+
+mjpg-streamer.hotplug
+file
+
+
+
+
+2012-12-19T07:47:28.530048Z
+8c9c1857e2242aa1401c85186439b742
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+179
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/wrt55agv2-spidevs
 svn://svn.openwrt.org.cn/dreambox
 
@@ -35,7 +35,7 @@ file
 
 
 
-2012-11-17T08:18:07.359420Z
+2012-12-19T07:25:12.914067Z
 bc40bf50ed7ab398f87e6d9833d40de8
 2011-09-15T14:06:21.195238Z
 1

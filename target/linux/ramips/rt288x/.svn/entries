@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/rt288x
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,50 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-profiles
-dir
-
-config-2.6.32
-file
-
-
-
-
-2012-11-17T08:17:24.223420Z
-ce01aa60d755febad9ce14cafd648939
-2012-07-22T06:40:21.573606Z
-517
-lintel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-3134
-
 target.mk
 file
 
 
 
 
-2012-11-17T08:17:24.223420Z
+2012-12-19T07:24:29.742067Z
 66b19eedf72b992d88f17a1e584a1eaa
 2012-07-22T06:40:21.573606Z
 517
@@ -96,4 +59,41 @@ lintel
 
 
 176
+
+profiles
+dir
+
+config-2.6.32
+file
+
+
+
+
+2012-12-19T07:24:29.742067Z
+ce01aa60d755febad9ce14cafd648939
+2012-07-22T06:40:21.573606Z
+517
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3134
 

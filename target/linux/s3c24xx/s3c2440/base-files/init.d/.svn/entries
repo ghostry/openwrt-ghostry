@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/s3c2440/base-files/init.d
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-hwclock
-file
-
-
-
-
-2012-11-17T08:17:54.223420Z
-43efe1306aa2c026abaafa85b6365ea5
-2011-11-03T11:47:35.537595Z
-243
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1809
-
 ntpclient
 file
 
 
 
 
-2012-11-17T08:17:54.223420Z
+2012-12-19T07:24:59.638067Z
 4e6a493c5a0319efcf2105f12d62bd3c
 2011-11-03T11:47:35.537595Z
 243
@@ -93,4 +59,38 @@ has-props
 
 
 2731
+
+hwclock
+file
+
+
+
+
+2012-12-19T07:24:59.638067Z
+43efe1306aa2c026abaafa85b6365ea5
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1809
 

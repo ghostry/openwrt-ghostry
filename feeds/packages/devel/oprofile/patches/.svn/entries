@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/devel/oprofile/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+101-remove_24_support.patch
+file
+
+
+
+
+2012-12-19T07:46:59.930049Z
+6bfb5fa07046524ad72d6f4bd441790f
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2366
+
 200-rename-i386-to-x86.patch
 file
 
 
 
 
-2012-12-19T03:19:39.514308Z
+2012-12-19T07:46:59.930049Z
 eb3187a0c7c5ae8a2fbf7614f209278f
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:39.514308Z
+2012-12-19T07:46:59.930049Z
 f22c000f2b52158a7e76e4aa3a4eafe6
 2011-09-15T14:06:21.195238Z
 1
@@ -93,38 +127,4 @@ lintel.huang@gmail.com
 
 
 560
-
-101-remove_24_support.patch
-file
-
-
-
-
-2012-12-19T03:19:39.514308Z
-6bfb5fa07046524ad72d6f4bd441790f
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2366
 

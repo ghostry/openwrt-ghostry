@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/Xorg/xorg/proto/calibrateproto/src
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,251 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-config.log
-file
-
-
-
-
-2012-12-19T03:19:37.382308Z
-2c85d3115bc1c759c4c83aa936e0e726
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-4719
-
-config.status
-file
-
-
-
-
-2012-12-19T03:19:37.386308Z
-521c71bcc4f75c1b072739cd3a3cd0be
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-22162
-
-ChangeLog
-file
-
-
-
-
-2012-12-19T03:19:37.386308Z
-9787f9cd3abd48ff6e9845e35b3d8d73
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-112
-
-xcalibrateproto.h
-file
-
-
-
-
-2012-12-19T03:19:37.386308Z
-188ea4c1e43be4c123d2ad8b42387381
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2671
-
-xcalibratewire.h
-file
-
-
-
-
-2012-12-19T03:19:37.390308Z
-913735dd32d44f71e8f53a7f240a9b38
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1679
-
-xcalibrateproto.pc
-file
-
-
-
-
-2012-12-19T03:19:37.390308Z
-d475c5f09e068b45832aa42f33ce1d7e
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-194
-
-configure.ac
-file
-
-
-
-
-2012-12-19T03:19:37.390308Z
-ac0fff4fe72864b9fdf4f1b6bda939cd
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-164
-
 xcalibrateproto.pc.in
 file
 
 
 
 
-2012-12-19T03:19:37.390308Z
+2012-12-19T07:46:58.126049Z
 92b08be60ebd0cab5f1faee86777ed0e
 2011-09-15T14:06:21.195238Z
 1
@@ -298,47 +60,13 @@ lintel.huang@gmail.com
 
 193
 
-missing
-file
-
-
-
-
-2012-12-19T03:19:37.394308Z
-c7645c248f924f07869059b76300fea9
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-11135
-
 Makefile.am
 file
 
 
 
 
-2012-12-19T03:19:37.390308Z
+2012-12-19T07:46:58.126049Z
 726cef25fb4595a2d2a5a282d84de327
 2011-09-15T14:06:21.195238Z
 1
@@ -366,13 +94,47 @@ lintel.huang@gmail.com
 
 1383
 
+missing
+file
+
+
+
+
+2012-12-19T07:46:58.126049Z
+c7645c248f924f07869059b76300fea9
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11135
+
 autogen.sh
 file
 
 
 
 
-2012-12-19T03:19:37.394308Z
+2012-12-19T07:46:58.130049Z
 a3bf19b468b62c882b323c74bdbb8df7
 2011-09-15T14:06:21.195238Z
 1
@@ -400,47 +162,13 @@ has-props
 
 195
 
-aclocal.m4
-file
-
-
-
-
-2012-12-19T03:19:37.398308Z
-90dc28201f7983bf2bed3977e0671f11
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-20197
-
 Makefile
 file
 
 
 
 
-2012-12-19T03:19:37.394308Z
+2012-12-19T07:46:58.130049Z
 baca89a4cb8e06309c1006d494a85973
 2011-09-15T14:06:21.195238Z
 1
@@ -468,13 +196,47 @@ lintel.huang@gmail.com
 
 18470
 
+aclocal.m4
+file
+
+
+
+
+2012-12-19T07:46:58.130049Z
+90dc28201f7983bf2bed3977e0671f11
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+20197
+
 install-sh
 file
 
 
 
 
-2012-12-19T03:19:37.406308Z
+2012-12-19T07:46:58.130049Z
 8bff9d6a50300d4b8147940002581a5d
 2011-09-15T14:06:21.195238Z
 1
@@ -508,7 +270,7 @@ file
 
 
 
-2012-12-19T03:19:37.382308Z
+2012-12-19T07:46:58.118049Z
 5b90ca49e34e6ed3995c6788cda21aee
 2011-09-15T14:06:21.195238Z
 1
@@ -542,7 +304,7 @@ file
 
 
 
-2012-12-19T03:19:37.382308Z
+2012-12-19T07:46:58.118049Z
 8a2b63a651e4e91da4b8b941783196b4
 2011-09-15T14:06:21.195238Z
 1
@@ -569,4 +331,242 @@ lintel.huang@gmail.com
 
 
 17673
+
+config.log
+file
+
+
+
+
+2012-12-19T07:46:58.118049Z
+2c85d3115bc1c759c4c83aa936e0e726
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4719
+
+ChangeLog
+file
+
+
+
+
+2012-12-19T07:46:58.118049Z
+9787f9cd3abd48ff6e9845e35b3d8d73
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+112
+
+config.status
+file
+
+
+
+
+2012-12-19T07:46:58.122049Z
+521c71bcc4f75c1b072739cd3a3cd0be
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+22162
+
+xcalibrateproto.h
+file
+
+
+
+
+2012-12-19T07:46:58.122049Z
+188ea4c1e43be4c123d2ad8b42387381
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2671
+
+xcalibratewire.h
+file
+
+
+
+
+2012-12-19T07:46:58.122049Z
+913735dd32d44f71e8f53a7f240a9b38
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1679
+
+configure.ac
+file
+
+
+
+
+2012-12-19T07:46:58.122049Z
+ac0fff4fe72864b9fdf4f1b6bda939cd
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+164
+
+xcalibrateproto.pc
+file
+
+
+
+
+2012-12-19T07:46:58.126049Z
+d475c5f09e068b45832aa42f33ce1d7e
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+194
 

@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/mtr/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-502-fix-res_ninit.patch
-file
-
-
-
-
-2012-12-19T03:19:53.954308Z
-512b81a33ebbcc72d57762bb741205fe
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1643
-
 501-dns.patch
 file
 
 
 
 
-2012-12-19T03:19:53.954308Z
+2012-12-19T07:47:14.510048Z
 c37ff4332fba146de9c9a0853329f293
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:53.954308Z
+2012-12-19T07:47:14.510048Z
 b15f6b58b9aeff47c1f39fe6e1432c6d
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:53.954308Z
+2012-12-19T07:47:14.510048Z
 c73d29687b9925532edb3db566d317c9
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +127,38 @@ lintel.huang@gmail.com
 
 
 1114
+
+502-fix-res_ninit.patch
+file
+
+
+
+
+2012-12-19T07:47:14.510048Z
+512b81a33ebbcc72d57762bb741205fe
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1643
 

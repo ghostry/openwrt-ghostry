@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/avr32
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,50 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
+config-default
+file
+
+
+
+
+2012-12-19T07:24:02.554068Z
+fa7e9f94e42f41f849d6accdf922df90
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3134
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:16:57.187421Z
+2012-12-19T07:24:02.554068Z
 7f96149e8add252dbe9ef972f606f774
 2011-09-15T14:06:21.195238Z
 1
@@ -62,41 +99,4 @@ lintel.huang@gmail.com
 
 image
 dir
-
-patches
-dir
-
-config-default
-file
-
-
-
-
-2012-11-17T08:16:57.187421Z
-fa7e9f94e42f41f849d6accdf922df90
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-3134
 

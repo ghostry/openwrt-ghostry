@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/toolchain/uClibc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,6 +26,43 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+config-0.9.30.1
+dir
+
+Config.version
+file
+
+
+
+
+2012-12-19T07:23:41.526068Z
+f3166838af654dfbd264dfd1a7dbcf11
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+365
+
 config-0.9.30.2
 dir
 
@@ -35,7 +72,7 @@ file
 
 
 
-2012-11-17T08:16:36.355421Z
+2012-12-19T07:23:41.526068Z
 48db7c689e33b38928338d48915cc93a
 2011-09-15T14:06:21.195238Z
 1
@@ -81,7 +118,7 @@ file
 
 
 
-2012-11-17T08:16:36.359421Z
+2012-12-19T07:23:41.526068Z
 effb426d90e1a3e022a2c1332133db14
 2011-09-15T14:06:21.195238Z
 1
@@ -114,41 +151,4 @@ dir
 
 patches-0.9.30+nptl
 dir
-
-config-0.9.30.1
-dir
-
-Config.version
-file
-
-
-
-
-2012-11-17T08:16:36.355421Z
-f3166838af654dfbd264dfd1a7dbcf11
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-365
 

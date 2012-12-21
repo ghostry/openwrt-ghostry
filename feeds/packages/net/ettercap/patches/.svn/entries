@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/ettercap/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+003-automake-compat.patch
+file
+
+
+
+
+2012-12-19T07:47:16.838048Z
+02d2143808d14ca30f177d13863fcb13
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+946
+
 001-cross_compiling.patch
 file
 
 
 
 
-2012-12-19T03:19:56.214308Z
+2012-12-19T07:47:16.838048Z
 51bafdae745610f3e02c08dea633cb94
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:56.214308Z
+2012-12-19T07:47:16.838048Z
 3172c8e500f5a4a539021bc87b78c74b
 2011-09-15T14:06:21.195238Z
 1
@@ -93,38 +127,4 @@ lintel.huang@gmail.com
 
 
 1022
-
-003-automake-compat.patch
-file
-
-
-
-
-2012-12-19T03:19:56.214308Z
-02d2143808d14ca30f177d13863fcb13
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-946
 

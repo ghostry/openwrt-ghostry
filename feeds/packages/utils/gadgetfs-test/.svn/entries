@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/gadgetfs-test
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,16 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-patches
-dir
-
 Makefile
 file
 
 
 
 
-2012-12-19T03:19:40.830308Z
+2012-12-19T07:47:01.190049Z
 ebf0cb772d1a3aacc87a98e96b616eb6
 2011-09-15T14:06:21.195238Z
 1
@@ -62,4 +59,7 @@ lintel.huang@gmail.com
 
 
 2577
+
+patches
+dir
 

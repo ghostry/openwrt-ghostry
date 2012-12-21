@@ -175,6 +175,9 @@ scan_wifi
 
 case "$1" in
 	down) wifi_updown "disable" "$2";;
-	detect) wifi_detect "$2";;
+	detect) 
+	wifi_detect "$2"
+	wifi_updown "enable" "$2"
+	;;
 	*) wifi_updown "enable" "$2";;
 esac

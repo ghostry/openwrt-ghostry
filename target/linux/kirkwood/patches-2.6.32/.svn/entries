@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/kirkwood/patches-2.6.32
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+009-jffs-fix-min-max-confusion.patch
+file
+
+
+
+
+2012-12-19T07:24:02.054068Z
+2705093add1cb9a69d463276542411e9
+2011-09-17T05:59:27.696198Z
+16
+flyzjhz@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+841
+
 011-ddnas_proc_cpuclock.patch
 file
 
 
 
 
-2012-11-17T08:16:56.535421Z
+2012-12-19T07:24:02.054068Z
 2d719733f43d727ff764fde6229d830b
 2011-09-17T05:59:27.696198Z
 16
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:16:56.547421Z
+2012-12-19T07:24:02.058068Z
 1c4deb0fe645e7c0b6f2d15b8d354cd1
 2011-09-17T05:59:27.696198Z
 16
@@ -100,7 +134,7 @@ file
 
 
 
-2012-11-17T08:16:56.535421Z
+2012-12-19T07:24:02.054068Z
 6e1628f281be615dad092bb76d46e54d
 2012-02-16T03:02:58.590075Z
 391
@@ -127,38 +161,4 @@ zjhzzyf
 
 
 8264
-
-009-jffs-fix-min-max-confusion.patch
-file
-
-
-
-
-2012-11-17T08:16:56.535421Z
-2705093add1cb9a69d463276542411e9
-2011-09-17T05:59:27.696198Z
-16
-flyzjhz@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-841
 

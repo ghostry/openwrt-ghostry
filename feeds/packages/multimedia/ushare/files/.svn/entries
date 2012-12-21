@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/multimedia/ushare/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-ushare.config
-file
-
-
-
-
-2012-12-19T03:20:07.534308Z
-c829ef4e936ef7b75a6cd4b5bf6ddb34
-2012-05-06T14:42:32.617653Z
-441
-lintel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-242
-
 ushare.init
 file
 
 
 
 
-2012-12-19T03:20:07.534308Z
+2012-12-19T07:47:28.250048Z
 656a6b2fa41cb3e7fe5a68ebe4501099
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 1431
+
+ushare.config
+file
+
+
+
+
+2012-12-19T07:47:28.250048Z
+c829ef4e936ef7b75a6cd4b5bf6ddb34
+2012-05-06T14:42:32.617653Z
+441
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+242
 

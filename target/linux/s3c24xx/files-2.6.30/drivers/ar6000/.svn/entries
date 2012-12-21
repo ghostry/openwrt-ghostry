@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/files-2.6.30/drivers/ar6000
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+wmi
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:17:56.271420Z
+2012-12-19T07:25:02.278067Z
 e28b9f77fb8800fcace326484c0080ad
 2011-11-03T11:47:35.537595Z
 243
@@ -69,7 +72,7 @@ file
 
 
 
-2012-11-17T08:17:56.267420Z
+2012-12-19T07:25:02.278067Z
 a02b801d46111558043eb3839cacf9d7
 2011-11-03T11:47:35.537595Z
 243
@@ -113,8 +116,5 @@ miscdrv
 dir
 
 ar6000
-dir
-
-wmi
 dir
 

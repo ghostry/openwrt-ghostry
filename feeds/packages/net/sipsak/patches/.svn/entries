@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/sipsak/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-12-19T03:19:59.330308Z
+2012-12-19T07:47:19.886048Z
 1752320e5ff56f2a5898bb2497fd3980
 2011-09-15T14:06:21.195238Z
 1

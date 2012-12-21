@@ -26,15 +26,6 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-ppp
-dir
-
-6x4
-dir
-
-pptp
-dir
-
 core
 dir
 
@@ -42,5 +33,14 @@ dir
 dir
 
 relay
+dir
+
+ppp
+dir
+
+6x4
+dir
+
+pptp
 dir
 

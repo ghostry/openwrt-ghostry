@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/vsftpd/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+002-find_libs.patch
+file
+
+
+
+
+2012-12-19T07:47:14.630048Z
+4c2f5bc559908ab0788e8a57cea0464f
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+345
+
 001-destdir.patch
 file
 
 
 
 
-2012-12-19T03:19:54.074308Z
+2012-12-19T07:47:14.630048Z
 db329e21470c35705b616ab790b3ed1c
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-12-19T03:19:54.074308Z
+2012-12-19T07:47:14.630048Z
 38c485313712549d4b17e7bdac142026
 2011-09-15T14:06:21.195238Z
 1
@@ -93,38 +127,4 @@ lintel.huang@gmail.com
 
 
 459
-
-002-find_libs.patch
-file
-
-
-
-
-2012-12-19T03:19:54.074308Z
-4c2f5bc559908ab0788e8a57cea0464f
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-345
 

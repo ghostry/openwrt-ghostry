@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/devel
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,6 +26,21 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+binutils
+dir
+
+diffutils
+dir
+
+boost-jam
+dir
+
+dmalloc
+dir
+
+gcc
+dir
+
 make
 dir
 
@@ -42,20 +57,5 @@ build-essential
 dir
 
 ksymoops
-dir
-
-binutils
-dir
-
-diffutils
-dir
-
-boost-jam
-dir
-
-dmalloc
-dir
-
-gcc
 dir
 

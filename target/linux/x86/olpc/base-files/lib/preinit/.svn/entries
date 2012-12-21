@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/x86/olpc/base-files/lib/preinit
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-45_failsafe_x86
-file
-
-
-
-
-2012-11-17T08:17:19.715421Z
-140a3ac18367041c393d8daf57fbb8ce
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-456
-
 15_essential_fs_x86
 file
 
 
 
 
-2012-11-17T08:17:19.715421Z
+2012-12-19T07:24:25.074068Z
 c739ec7c2db979ef54501e11a3a97253
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 144
+
+45_failsafe_x86
+file
+
+
+
+
+2012-12-19T07:24:25.074068Z
+140a3ac18367041c393d8daf57fbb8ce
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+456
 

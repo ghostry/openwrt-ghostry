@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/net/aodv-uu/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,115 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-005-linux_2.6.22_skbuff.patch
-file
-
-
-
-
-2012-12-19T03:19:53.634308Z
-8d41074999a78803edbf83d1dade302f
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-5634
-
-003-linux_2.6.19_security_netlink_recv_change.patch
-file
-
-
-
-
-2012-12-19T03:19:53.634308Z
-3e545cb578108692af860bee9d1425c4
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-552
-
-002-linux_2.6.19_ip_route_me_harder_change.patch
-file
-
-
-
-
-2012-12-19T03:19:53.638308Z
-f261dd8a8fb6accb7c89966ed3c8d6d7
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1443
-
 001-normalize.patch
 file
 
 
 
 
-2012-12-19T03:19:53.638308Z
+2012-12-19T07:47:14.206048Z
 5b6912beeb0eb8d24c5de06bed450fe3
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:53.634308Z
+2012-12-19T07:47:14.202048Z
 c82e69ad23e7de683c4e3315ab163e57
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +93,106 @@ lintel.huang@gmail.com
 
 
 922
+
+005-linux_2.6.22_skbuff.patch
+file
+
+
+
+
+2012-12-19T07:47:14.206048Z
+8d41074999a78803edbf83d1dade302f
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5634
+
+003-linux_2.6.19_security_netlink_recv_change.patch
+file
+
+
+
+
+2012-12-19T07:47:14.206048Z
+3e545cb578108692af860bee9d1425c4
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+552
+
+002-linux_2.6.19_ip_route_me_harder_change.patch
+file
+
+
+
+
+2012-12-19T07:47:14.206048Z
+f261dd8a8fb6accb7c89966ed3c8d6d7
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1443
 

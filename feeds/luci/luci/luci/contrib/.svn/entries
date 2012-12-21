@@ -26,15 +26,6 @@ haliyoute
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-luacurses
-dir
-
-luadoc
-dir
-
-uhttpd
-dir
-
 package
 dir
 
@@ -48,5 +39,14 @@ fwd
 dir
 
 uci
+dir
+
+luacurses
+dir
+
+luadoc
+dir
+
+uhttpd
 dir
 

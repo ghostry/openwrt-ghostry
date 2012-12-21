@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/lang
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,112 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+pysqlite
+dir
+
+xapian-bindings
+dir
+
+python2-chardet
+dir
+
+gst-python
+dir
+
+pymysql
+dir
+
+distribute
+dir
+
+luaexpat
+dir
+
+luafilesystem
+dir
+
+python-json
+dir
+
+perl-html-tagset
+dir
+
+luasocket
+dir
+
+pybluez
+dir
+
+pygtk
+dir
+
+php-pear-db
+dir
+
+perl-html-tree
+dir
+
+sqlite3-ruby
+dir
+
+kid
+dir
+
+numpy
+dir
+
+python-sip
+dir
+
+php4
+dir
+
+php-pear
+dir
+
+php5
+dir
+
+luasec
+dir
+
+python-gnome-desktop2
+dir
+
+ruby
+dir
+
+tcl
+dir
+
+twisted
+dir
+
+luaprofiler
+dir
+
+jsonpath
+dir
+
+yapsnmp
+dir
+
+perl-www-curl
+dir
+
+ipython
+dir
+
+pyopenssl
+dir
+
 perl-html-parser
 dir
 
-logilab-common
+perl-uri
 dir
 
-perl-uri
+logilab-common
 dir
 
 lsqlite3
@@ -107,10 +206,10 @@ dir
 perl-lockfile-simple
 dir
 
-python
+pyqt4
 dir
 
-pyqt4
+python
 dir
 
 perl-www
@@ -141,104 +240,5 @@ pycairo
 dir
 
 erlang
-dir
-
-pysqlite
-dir
-
-python2-chardet
-dir
-
-xapian-bindings
-dir
-
-gst-python
-dir
-
-distribute
-dir
-
-pymysql
-dir
-
-luaexpat
-dir
-
-luafilesystem
-dir
-
-python-json
-dir
-
-perl-html-tagset
-dir
-
-luasocket
-dir
-
-pybluez
-dir
-
-pygtk
-dir
-
-php-pear-db
-dir
-
-perl-html-tree
-dir
-
-sqlite3-ruby
-dir
-
-kid
-dir
-
-numpy
-dir
-
-python-sip
-dir
-
-php4
-dir
-
-luasec
-dir
-
-php5
-dir
-
-php-pear
-dir
-
-python-gnome-desktop2
-dir
-
-ruby
-dir
-
-tcl
-dir
-
-twisted
-dir
-
-luaprofiler
-dir
-
-jsonpath
-dir
-
-perl-www-curl
-dir
-
-yapsnmp
-dir
-
-ipython
-dir
-
-pyopenssl
 dir
 

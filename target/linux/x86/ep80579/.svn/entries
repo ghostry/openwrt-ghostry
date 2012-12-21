@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/x86/ep80579
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-config-default
-file
-
-
-
-
-2012-11-17T08:17:19.571421Z
-e3787577f4036aa90996d6ebba50120f
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-298
-
 target.mk
 file
 
 
 
 
-2012-11-17T08:17:19.571421Z
+2012-12-19T07:24:24.942068Z
 5ed4eba899058956a2ae44682155a24f
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 282
+
+config-default
+file
+
+
+
+
+2012-12-19T07:24:24.942068Z
+e3787577f4036aa90996d6ebba50120f
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+298
 

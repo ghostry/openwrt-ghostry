@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/lantiq/ar9
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+profiles
+dir
+
 config-2.6.32
 file
 
 
 
 
-2012-11-17T08:17:21.147421Z
+2012-12-19T07:24:26.478068Z
 909e6825327f305a8e111960f3608d25
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +69,7 @@ file
 
 
 
-2012-11-17T08:17:21.147421Z
+2012-12-19T07:24:26.478068Z
 f96f9bde3338a02784a2bbf03a3204b2
 2011-09-15T14:06:21.195238Z
 1
@@ -93,7 +96,4 @@ lintel.huang@gmail.com
 
 
 246
-
-profiles
-dir
 

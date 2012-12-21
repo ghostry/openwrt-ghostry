@@ -29,22 +29,22 @@ zjhzzyf
 sgi-luci
 dir
 
-web
-dir
-
 lucid-http
 dir
 
-httpclient
+web
 dir
 
 sys
 dir
 
-sgi-cgi
+httpclient
 dir
 
 lucid-rpc
+dir
+
+sgi-cgi
 dir
 
 px5g
@@ -56,16 +56,16 @@ dir
 nixio
 dir
 
-rpcc
-dir
-
 lmo
 dir
 
-sgi-uhttpd
+rpcc
 dir
 
 core
+dir
+
+sgi-uhttpd
 dir
 
 ipkg

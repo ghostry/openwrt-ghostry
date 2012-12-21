@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/i2c-gpio-custom/src
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+Kconfig
+file
+
+
+
+
+2012-12-19T07:25:05.582067Z
+64b7bc91d43aa394fb19fb44c7bdacb3
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+296
+
 i2c-gpio-custom.c
 file
 
 
 
 
-2012-11-17T08:17:59.707420Z
+2012-12-19T07:25:05.586067Z
 51399b920dc8ac4d36754b6841ba7388
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:17:59.711420Z
+2012-12-19T07:25:05.586067Z
 8823a9c4db1f2c88ce8e6e0290b1a374
 2011-09-15T14:06:21.195238Z
 1
@@ -93,38 +127,4 @@ lintel.huang@gmail.com
 
 
 50
-
-Kconfig
-file
-
-
-
-
-2012-11-17T08:17:59.707420Z
-64b7bc91d43aa394fb19fb44c7bdacb3
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-296
 

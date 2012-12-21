@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/xburst/files-2.6.32/drivers/i2c/chips
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:17:20.555421Z
+2012-12-19T07:24:25.950068Z
 d141d0138922e327b784c6d524971351
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +66,7 @@ file
 
 
 
-2012-11-17T08:17:20.555421Z
+2012-12-19T07:24:25.950068Z
 217bd1ac3581ba3aa970f7999538b310
 2011-09-15T14:06:21.195238Z
 1

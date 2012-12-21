@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/kirkwood/base-files/etc/hotplug.d/usb
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:56.403421Z
+2012-12-19T07:24:01.958068Z
 60d18b3b23a005dc3b1da871ef7b8db9
 2011-09-17T05:59:27.696198Z
 16

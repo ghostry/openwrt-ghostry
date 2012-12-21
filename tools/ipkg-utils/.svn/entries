@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/tools/ipkg-utils
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:15.343420Z
+2012-12-19T07:25:21.066067Z
 cc2ede46ff427b9deb3aae7d26ae8b6a
 2011-09-15T14:06:21.195238Z
 1
@@ -59,7 +62,4 @@ lintel.huang@gmail.com
 
 
 744
-
-patches
-dir
 

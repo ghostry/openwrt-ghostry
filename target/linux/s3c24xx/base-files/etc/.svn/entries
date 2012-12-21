@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/base-files/etc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,6 +26,9 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+hotplug.d
+dir
+
 config
 dir
 
@@ -35,7 +38,7 @@ file
 
 
 
-2012-11-17T08:17:56.683420Z
+2012-12-19T07:25:02.634067Z
 da9cae9065ea6b4767e4826fcc1808bf
 2011-11-03T11:47:35.537595Z
 243
@@ -72,7 +75,7 @@ file
 
 
 
-2012-11-17T08:17:56.687420Z
+2012-12-19T07:25:02.634067Z
 331643026581ab97992e80c9b747f496
 2012-05-09T08:42:25.478922Z
 450
@@ -99,7 +102,4 @@ lintel
 
 
 760
-
-hotplug.d
-dir
 

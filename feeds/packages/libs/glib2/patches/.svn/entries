@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/libs/glib2/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+020-no-docs-tests-translations.patch
+file
+
+
+
+
+2012-12-19T07:47:23.934048Z
+525583686a6fa789c8c811bc813ac8d0
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1889
+
 001-automake-compat.patch
 file
 
 
 
 
-2012-12-19T03:20:04.410308Z
+2012-12-19T07:47:23.934048Z
 180bb05b248098f5f460722cf8d401ba
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-12-19T03:20:04.410308Z
+2012-12-19T07:47:23.934048Z
 dbd521e11267a7f401c4988b9dd23ff8
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +134,7 @@ file
 
 
 
-2012-12-19T03:20:04.414308Z
+2012-12-19T07:47:23.934048Z
 698b32be9615ad5db19ea63204cc1bcb
 2011-09-15T14:06:21.195238Z
 1
@@ -127,38 +161,4 @@ lintel.huang@gmail.com
 
 
 356
-
-020-no-docs-tests-translations.patch
-file
-
-
-
-
-2012-12-19T03:20:04.414308Z
-525583686a6fa789c8c811bc813ac8d0
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1889
 

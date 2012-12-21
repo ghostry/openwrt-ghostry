@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/base-files.old/etc/hotplug.d/firmware
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:17:26.147420Z
+2012-12-19T07:24:31.522067Z
 01cac0e8791f5bf8290d8eec11a249c4
 2012-07-22T06:40:21.573606Z
 517

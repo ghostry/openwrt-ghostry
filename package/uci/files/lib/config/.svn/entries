@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/uci/files/lib/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:11.703420Z
+2012-12-19T07:25:17.558067Z
 3212c1b6b13f6c5628165a36ec50b46f
 2011-09-15T14:06:21.195238Z
 1

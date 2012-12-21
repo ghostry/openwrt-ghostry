@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/au1000/patches-2.6.32
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-003-au1000_eth_ioctl.patch
-file
-
-
-
-
-2012-11-17T08:16:57.595421Z
-670bd4b39651be868d10ae941c1a0d00
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-514
-
-001-mtx1_cmdline.patch
-file
-
-
-
-
-2012-11-17T08:16:57.595421Z
-7218b93eb8e74e4e6c811c2ca8253a33
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-431
-
 002-openwrt_rootfs.patch
 file
 
 
 
 
-2012-11-17T08:16:57.595421Z
+2012-12-19T07:24:03.346068Z
 5196c254bc7499a912ad83220fc759ca
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:16:57.595421Z
+2012-12-19T07:24:03.346068Z
 9638cd59d25fee1ff28ff11a58d827c0
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +100,7 @@ file
 
 
 
-2012-11-17T08:16:57.595421Z
+2012-12-19T07:24:03.346068Z
 a73fc1be85cf440e85ee7abfdb1fc170
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +127,72 @@ lintel.huang@gmail.com
 
 
 933
+
+003-au1000_eth_ioctl.patch
+file
+
+
+
+
+2012-12-19T07:24:03.350068Z
+670bd4b39651be868d10ae941c1a0d00
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+514
+
+001-mtx1_cmdline.patch
+file
+
+
+
+
+2012-12-19T07:24:03.346068Z
+7218b93eb8e74e4e6c811c2ca8253a33
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+431
 

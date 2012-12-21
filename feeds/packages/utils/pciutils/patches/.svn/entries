@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/pciutils/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,115 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-101-no-strip.patch
-file
-
-
-
-
-2012-12-19T03:19:39.710308Z
-da26385e699efa405996c7371e28b735
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-562
-
-104-resolv.patch
-file
-
-
-
-
-2012-12-19T03:19:39.714308Z
-a9f098b49237177d5729afdec54e189e
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-222
-
-102-compressed-ids.patch
-file
-
-
-
-
-2012-12-19T03:19:39.710308Z
-d8eb99af0b8e61647fb0d05da9f2b4fc
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-900
-
 103-relative-path-ids.patch
 file
 
 
 
 
-2012-12-19T03:19:39.710308Z
+2012-12-19T07:47:00.094049Z
 71a1ea5fcfd3c2b297118bf66f8b7192
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +66,7 @@ file
 
 
 
-2012-12-19T03:19:39.710308Z
+2012-12-19T07:47:00.094049Z
 d756b7ed1e0a688413f8b9b28e691783
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +93,106 @@ lintel.huang@gmail.com
 
 
 388
+
+101-no-strip.patch
+file
+
+
+
+
+2012-12-19T07:47:00.094049Z
+da26385e699efa405996c7371e28b735
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+562
+
+104-resolv.patch
+file
+
+
+
+
+2012-12-19T07:47:00.094049Z
+a9f098b49237177d5729afdec54e189e
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+222
+
+102-compressed-ids.patch
+file
+
+
+
+
+2012-12-19T07:47:00.094049Z
+d8eb99af0b8e61647fb0d05da9f2b4fc
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+900
 

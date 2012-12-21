@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/compcache
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-Config.in
-file
-
-
-
-
-2012-11-17T08:18:04.159420Z
-2cc4f18bf2f1ebe47cb27779fbe759bc
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-644
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:04.163420Z
+2012-12-19T07:25:09.722067Z
 97abbf004fc7085b1088750252c9ccc5
 2011-09-15T14:06:21.195238Z
 1
@@ -99,4 +65,38 @@ dir
 
 patches
 dir
+
+Config.in
+file
+
+
+
+
+2012-12-19T07:25:09.718067Z
+2cc4f18bf2f1ebe47cb27779fbe759bc
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+644
 

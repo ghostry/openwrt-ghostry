@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s5pv210/tiny210/base-files/etc/acpi
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:17:06.191421Z
+2012-12-19T07:24:11.610068Z
 54455436e9ac967cfc69e952ee600398
 2012-04-20T06:14:47.291909Z
 427

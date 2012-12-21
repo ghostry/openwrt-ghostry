@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/image
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+u-boot
+dir
+
 Config.in
 file
 
 
 
 
-2012-11-17T08:16:51.087421Z
+2012-12-19T07:23:56.330068Z
 adb1e5edb2b93214c230ab86585fa82d
 2011-11-03T11:47:35.537595Z
 243
@@ -66,7 +69,7 @@ file
 
 
 
-2012-11-17T08:16:51.087421Z
+2012-12-19T07:23:56.334068Z
 184e8d824193030bbe8bbc392563aad9
 2011-11-03T11:47:35.537595Z
 243
@@ -100,7 +103,7 @@ file
 
 
 
-2012-11-17T08:16:51.091421Z
+2012-12-19T07:23:56.334068Z
 7631eae72a5dd225d2452404f9e06032
 2011-11-03T11:47:35.537595Z
 243
@@ -127,7 +130,4 @@ has-props
 
 
 3272
-
-u-boot
-dir
 

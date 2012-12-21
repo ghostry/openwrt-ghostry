@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/utils/lcdproc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -35,7 +35,7 @@ file
 
 
 
-2012-12-19T03:19:39.970308Z
+2012-12-19T07:47:00.322049Z
 6c0ab019f80bd86349ba2179acc08661
 2011-09-15T14:06:21.195238Z
 1

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/rdc/patches-2.6.32
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:17:31.303420Z
+2012-12-19T07:24:37.130067Z
 d452995fa8ee4b457fbaa093d5983e89
 2011-09-17T08:12:55.294042Z
 27

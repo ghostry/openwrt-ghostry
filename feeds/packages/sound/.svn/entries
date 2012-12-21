@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/sound
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,15 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-streamripper
-dir
-
-lame
-dir
-
-mpc
-dir
-
 mpd
 dir
 
@@ -44,10 +35,10 @@ dir
 ices
 dir
 
-mt-daapd
+madplay
 dir
 
-madplay
+mt-daapd
 dir
 
 empcd
@@ -62,15 +53,24 @@ dir
 scmpc
 dir
 
-shell-fm
+cmus
 dir
 
-cmus
+shell-fm
 dir
 
 sox
 dir
 
 pulseaudio
+dir
+
+streamripper
+dir
+
+lame
+dir
+
+mpc
 dir
 

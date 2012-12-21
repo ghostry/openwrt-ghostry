@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/qos-scripts/files/etc/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:00.099420Z
+2012-12-19T07:25:05.818067Z
 c3e0799379ac7d00c163f36ded5845ca
 2012-03-31T01:00:22.428843Z
 413

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/rb532/base-files/etc/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:56.995421Z
+2012-12-19T07:24:02.406068Z
 90c517ea10c760da814c5e4e86bf73aa
 2011-09-15T14:06:21.195238Z
 1

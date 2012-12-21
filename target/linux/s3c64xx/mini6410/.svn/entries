@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c64xx/mini6410
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,50 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+profiles
+dir
+
+.config.target
+file
+
+
+
+
+2012-12-19T07:23:56.666068Z
+61157b84d20f6d9c761ce8ca1075cce9
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+103403
+
 config-2.6.30
 file
 
 
 
 
-2012-11-17T08:16:51.363421Z
+2012-12-19T07:23:56.666068Z
 11d453ad38aba6a834ae4edd5a05a574
 2011-11-03T11:47:35.537595Z
 243
@@ -69,7 +106,7 @@ file
 
 
 
-2012-11-17T08:16:51.367421Z
+2012-12-19T07:23:56.666068Z
 e1f1f92bf25236d06d3a48571a42bf42
 2011-11-03T11:47:35.537595Z
 243
@@ -103,49 +140,12 @@ file
 
 
 
-2012-11-17T08:16:51.359421Z
+2012-12-19T07:23:56.662068Z
 61157b84d20f6d9c761ce8ca1075cce9
 2011-11-03T11:47:35.537595Z
 243
 lintel.huang@gmail.com
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-103403
-
-profiles
-dir
-
-.config.target
-file
-
-
-
-
-2012-11-17T08:16:51.363421Z
-61157b84d20f6d9c761ce8ca1075cce9
-2011-11-03T11:47:35.537595Z
-243
-lintel.huang@gmail.com
-has-props
 
 
 

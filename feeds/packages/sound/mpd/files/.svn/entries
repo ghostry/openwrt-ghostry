@@ -1,7 +1,7 @@
 10
 
 dir
-560
+561
 svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/sound/mpd/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-mpd.init
-file
-
-
-
-
-2012-12-19T03:20:00.530308Z
-81903b77754c85caf669c3aa54cc2244
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-599
-
 mpd.service
 file
 
 
 
 
-2012-12-19T03:20:00.530308Z
+2012-12-19T07:47:20.878048Z
 4bbc2a4ff3ec62e06cc67b85bdae8319
 2011-09-15T14:06:21.195238Z
 1
@@ -93,4 +59,38 @@ lintel.huang@gmail.com
 
 
 274
+
+mpd.init
+file
+
+
+
+
+2012-12-19T07:47:20.878048Z
+81903b77754c85caf669c3aa54cc2244
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+599
 

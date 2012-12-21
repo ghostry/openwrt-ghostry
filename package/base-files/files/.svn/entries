@@ -1,14 +1,14 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/base-files/files
 svn://svn.openwrt.org.cn/dreambox
 
 
 
-2012-07-22T05:03:38.348563Z
-515
+2012-12-06T05:32:12.886003Z
+559
 lintel
 
 
@@ -26,9 +26,6 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-lib
-dir
-
 bin
 dir
 
@@ -42,5 +39,8 @@ sbin
 dir
 
 rom
+dir
+
+lib
 dir
 

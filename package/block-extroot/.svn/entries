@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/block-extroot
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+Config.in
+file
+
+
+
+
+2012-12-19T07:25:18.694067Z
+49d8322ce39b6a515411be098574b922
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+480
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:12.999420Z
+2012-12-19T07:25:18.694067Z
 ec2acf8aaa88a8b93c4dff3ac0cac872
 2011-09-15T14:06:21.195238Z
 1
@@ -62,38 +96,4 @@ lintel.huang@gmail.com
 
 files
 dir
-
-Config.in
-file
-
-
-
-
-2012-11-17T08:18:12.999420Z
-49d8322ce39b6a515411be098574b922
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-480
 

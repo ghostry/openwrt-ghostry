@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/tools/squashfs4/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,115 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-100-portability.patch
-file
-
-
-
-
-2012-11-17T08:18:14.191420Z
-bf7721a7d1b5ae003faa80d19da347a1
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-576
-
-110-lzma.patch
-file
-
-
-
-
-2012-11-17T08:18:14.187420Z
-ec982e39bfe5e0154390342fd7ec1486
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-67048
-
-140-mode_check.patch
-file
-
-
-
-
-2012-11-17T08:18:14.187420Z
-d0b4f8ad77e9f664a1a9e72a9d799b56
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-190
-
 130-lzma_props.patch
 file
 
 
 
 
-2012-11-17T08:18:14.191420Z
+2012-12-19T07:25:19.882067Z
 0a06bb78dbac275cf763de6d1007d0f6
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +66,7 @@ file
 
 
 
-2012-11-17T08:18:14.191420Z
+2012-12-19T07:25:19.886067Z
 b2ac11813a28d6c1e3269b5378752f1e
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +93,106 @@ lintel.huang@gmail.com
 
 
 3480
+
+100-portability.patch
+file
+
+
+
+
+2012-12-19T07:25:19.886067Z
+bf7721a7d1b5ae003faa80d19da347a1
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+576
+
+110-lzma.patch
+file
+
+
+
+
+2012-12-19T07:25:19.878067Z
+ec982e39bfe5e0154390342fd7ec1486
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+67048
+
+140-mode_check.patch
+file
+
+
+
+
+2012-12-19T07:25:19.878067Z
+d0b4f8ad77e9f664a1a9e72a9d799b56
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+190
 
