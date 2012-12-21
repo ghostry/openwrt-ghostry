@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/orion/base-files/etc/hotplug.d/usb
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:54.551421Z
+2012-12-19T07:23:59.898068Z
 f794060e61f350f2f6e5177a8db3bf57
 2011-09-15T14:06:21.195238Z
 1

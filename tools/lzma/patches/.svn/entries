@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/tools/lzma/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+003-compile_fixes.patch
+file
+
+
+
+
+2012-12-19T07:25:20.562067Z
+7fa4f5c08699e444daf9f295256bc13b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+916
+
 100-static_library.patch
 file
 
 
 
 
-2012-11-17T08:18:14.723420Z
+2012-12-19T07:25:20.562067Z
 951f29c44e8b636627a9c39e226f509d
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:18:14.723420Z
+2012-12-19T07:25:20.562067Z
 b29c39a50354c42cf0cc8a7eb8ad8b2e
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +134,7 @@ file
 
 
 
-2012-11-17T08:18:14.723420Z
+2012-12-19T07:25:20.562067Z
 e809d88279d5281ba1f15e9aed163a45
 2011-09-15T14:06:21.195238Z
 1
@@ -127,38 +161,4 @@ lintel.huang@gmail.com
 
 
 27710
-
-003-compile_fixes.patch
-file
-
-
-
-
-2012-11-17T08:18:14.723420Z
-7fa4f5c08699e444daf9f295256bc13b
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-916
 

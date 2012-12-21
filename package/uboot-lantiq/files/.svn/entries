@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/uboot-lantiq/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-drivers
-dir
-
 include
 dir
 
@@ -36,5 +33,8 @@ board
 dir
 
 cpu
+dir
+
+drivers
 dir
 

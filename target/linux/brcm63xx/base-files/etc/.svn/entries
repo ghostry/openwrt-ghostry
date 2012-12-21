@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/brcm63xx/base-files/etc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,25 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-hotplug.d
-dir
-
-config
-dir
-
-init.d
-dir
-
-uci-defaults
-dir
-
 diag.sh
 file
 
 
 
 
-2012-11-17T08:17:00.199421Z
+2012-12-19T07:24:05.894068Z
 35f2d4dd2bc1431078a2fa443f3cd15a
 2012-06-06T03:13:05.163657Z
 485
@@ -71,4 +59,16 @@ lintel
 
 
 1525
+
+hotplug.d
+dir
+
+config
+dir
+
+init.d
+dir
+
+uci-defaults
+dir
 

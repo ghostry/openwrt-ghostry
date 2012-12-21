@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/xburst/files-2.6.32/include
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,9 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-video
+linux
 dir
 
-linux
+video
 dir
 

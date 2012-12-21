@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/dropbear/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-200-lcrypt_bsdfix.patch
-file
-
-
-
-
-2012-11-17T08:18:08.783420Z
-c1dc78bc666287343ddaea0ad09d6422
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-646
-
-300-ipv6_addr_port_split.patch
-file
-
-
-
-
-2012-11-17T08:18:08.783420Z
-adb6edd1738c0e03f247ab1d08feda24
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-425
-
 150-dbconvert_standalone.patch
 file
 
 
 
 
-2012-11-17T08:18:08.779420Z
+2012-12-19T07:25:14.402067Z
 490bc116a67cb88d34a52e7c001d0d5b
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:18:08.779420Z
+2012-12-19T07:25:14.402067Z
 b201ef36828012ab12198f3d7131b7b6
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +100,7 @@ file
 
 
 
-2012-11-17T08:18:08.779420Z
+2012-12-19T07:25:14.402067Z
 d2d006c283731c07f60a744fec073059
 2011-09-15T14:06:21.195238Z
 1
@@ -202,7 +134,7 @@ file
 
 
 
-2012-11-17T08:18:08.779420Z
+2012-12-19T07:25:14.402067Z
 2801ed1078c9b1e4cc3125dc59d46b80
 2011-09-15T14:06:21.195238Z
 1
@@ -236,7 +168,7 @@ file
 
 
 
-2012-11-17T08:18:08.783420Z
+2012-12-19T07:25:14.406067Z
 f6c80080db26bb34ae786cb5a2d3a1bd
 2011-09-15T14:06:21.195238Z
 1
@@ -263,4 +195,72 @@ lintel.huang@gmail.com
 
 
 2519
+
+200-lcrypt_bsdfix.patch
+file
+
+
+
+
+2012-12-19T07:25:14.406067Z
+c1dc78bc666287343ddaea0ad09d6422
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+646
+
+300-ipv6_addr_port_split.patch
+file
+
+
+
+
+2012-12-19T07:25:14.406067Z
+adb6edd1738c0e03f247ab1d08feda24
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+425
 

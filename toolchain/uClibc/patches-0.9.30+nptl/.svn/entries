@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/toolchain/uClibc/patches-0.9.30+nptl
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-140-math_finite.patch
-file
-
-
-
-
-2012-11-17T08:16:35.807421Z
-12aa4c17b883bde3a0551635ec0138db
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-615
-
-150-use_gnu99.patch
-file
-
-
-
-
-2012-11-17T08:16:35.807421Z
-94899c418311eee899ea08411ebe3eb7
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1496
-
 130-compile_fix.patch
 file
 
 
 
 
-2012-11-17T08:16:35.807421Z
+2012-12-19T07:23:40.522068Z
 a0caac124fd5dd892c5898b20226c39e
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:16:35.803421Z
+2012-12-19T07:23:40.518068Z
 d9b57af7728b3c8fb4ae0870fd6e2a94
 2011-09-15T14:06:21.195238Z
 1
@@ -168,7 +100,7 @@ file
 
 
 
-2012-11-17T08:16:35.803421Z
+2012-12-19T07:23:40.518068Z
 22f989ce1e9643f59a0c58249dd37faa
 2011-09-15T14:06:21.195238Z
 1
@@ -195,4 +127,72 @@ lintel.huang@gmail.com
 
 
 1765
+
+140-math_finite.patch
+file
+
+
+
+
+2012-12-19T07:23:40.518068Z
+12aa4c17b883bde3a0551635ec0138db
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+615
+
+150-use_gnu99.patch
+file
+
+
+
+
+2012-12-19T07:23:40.522068Z
+94899c418311eee899ea08411ebe3eb7
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1496
 

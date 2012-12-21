@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/x86/generic
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+config-default
+file
+
+
+
+
+2012-12-19T07:24:25.034068Z
+1039f6c2040fd8859ce0f6fb2ab0168e
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+128
+
 target.mk
 file
 
 
 
 
-2012-11-17T08:17:19.663421Z
+2012-12-19T07:24:25.034068Z
 8b986f36e10359144a4a7f3943bab6d3
 2011-09-15T14:06:21.195238Z
 1
@@ -62,38 +96,4 @@ lintel.huang@gmail.com
 
 profiles
 dir
-
-config-default
-file
-
-
-
-
-2012-11-17T08:17:19.663421Z
-1039f6c2040fd8859ce0f6fb2ab0168e
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-128
 

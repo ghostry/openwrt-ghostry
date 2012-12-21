@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/ar7-atm
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,50 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-patches
-dir
-
-Config.in
-file
-
-
-
-
-2012-11-17T08:18:03.455420Z
-628209d236f3f583ab3725093fd68719
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-458
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:03.455420Z
+2012-12-19T07:25:09.010067Z
 83959f4fb1806dc3a49a2d15bb0246ed
 2011-09-15T14:06:21.195238Z
 1
@@ -102,4 +65,41 @@ dir
 
 patches-D7.04.03.00
 dir
+
+patches
+dir
+
+Config.in
+file
+
+
+
+
+2012-12-19T07:25:09.010067Z
+628209d236f3f583ab3725093fd68719
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+458
 

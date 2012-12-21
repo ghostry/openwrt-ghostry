@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/cyassl/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+110-makefile_disable_examples_tests.patch
+file
+
+
+
+
+2012-12-19T07:25:18.778067Z
+6ca0618e77a2f56868882479ca9854ef
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1604
+
 130-configure_disable_pthreads_tests.patch
 file
 
 
 
 
-2012-11-17T08:18:13.103420Z
+2012-12-19T07:25:18.774067Z
 53fad6e4b071f165f7557b53d06e92bf
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:18:13.103420Z
+2012-12-19T07:25:18.774067Z
 d3974c01ee1590af0672094d5d059063
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +134,7 @@ file
 
 
 
-2012-11-17T08:18:13.103420Z
+2012-12-19T07:25:18.778067Z
 a40244193ff7e9254eef21bce8177074
 2011-09-15T14:06:21.195238Z
 1
@@ -127,38 +161,4 @@ lintel.huang@gmail.com
 
 
 1875
-
-110-makefile_disable_examples_tests.patch
-file
-
-
-
-
-2012-11-17T08:18:13.103420Z
-6ca0618e77a2f56868882479ca9854ef
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1604
 

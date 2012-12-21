@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ar93xx/base-files/lib/preinit
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ flyzjhz@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-05_set_preinit_iface_ar71xx
-file
-
-
-
-
-2012-11-17T08:17:27.891420Z
-354c36efd3ad448ed2d895eb1c4c7360
-2011-10-27T04:20:06.576069Z
-228
-flyzjhz@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-153
-
 05_set_iface_mac_ar71xx
 file
 
 
 
 
-2012-11-17T08:17:27.891420Z
+2012-12-19T07:24:33.282067Z
 df6e573edb44f00ce529472b8d7df45a
 2011-10-27T04:20:06.576069Z
 228
@@ -100,7 +66,7 @@ file
 
 
 
-2012-11-17T08:17:27.891420Z
+2012-12-19T07:24:33.282067Z
 60a7df888d4619228d88c1ffad7eb8b3
 2011-10-27T04:20:06.576069Z
 228
@@ -134,7 +100,7 @@ file
 
 
 
-2012-11-17T08:17:27.891420Z
+2012-12-19T07:24:33.282067Z
 d687940ea46ba5c43810d7fe614b4a67
 2011-10-27T04:20:06.576069Z
 228
@@ -161,4 +127,38 @@ flyzjhz@gmail.com
 
 
 233
+
+05_set_preinit_iface_ar71xx
+file
+
+
+
+
+2012-12-19T07:24:33.282067Z
+354c36efd3ad448ed2d895eb1c4c7360
+2011-10-27T04:20:06.576069Z
+228
+flyzjhz@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+153
 

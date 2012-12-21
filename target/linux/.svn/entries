@@ -1,15 +1,15 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux
 svn://svn.openwrt.org.cn/dreambox
 
 
 
-2012-11-07T07:32:45.324080Z
-556
-lintel
+2012-12-14T12:58:06.088766Z
+560
+richard.nee.cn
 
 
 
@@ -26,31 +26,22 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-atheros
-dir
-
-brcm4716
-dir
-
-rdc
-dir
-
-generic
-dir
-
-s3c24xx
+generic-2.4
 dir
 
 ppc40x
 dir
 
-s3c64xx
+ifxmips
+dir
+
+s5pv210
 dir
 
 ppc44x
 dir
 
-orion
+x86
 dir
 
 octeon
@@ -59,13 +50,7 @@ dir
 kirkwood
 dir
 
-ar7
-dir
-
-rb532
-dir
-
-avr32
+uml
 dir
 
 ixp4xx
@@ -74,10 +59,16 @@ dir
 cobalt
 dir
 
+atheros
+dir
+
 au1000
 dir
 
-adm5120
+rdc
+dir
+
+generic
 dir
 
 brcm63x8
@@ -86,16 +77,13 @@ dir
 brcm63xx
 dir
 
-generic-2.4
-dir
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:17:57.787420Z
+2012-12-19T07:25:03.270067Z
 4a3c6e549c402779f6bbd7aee0226372
 2011-09-15T14:06:21.195238Z
 1
@@ -123,19 +111,19 @@ lintel.huang@gmail.com
 
 365
 
+s3c24xx
+dir
+
 brcm47xx
 dir
 
-ifxmips
-dir
-
-s5pv210
+s3c64xx
 dir
 
 brcm-2.4
 dir
 
-x86
+orion
 dir
 
 xburst
@@ -144,15 +132,27 @@ dir
 lantiq
 dir
 
+ar7
+dir
+
 ar71xx
 dir
 
 ramips
 dir
 
-uml
+rb532
+dir
+
+avr32
 dir
 
 ar93xx
+dir
+
+brcm4716
+dir
+
+adm5120
 dir
 

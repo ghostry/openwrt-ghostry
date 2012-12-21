@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/madwifi/files/lib/wifi
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:10.163420Z
+2012-12-19T07:25:15.818067Z
 c1f2937f1468111dd9653776df8b4894
 2012-02-05T13:08:52.606188Z
 372

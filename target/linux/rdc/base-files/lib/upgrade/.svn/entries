@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/rdc/base-files/lib/upgrade
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:17:31.115420Z
+2012-12-19T07:24:37.026067Z
 3ca3ad4c360654962542630a6ce43b50
 2011-09-17T08:12:55.294042Z
 27

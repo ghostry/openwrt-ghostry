@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/ltq-vmmc/files
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:13.523420Z
+2012-12-19T07:25:19.250067Z
 f3ac905fa1109852140a49b64635d0fb
 2011-09-15T14:06:21.195238Z
 1

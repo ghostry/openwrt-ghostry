@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/brcm63xx/base-files/lib
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+preinit
+dir
+
 brcm63xx.sh
 file
 
 
 
 
-2012-11-17T08:17:00.143421Z
+2012-12-19T07:24:05.822068Z
 89bfda802a3b8e7652ba62182bbe08bb
 2012-06-06T05:29:11.301106Z
 486
@@ -61,8 +64,5 @@ has-props
 1566
 
 upgrade
-dir
-
-preinit
 dir
 

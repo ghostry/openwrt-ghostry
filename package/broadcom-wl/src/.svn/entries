@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/broadcom-wl/src
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,16 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-glue
-dir
-
 wlc.c
 file
 
 
 
 
-2012-11-17T08:18:09.415420Z
+2012-12-19T07:25:15.062067Z
 6f7d03464760b3908e2f050665cfcb61
 2011-09-22T09:37:13.762528Z
 75
@@ -62,4 +59,7 @@ lintel.huang@gmail.com
 
 
 23761
+
+glue
+dir
 

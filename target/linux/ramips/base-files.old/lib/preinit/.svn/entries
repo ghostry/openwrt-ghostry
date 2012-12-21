@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/base-files.old/lib/preinit
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+06_set_iface_mac.sh
+file
+
+
+
+
+2012-12-19T07:24:31.478067Z
+81cd47ecf90a34950b286c28f623b1da
+2012-07-22T06:40:21.573606Z
+517
+lintel
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+690
+
 03_preinit_do_ramips.sh
 file
 
 
 
 
-2012-11-17T08:17:26.103420Z
+2012-12-19T07:24:31.482067Z
 bb41c652873ed23a71ec39eb8afe5f38
 2012-07-22T06:40:21.573606Z
 517
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:17:26.103420Z
+2012-12-19T07:24:31.482067Z
 49aca4f71071a55a55b72405666fcc24
 2012-07-22T06:40:21.573606Z
 517
@@ -93,38 +127,4 @@ has-props
 
 
 225
-
-06_set_iface_mac.sh
-file
-
-
-
-
-2012-11-17T08:17:26.099420Z
-81cd47ecf90a34950b286c28f623b1da
-2012-07-22T06:40:21.573606Z
-517
-lintel
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-690
 

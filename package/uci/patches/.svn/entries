@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/uci/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-140-uci_fix_reorder.patch
-file
-
-
-
-
-2012-11-17T08:18:11.735420Z
-37163c0dec7ab845318bfd520ca08b9b
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-750
-
-150-lua_expose_add_list_changes.patch
-file
-
-
-
-
-2012-11-17T08:18:11.731420Z
-d433726ab419fca7b3327e1ce7dbc577
-2012-01-02T08:34:35.040017Z
-344
-lintel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1287
-
 120-uci_trigger.patch
 file
 
 
 
 
-2012-11-17T08:18:11.731420Z
+2012-12-19T07:25:17.602067Z
 3bf32f04894fcefa6d5230b838869ea9
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:18:11.735420Z
+2012-12-19T07:25:17.602067Z
 20ca512b1f661e19d4cf6924a7ed3dd0
 2012-01-02T08:34:35.040017Z
 344
@@ -161,4 +93,72 @@ lintel
 
 
 485
+
+140-uci_fix_reorder.patch
+file
+
+
+
+
+2012-12-19T07:25:17.602067Z
+37163c0dec7ab845318bfd520ca08b9b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+750
+
+150-lua_expose_add_list_changes.patch
+file
+
+
+
+
+2012-12-19T07:25:17.602067Z
+d433726ab419fca7b3327e1ce7dbc577
+2012-01-02T08:34:35.040017Z
+344
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1287
 

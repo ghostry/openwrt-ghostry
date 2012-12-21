@@ -68,7 +68,7 @@ config BUSYBOX_CONFIG_FEATURE_FIND_MAXDEPTH
 
 config BUSYBOX_CONFIG_FEATURE_FIND_NEWER
 	bool "Enable -newer: compare file modification times"
-	default n
+	default y
 	depends on BUSYBOX_CONFIG_FIND
 	help
 	  Support the 'find -newer' option for finding any files which have
@@ -166,7 +166,7 @@ config BUSYBOX_CONFIG_FEATURE_FIND_REGEX
 
 config BUSYBOX_CONFIG_FEATURE_FIND_CONTEXT
 	bool "Enable -context: security context matching"
-	default n
+	default y
 	depends on BUSYBOX_CONFIG_FIND && BUSYBOX_CONFIG_SELINUX
 	help
 	  Support the 'find -context' option for matching security context.

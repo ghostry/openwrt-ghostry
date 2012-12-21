@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/xfsprogs
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ flyzjhz@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:05.767420Z
+2012-12-19T07:25:11.334067Z
 351b277fb0502f4d9b8425dcec3ae02a
 2011-09-21T02:34:05.039263Z
 60
@@ -59,7 +62,4 @@ flyzjhz@gmail.com
 
 
 2179
-
-patches
-dir
 

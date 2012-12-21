@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ar71xx/files/drivers
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,12 +26,6 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-usb
-dir
-
-spi
-dir
-
 gpio
 dir
 
@@ -45,5 +39,11 @@ net
 dir
 
 leds
+dir
+
+usb
+dir
+
+spi
 dir
 

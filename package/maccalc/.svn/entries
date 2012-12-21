@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/maccalc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,16 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-src
-dir
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:17:59.843420Z
+2012-12-19T07:25:05.690067Z
 0af840bc74ddd953cc60c1692895a21a
 2011-10-12T15:08:01.868630Z
 156
@@ -62,4 +59,7 @@ lintel.huang@gmail.com
 
 
 921
+
+src
+dir
 

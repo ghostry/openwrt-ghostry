@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/kirkwood/base-files/lib
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,6 +26,9 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+upgrade
+dir
+
 preinit
 dir
 
@@ -35,7 +38,7 @@ file
 
 
 
-2012-11-17T08:16:56.379421Z
+2012-12-19T07:24:01.926068Z
 e8fb690844f88b1842623640eb5ed78b
 2012-02-16T03:02:58.590075Z
 391
@@ -62,7 +65,4 @@ zjhzzyf
 
 
 310
-
-upgrade
-dir
 

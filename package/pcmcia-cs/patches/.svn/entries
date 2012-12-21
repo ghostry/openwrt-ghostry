@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/pcmcia-cs/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-004-pcmcia_resources.patch
-file
-
-
-
-
-2012-11-17T08:18:04.999420Z
-ed7ec7617c8bbd1ff544cc07b6092512
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-511
-
-001-config-novatel_merlin_u630.patch
-file
-
-
-
-
-2012-11-17T08:18:04.999420Z
-f0b4a49ca321f5f968fbde64eefa33e7
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-317
-
 003-cardmgr_c.patch
 file
 
 
 
 
-2012-11-17T08:18:04.999420Z
+2012-12-19T07:25:10.562067Z
 38901e1f96cea43c9c3855ca38ddcac9
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:18:04.999420Z
+2012-12-19T07:25:10.566067Z
 8cedd3dfc201f4cef742dbc703cfaa3c
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +93,72 @@ lintel.huang@gmail.com
 
 
 217
+
+004-pcmcia_resources.patch
+file
+
+
+
+
+2012-12-19T07:25:10.566067Z
+ed7ec7617c8bbd1ff544cc07b6092512
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+511
+
+001-config-novatel_merlin_u630.patch
+file
+
+
+
+
+2012-12-19T07:25:10.566067Z
+f0b4a49ca321f5f968fbde64eefa33e7
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+317
 

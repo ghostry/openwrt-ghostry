@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s5pv210/tiny210/base-files/etc/config
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ richard.nee.cn
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-fstab
-file
-
-
-
-
-2012-11-17T08:17:06.179421Z
-379958481ae6f6fe1ddd3484f73cc650
-2012-04-20T06:14:47.291909Z
-427
-richard.nee.cn
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-134
-
 network
 file
 
 
 
 
-2012-11-17T08:17:06.179421Z
+2012-12-19T07:24:11.598068Z
 ddc6afa451315f33df5c902e46feaf5f
 2012-04-20T06:14:47.291909Z
 427
@@ -93,4 +59,38 @@ has-props
 
 
 373
+
+fstab
+file
+
+
+
+
+2012-12-19T07:24:11.598068Z
+379958481ae6f6fe1ddd3484f73cc650
+2012-04-20T06:14:47.291909Z
+427
+richard.nee.cn
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+134
 

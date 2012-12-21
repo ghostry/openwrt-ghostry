@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/broadcom-wl
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-files
-dir
-
 patches
 dir
 
@@ -41,7 +38,7 @@ file
 
 
 
-2012-11-17T08:18:09.423420Z
+2012-12-19T07:25:15.062067Z
 f7e58ebf23bf5e6de51a6681c4151996
 2011-10-18T08:38:50.829396Z
 181
@@ -68,4 +65,7 @@ flyzjhz@gmail.com
 
 
 4600
+
+files
+dir
 

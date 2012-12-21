@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/brcm63x8/files-2.6.30
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-include
-dir
-
 fs
 dir
 
@@ -39,5 +36,8 @@ drivers
 dir
 
 crypto
+dir
+
+include
 dir
 

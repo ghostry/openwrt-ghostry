@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/ltq-tapi
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-Config.in
-file
-
-
-
-
-2012-11-17T08:18:01.219420Z
-d2ece8c67087080f79faabb1cd4d54f9
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2493
-
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:01.223420Z
+2012-12-19T07:25:06.762067Z
 23376195595078046d987ada4e83718e
 2011-09-15T14:06:21.195238Z
 1
@@ -96,4 +62,38 @@ lintel.huang@gmail.com
 
 patches
 dir
+
+Config.in
+file
+
+
+
+
+2012-12-19T07:25:06.762067Z
+d2ece8c67087080f79faabb1cd4d54f9
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2493
 

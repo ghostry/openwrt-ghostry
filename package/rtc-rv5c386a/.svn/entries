@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/rtc-rv5c386a
 svn://svn.openwrt.org.cn/dreambox
 
@@ -35,7 +35,7 @@ file
 
 
 
-2012-11-17T08:18:09.467420Z
+2012-12-19T07:25:15.114067Z
 70d736beaf1e70fa28b5c62489a1f9df
 2011-09-15T14:06:21.195238Z
 1

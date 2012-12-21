@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/s3c24xx/files-2.6.30/drivers/power
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-hdq.c
-file
-
-
-
-
-2012-11-17T08:17:56.307420Z
-e35c00df729ed00409a2ca1bc7bebf59
-2011-11-03T11:47:35.537595Z
-243
-lintel.huang@gmail.com
-has-props
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-12239
-
 bq27000_battery.c
 file
 
 
 
 
-2012-11-17T08:17:56.307420Z
+2012-12-19T07:25:02.314067Z
 b0903d1bf7dd78725bb73875be346069
 2011-11-03T11:47:35.537595Z
 243
@@ -93,4 +59,38 @@ has-props
 
 
 13028
+
+hdq.c
+file
+
+
+
+
+2012-12-19T07:25:02.314067Z
+e35c00df729ed00409a2ca1bc7bebf59
+2011-11-03T11:47:35.537595Z
+243
+lintel.huang@gmail.com
+has-props
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12239
 

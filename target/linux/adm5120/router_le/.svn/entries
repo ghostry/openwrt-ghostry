@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/adm5120/router_le
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,19 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+profiles
+dir
+
+base-files
+dir
+
 config-2.6.32
 file
 
 
 
 
-2012-11-17T08:16:57.655421Z
+2012-12-19T07:24:03.430068Z
 4e9b030a77263e709506e6281f90930b
 2011-09-15T14:06:21.195238Z
 1
@@ -66,7 +72,7 @@ file
 
 
 
-2012-11-17T08:16:57.655421Z
+2012-12-19T07:24:03.430068Z
 fdd7172fcd7665a5c084a66bc1ce8ac1
 2011-09-15T14:06:21.195238Z
 1
@@ -93,10 +99,4 @@ lintel.huang@gmail.com
 
 
 290
-
-profiles
-dir
-
-base-files
-dir
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/base-files/lib/preinit
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,47 @@ zjhzzyf
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+05_ramips_load-input_drivers
+file
+
+
+
+
+2012-12-19T07:24:31.626067Z
+49aca4f71071a55a55b72405666fcc24
+2012-07-22T06:40:21.573606Z
+517
+lintel
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+225
+
 03_preinit_do_ramips.sh
 file
 
 
 
 
-2012-11-17T08:17:26.239420Z
+2012-12-19T07:24:31.626067Z
 bb41c652873ed23a71ec39eb8afe5f38
 2012-07-22T06:40:21.573606Z
 517
@@ -66,7 +100,7 @@ file
 
 
 
-2012-11-17T08:17:26.239420Z
+2012-12-19T07:24:31.626067Z
 540629722e6c368d370e3ce366715bec
 2012-10-09T01:53:44.847730Z
 554
@@ -93,38 +127,4 @@ zjhzzyf
 
 
 1270
-
-05_ramips_load-input_drivers
-file
-
-
-
-
-2012-11-17T08:17:26.239420Z
-49aca4f71071a55a55b72405666fcc24
-2012-07-22T06:40:21.573606Z
-517
-lintel
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-225
 

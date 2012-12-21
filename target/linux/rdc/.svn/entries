@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/rdc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,46 +26,6 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-base-files
-dir
-
-patches-2.6.30
-dir
-
-config-2.6.32
-file
-
-
-
-
-2012-11-17T08:17:31.307420Z
-0271c96211c8956aabbe48ae30fa4f62
-2011-09-17T08:12:55.294042Z
-27
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-8543
-
 patches-2.6.32
 dir
 
@@ -75,7 +35,7 @@ file
 
 
 
-2012-11-17T08:17:31.307420Z
+2012-12-19T07:24:37.134067Z
 fcf8534fcb191bb8a858d030d1678ef9
 2011-09-17T08:12:55.294042Z
 27
@@ -118,7 +78,7 @@ file
 
 
 
-2012-11-17T08:17:31.307420Z
+2012-12-19T07:24:37.134067Z
 6680599b622eb2a1186e92bb96ddda23
 2011-09-17T08:12:55.294042Z
 27
@@ -152,7 +112,7 @@ file
 
 
 
-2012-11-17T08:17:31.307420Z
+2012-12-19T07:24:37.134067Z
 86847c19a971efc77e50235f8dfdd4c0
 2011-09-17T08:12:55.294042Z
 27
@@ -179,4 +139,44 @@ lintel.huang@gmail.com
 
 
 12007
+
+base-files
+dir
+
+patches-2.6.30
+dir
+
+config-2.6.32
+file
+
+
+
+
+2012-12-19T07:24:37.134067Z
+0271c96211c8956aabbe48ae30fa4f62
+2011-09-17T08:12:55.294042Z
+27
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+8543
 

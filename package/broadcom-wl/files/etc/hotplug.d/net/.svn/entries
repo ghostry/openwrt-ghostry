@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/broadcom-wl/files/etc/hotplug.d/net
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:18:09.323420Z
+2012-12-19T07:25:14.966067Z
 8b1fcbe7151a9483531a7692332ab737
 2011-09-22T09:37:13.762528Z
 75

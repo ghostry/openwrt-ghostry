@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ppc44x/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,47 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-005-canyonlands_remove_nonexisting_uarts.patch
-file
-
-
-
-
-2012-11-17T08:16:54.387421Z
-2c58a39bcc705b6167ef68af581a3a6b
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-922
-
 110-openwrt_dts_cmdline.patch
 file
 
 
 
 
-2012-11-17T08:16:54.387421Z
+2012-12-19T07:23:59.702068Z
 9b2c3a0272f20e680a325ad263b39d4b
 2011-09-15T14:06:21.195238Z
 1
@@ -100,7 +66,7 @@ file
 
 
 
-2012-11-17T08:16:54.387421Z
+2012-12-19T07:23:59.702068Z
 37ceacd370db0a9e1df31eda7626c9f7
 2011-09-15T14:06:21.195238Z
 1
@@ -127,4 +93,38 @@ lintel.huang@gmail.com
 
 
 1464
+
+005-canyonlands_remove_nonexisting_uarts.patch
+file
+
+
+
+
+2012-12-19T07:23:59.702068Z
+2c58a39bcc705b6167ef68af581a3a6b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+922
 

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/ramips/files/drivers
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,9 +26,6 @@ lintel
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-watchdog
-dir
-
 net
 dir
 
@@ -36,5 +33,8 @@ usb
 dir
 
 spi
+dir
+
+watchdog
 dir
 

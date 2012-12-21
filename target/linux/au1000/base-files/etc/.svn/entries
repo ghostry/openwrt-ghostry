@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/au1000/base-files/etc
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:57.547421Z
+2012-12-19T07:24:03.294068Z
 6c207a1c36aeb5f5336e9be6f23a3067
 2011-09-15T14:06:21.195238Z
 1

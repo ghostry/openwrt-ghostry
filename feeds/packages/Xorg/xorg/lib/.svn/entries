@@ -1,109 +1,0 @@
-10
-
-dir
-560
-svn://svn.openwrt.org.cn/dreambox/packages_10.03.1/Xorg/xorg/lib
-svn://svn.openwrt.org.cn/dreambox
-
-
-
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-74e81aba-36f0-4891-8cfb-1815f9025a0c
-
-libSM
-dir
-
-libXi
-dir
-
-libxkbfile
-dir
-
-libXxf86vm
-dir
-
-libXext
-dir
-
-xtrans
-dir
-
-libXcomposite
-dir
-
-libXt
-dir
-
-libfontenc
-dir
-
-libXau
-dir
-
-libXv
-dir
-
-libpciaccess
-dir
-
-libXfont
-dir
-
-libXrandr
-dir
-
-libXaw
-dir
-
-libICE
-dir
-
-libXft
-dir
-
-libXtst
-dir
-
-libXpm
-dir
-
-libXcursor
-dir
-
-libXfixes
-dir
-
-libXdamage
-dir
-
-libXrender
-dir
-
-libXmu
-dir
-
-libX11
-dir
-
-libXdmcp
-dir
-
-libXvMC
-dir
-

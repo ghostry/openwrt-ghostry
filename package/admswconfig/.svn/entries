@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/admswconfig
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,13 +26,16 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
+patches
+dir
+
 Makefile
 file
 
 
 
 
-2012-11-17T08:18:13.655420Z
+2012-12-19T07:25:19.326067Z
 41309e6362ee39e963ce7280b3141a16
 2011-09-15T14:06:21.195238Z
 1
@@ -61,8 +64,5 @@ lintel.huang@gmail.com
 1453
 
 files
-dir
-
-patches
 dir
 

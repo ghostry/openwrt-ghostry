@@ -734,14 +734,14 @@ config BUSYBOX_CONFIG_SLATTACH
 
 config BUSYBOX_CONFIG_TELNET
 	bool "telnet"
-	default y
+	default n
 	help
 	  Telnet is an interface to the TELNET protocol, but is also commonly
 	  used to test other simple protocols.
 
 config BUSYBOX_CONFIG_FEATURE_TELNET_TTYPE
 	bool "Pass TERM type to remote host"
-	default y
+	default n
 	depends on BUSYBOX_CONFIG_TELNET
 	help
 	  Setting this option will forward the TERM environment variable to the
@@ -760,7 +760,7 @@ config BUSYBOX_CONFIG_FEATURE_TELNET_AUTOLOGIN
 
 config BUSYBOX_CONFIG_TELNETD
 	bool "telnetd"
-	default y
+	default n
 	select BUSYBOX_CONFIG_FEATURE_SYSLOG
 	help
 	  A daemon for the TELNET protocol, allowing you to log onto the host
@@ -803,7 +803,7 @@ config BUSYBOX_CONFIG_TELNETD
 
 config BUSYBOX_CONFIG_FEATURE_TELNETD_STANDALONE
 	bool "Support standalone telnetd (not inetd only)"
-	default y
+	default n
 	depends on BUSYBOX_CONFIG_TELNETD
 	help
 	  Selecting this will make telnetd able to run standalone.

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/package/ncurses/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,81 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-100-ncurses-5.6-20080112-urxvt.patch
-file
-
-
-
-
-2012-11-17T08:17:59.739420Z
-c9ba451784c80b36c6d54c88486181f6
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-3294
-
-900-terminfo.patch
-file
-
-
-
-
-2012-11-17T08:17:59.743420Z
-c5c0f76225226c434c76afed34436365
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-995
-
 101-ncurses-5.6-20080628-kbs.patch
 file
 
 
 
 
-2012-11-17T08:17:59.743420Z
+2012-12-19T07:25:05.614067Z
 4fc22b51d850f08bd1893a673b2090ea
 2011-09-15T14:06:21.195238Z
 1
@@ -134,7 +66,7 @@ file
 
 
 
-2012-11-17T08:17:59.743420Z
+2012-12-19T07:25:05.614067Z
 d75e7f270a2704c01220b74bafc234bf
 2011-09-15T14:06:21.195238Z
 1
@@ -161,4 +93,72 @@ lintel.huang@gmail.com
 
 
 420
+
+100-ncurses-5.6-20080112-urxvt.patch
+file
+
+
+
+
+2012-12-19T07:25:05.610067Z
+c9ba451784c80b36c6d54c88486181f6
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3294
+
+900-terminfo.patch
+file
+
+
+
+
+2012-12-19T07:25:05.614067Z
+c5c0f76225226c434c76afed34436365
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+995
 

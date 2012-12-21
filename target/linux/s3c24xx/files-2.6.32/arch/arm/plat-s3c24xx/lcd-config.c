@@ -50,6 +50,61 @@ static struct s3c2410fb_display s3c24xx_lcd_cfg_w35  = {
 	.vsync_len = 4,
 
 };
+
+/*X35 TFT*/
+static struct s3c2410fb_display s3c24xx_lcd_cfg_x35  = {
+	.lcdcon5 = S3C2410_LCDCON5_FRM565 |
+ 				S3C2410_LCDCON5_INVVLINE |
+ 				S3C2410_LCDCON5_INVVFRAME |
+				S3C2410_LCDCON5_INVVCLK |
+				S3C2410_LCDCON5_INVVDEN |
+ 				S3C2410_LCDCON5_PWREN |
+ 				S3C2410_LCDCON5_HWSWP,
+
+	.type = S3C2410_LCDCON1_TFT,
+	.width = 240,
+	.height = 320,
+	.pixclock = 170000, /* HCLK 60 MHz, divisor 10 */
+	.xres = 240,
+	.yres = 320,
+	.bpp = 16,
+
+	.left_margin = 1,
+	.right_margin = 26,
+	.hsync_len = 5,
+	.upper_margin = 1,
+	.lower_margin = 5,
+	.vsync_len = 10,
+
+};
+
+/*T35 TFT*/
+static struct s3c2410fb_display s3c24xx_lcd_cfg_t35  = {
+	.lcdcon5 = S3C2410_LCDCON5_FRM565 |
+ 				S3C2410_LCDCON5_INVVLINE |
+ 				S3C2410_LCDCON5_INVVFRAME |
+				S3C2410_LCDCON5_INVVCLK |
+				S3C2410_LCDCON5_INVVDEN |
+ 				S3C2410_LCDCON5_PWREN |
+ 				S3C2410_LCDCON5_HWSWP,
+
+	.type = S3C2410_LCDCON1_TFT,
+	.width = 240,
+	.height = 320,
+	.pixclock = 170000, /* HCLK 60 MHz, divisor 10 */
+	.xres = 240,
+	.yres = 320,
+	.bpp = 16,
+
+	.left_margin = 1,
+	.right_margin = 26,
+	.hsync_len = 5,
+	.upper_margin = 2,
+	.lower_margin = 5,
+	.vsync_len = 2,
+
+};
+
 /*N43 TFT*/
 static struct s3c2410fb_display s3c24xx_lcd_cfg_n43  = {
 	.lcdcon5 = S3C2410_LCDCON5_FRM565 |
@@ -148,6 +203,16 @@ static int __init s3c2410_lcd_setup(char *str)
 	{
 	  s3c24xx_fb_info.displays = &s3c24xx_lcd_cfg_n43,
 	  printk("LCD Type: N43.\n");
+	}
+	else if (strcmp(s3c_lcd_type,"X35")==0)
+	{
+	  s3c24xx_fb_info.displays = &s3c24xx_lcd_cfg_x35,
+	  printk("LCD Type: X35.\n");
+	}
+	else if (strcmp(s3c_lcd_type,"T35")==0)
+	{
+	  s3c24xx_fb_info.displays = &s3c24xx_lcd_cfg_t35,
+	  printk("LCD Type: T35.\n");
 	}
 	else if (strcmp(s3c_lcd_type,"W35")==0)
 	{

@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/toolchain/glibc-ports/patches/2.4
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:36.527421Z
+2012-12-19T07:23:41.634068Z
 e2df3103a1d3aed4e8b3d29d003d3a59
 2011-09-15T14:06:21.195238Z
 1

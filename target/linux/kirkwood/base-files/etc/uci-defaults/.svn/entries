@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/kirkwood/base-files/etc/uci-defaults
 svn://svn.openwrt.org.cn/dreambox
 
@@ -32,7 +32,7 @@ file
 
 
 
-2012-11-17T08:16:56.471421Z
+2012-12-19T07:24:02.018068Z
 33ceea28b7b28b88ac75b6a79fdb6e1a
 2012-02-16T03:02:58.590075Z
 391

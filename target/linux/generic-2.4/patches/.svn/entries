@@ -1,7 +1,7 @@
 10
 
 dir
-557
+560
 svn://svn.openwrt.org.cn/dreambox/trunk/target/linux/generic-2.4/patches
 svn://svn.openwrt.org.cn/dreambox
 
@@ -26,115 +26,13 @@ lintel.huang@gmail.com
 
 74e81aba-36f0-4891-8cfb-1815f9025a0c
 
-226-atm_br2684.patch
-file
-
-
-
-
-2012-11-17T08:17:04.303421Z
-5c3b00790a5a5bbd644ffd38f094f406
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-17728
-
-601-netfilter_ipp2p_0.8.1rc1.patch
-file
-
-
-
-
-2012-11-17T08:17:04.303421Z
-c6c474e06ca152a5939859759b6d0cf8
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-27523
-
-802-usb_serial_3g_cards.patch
-file
-
-
-
-
-2012-11-17T08:17:04.255421Z
-b7c225cf28280fa3a9469958c414af42
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2078
-
 620-netfilter_iprange.patch
 file
 
 
 
 
-2012-11-17T08:17:04.259421Z
+2012-12-19T07:24:09.598068Z
 923f3695ca4951fa41992368bacaed36
 2011-09-15T14:06:21.195238Z
 1
@@ -162,727 +60,13 @@ lintel.huang@gmail.com
 
 4876
 
-112-bridging_performance.patch
-file
-
-
-
-
-2012-11-17T08:17:04.307421Z
-b75c1b8d9f3b6e8c57951248ed086531
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-726
-
-008-intel_flashchip_fix.patch
-file
-
-
-
-
-2012-11-17T08:17:04.259421Z
-82acc8c7671646ed0485e6d3f781fc98
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2812
-
-611-netfilter_condition.patch
-file
-
-
-
-
-2012-11-17T08:17:04.259421Z
-620c45323c3fd66a15a8926258640bf5
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-16790
-
-051-remove_pcmcia_modinst_compat.patch
-file
-
-
-
-
-2012-11-17T08:17:04.311421Z
-96504128819cef88dd1296e51330d174
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-770
-
-004-exec_pagesize.patch
-file
-
-
-
-
-2012-11-17T08:17:04.259421Z
-8ed8289f8b94d8c2b737af4657564ebe
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-241
-
-050-build_flags.patch
-file
-
-
-
-
-2012-11-17T08:17:04.259421Z
-5902354411d05202764b9654b6684320
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-2557
-
-614-netfilter_nat_rtsp.patch
-file
-
-
-
-
-2012-11-17T08:17:04.311421Z
-a5ed73aeed6c78f6b0dcf2fe9ba9db02
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-46821
-
-114-sched_use_tsc.patch
-file
-
-
-
-
-2012-11-17T08:17:04.259421Z
-d02b000da1882c981cefca7349dfd5d9
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1822
-
-626-netfilter_conntrack_fix.patch
-file
-
-
-
-
-2012-11-17T08:17:04.263421Z
-31c8cffe2874e00be963cb4537d7ee61
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1255
-
-628-netfilter_raw.patch
-file
-
-
-
-
-2012-11-17T08:17:04.263421Z
-a9c2fe007b66dd1cc936db49b16c5310
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-20964
-
-206-gcc_3.4_fixes.patch
-file
-
-
-
-
-2012-11-17T08:17:04.263421Z
-ad346abe5bbcf3ffa4b17581ce610576
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-7682
-
-000-linux_mips.patch
-file
-
-
-
-
-2012-11-17T08:17:04.335421Z
-b351aa5f09376c03c4e8bfcc48e1ceea
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-774915
-
-106-mppe_mppc.patch
-file
-
-
-
-
-2012-11-17T08:17:04.267421Z
-1c5bb5cce2954d44fe4130f74e27dcdf
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-53722
-
-200-i4l.patch
-file
-
-
-
-
-2012-11-17T08:17:04.287421Z
-c10d45a6931302d1f6b76737cf29dd84
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-590341
-
-801-usb_serial_endpoint_size.patch
-file
-
-
-
-
-2012-11-17T08:17:04.335421Z
-dcb3d7df47f54f61cae1b0782ff901e1
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1060
-
-115-branch_emul_fix.patch
-file
-
-
-
-
-2012-11-17T08:17:04.287421Z
-4178589ec5b4c2e423c7b0cf0282ffc9
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-335
-
-001-squashfs.patch
-file
-
-
-
-
-2012-11-17T08:17:04.339421Z
-3465032b203879101395f88a5138a722
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-120607
-
-222-sound.patch
-file
-
-
-
-
-2012-11-17T08:17:04.287421Z
-11611aad808b7e145eabcd7208007bd5
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1052
-
-210-fix-irq-serial.patch
-file
-
-
-
-
-2012-11-17T08:17:04.339421Z
-7813f4ac029d8e28724f8fabcb0ddd63
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-544
-
-609-netfilter_string.patch
-file
-
-
-
-
-2012-11-17T08:17:04.343421Z
-a620a1b5e913be2b209ec74430580ef5
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-28259
-
-009-mtd_uaccess.patch
-file
-
-
-
-
-2012-11-17T08:17:04.287421Z
-49c9a8322a94297d317914578b701a2f
-2011-09-15T14:06:21.195238Z
-1
-lintel.huang@gmail.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-1069
-
 606-netfilter_NETMAP.patch
 file
 
 
 
 
-2012-11-17T08:17:04.347421Z
+2012-12-19T07:24:09.678068Z
 83c9c650d0ce4403b4f1c6ac13408510
 2011-09-15T14:06:21.195238Z
 1
@@ -910,13 +94,81 @@ lintel.huang@gmail.com
 
 4935
 
+612-netfilter_quota.patch
+file
+
+
+
+
+2012-12-19T07:24:09.638068Z
+449a7c89be2ff7842cda870db822d0a2
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4228
+
+004-exec_pagesize.patch
+file
+
+
+
+
+2012-12-19T07:24:09.598068Z
+8ed8289f8b94d8c2b737af4657564ebe
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+241
+
 804-watchdog_include.patch
 file
 
 
 
 
-2012-11-17T08:17:04.347421Z
+2012-12-19T07:24:09.678068Z
 4d0f72421e3ecf14b275d2e22b2f1a24
 2011-09-15T14:06:21.195238Z
 1
@@ -944,14 +196,14 @@ lintel.huang@gmail.com
 
 198
 
-051-parallel_build.patch
+629-netlink_types_h.patch
 file
 
 
 
 
-2012-11-17T08:17:04.347421Z
-5d12c0bf37720ab7c9f398aa698e52d5
+2012-12-19T07:24:09.642068Z
+f263c3cf56b746ca25de30334181f990
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -976,16 +228,16 @@ lintel.huang@gmail.com
 
 
 
-727
+639
 
-213-htb_disable_hysteresis.patch
+114-sched_use_tsc.patch
 file
 
 
 
 
-2012-11-17T08:17:04.227421Z
-6cd3044e46977cd1281795a7018412dc
+2012-12-19T07:24:09.602068Z
+d02b000da1882c981cefca7349dfd5d9
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1010,16 +262,16 @@ lintel.huang@gmail.com
 
 
 
-633
+1822
 
-602-netfilter_layer7_2.21.patch
+628-netfilter_raw.patch
 file
 
 
 
 
-2012-11-17T08:17:04.291421Z
-76c77b3c8463f0d21ded0e9ced9c2b33
+2012-12-19T07:24:09.602068Z
+a9c2fe007b66dd1cc936db49b16c5310
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1044,16 +296,16 @@ lintel.huang@gmail.com
 
 
 
-55593
+20964
 
-229-usb_storage_16_byte_cdb.patch
+231-mini_fo.patch
 file
 
 
 
 
-2012-11-17T08:17:04.291421Z
-3ca52f7d6095d2ad8f1af6386c96a80a
+2012-12-19T07:24:09.650068Z
+aa52d9f3e1f85491de718ac8daa2fe74
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1078,16 +330,16 @@ lintel.huang@gmail.com
 
 
 
-377
+217430
 
-005-mtd_flashtypes.patch
+206-gcc_3.4_fixes.patch
 file
 
 
 
 
-2012-11-17T08:17:04.231421Z
-1dab3f698b68ba27f0f0949348e0c139
+2012-12-19T07:24:09.602068Z
+ad346abe5bbcf3ffa4b17581ce610576
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1112,7 +364,75 @@ lintel.huang@gmail.com
 
 
 
-24342
+7682
+
+106-mppe_mppc.patch
+file
+
+
+
+
+2012-12-19T07:24:09.606068Z
+1c5bb5cce2954d44fe4130f74e27dcdf
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+53722
+
+224-atm_hotplug.patch
+file
+
+
+
+
+2012-12-19T07:24:09.670068Z
+ccb85a4a1533880a871f3d89e53706c7
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2556
 
 113-even_more_gcc4_stuff.patch
 file
@@ -1120,7 +440,7 @@ file
 
 
 
-2012-11-17T08:17:04.231421Z
+2012-12-19T07:24:09.554068Z
 2bdef93f2e055e88c9d763622af3af1e
 2011-09-15T14:06:21.195238Z
 1
@@ -1154,7 +474,7 @@ file
 
 
 
-2012-11-17T08:17:04.247421Z
+2012-12-19T07:24:09.574068Z
 541baabd9412d8cf0f1dd1972788c6f3
 2011-09-15T14:06:21.195238Z
 1
@@ -1182,14 +502,14 @@ lintel.huang@gmail.com
 
 732161
 
-230-tun_get_user_backport.patch
+222-sound.patch
 file
 
 
 
 
-2012-11-17T08:17:04.291421Z
-7f66eb85bbec8693ef6106242836966d
+2012-12-19T07:24:09.622068Z
+11611aad808b7e145eabcd7208007bd5
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1214,16 +534,16 @@ lintel.huang@gmail.com
 
 
 
-3272
+1052
 
-622-tc_esfq.patch
+203-hfsplus_fix.patch
 file
 
 
 
 
-2012-11-17T08:17:04.295421Z
-d513dd4a25060ce641f853552919418d
+2012-12-19T07:24:09.674068Z
+85e0d63a44e8bbb5f6cab93563274668
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1248,7 +568,109 @@ lintel.huang@gmail.com
 
 
 
-19284
+1049
+
+607-netfilter_connmark.patch
+file
+
+
+
+
+2012-12-19T07:24:09.634068Z
+047b1e926b89311a85485e33b61c9fa9
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11627
+
+109-ipsec_nat_traversal.patch
+file
+
+
+
+
+2012-12-19T07:24:09.678068Z
+68320dd5fb7ad05db33a5d30eb9f5e2b
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3243
+
+226-atm_br2684.patch
+file
+
+
+
+
+2012-12-19T07:24:09.634068Z
+5c3b00790a5a5bbd644ffd38f094f406
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+17728
 
 621-netfilter_random.patch
 file
@@ -1256,7 +678,7 @@ file
 
 
 
-2012-11-17T08:17:04.251421Z
+2012-12-19T07:24:09.590068Z
 cbcd24091deab4c717caccedd2fc5e63
 2011-09-15T14:06:21.195238Z
 1
@@ -1290,7 +712,7 @@ file
 
 
 
-2012-11-17T08:17:04.255421Z
+2012-12-19T07:24:09.590068Z
 a97cd2a865c34a6fff4156810d718608
 2011-09-15T14:06:21.195238Z
 1
@@ -1318,14 +740,14 @@ lintel.huang@gmail.com
 
 3156
 
-227-jffs2_eofdetect.patch
+209-build_fixes.patch
 file
 
 
 
 
-2012-11-17T08:17:04.303421Z
-2cce183e33ae1806bb6161a2319dc6ac
+2012-12-19T07:24:09.678068Z
+c09175953b8c6843638a34ac3303f4b8
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1350,16 +772,16 @@ lintel.huang@gmail.com
 
 
 
-2846
+2014
 
-613-netfilter_nat_h323.patch
+614-netfilter_nat_rtsp.patch
 file
 
 
 
 
-2012-11-17T08:17:04.255421Z
-a106b4c845a6523e6e0f0775f3a38729
+2012-12-19T07:24:09.642068Z
+a5ed73aeed6c78f6b0dcf2fe9ba9db02
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1384,16 +806,16 @@ lintel.huang@gmail.com
 
 
 
-26285
+46821
 
-100-wireless-extension.patch
+000-linux_mips.patch
 file
 
 
 
 
-2012-11-17T08:17:04.259421Z
-31cb0303a84a5468406b8fec439903e9
+2012-12-19T07:24:09.670068Z
+b351aa5f09376c03c4e8bfcc48e1ceea
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1418,16 +840,16 @@ lintel.huang@gmail.com
 
 
 
-40743
+774915
 
-010-disable_old_squashfs_compatibility.patch
+610-netfilter_connbytes.patch
 file
 
 
 
 
-2012-11-17T08:17:04.255421Z
-3b053923a5dbcc7cb2bbdc8e837f63c4
+2012-12-19T07:24:09.550068Z
+519a18b75a3dacb2642161ddd6d03081
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1452,7 +874,143 @@ lintel.huang@gmail.com
 
 
 
-562
+15198
+
+602-netfilter_layer7_2.21.patch
+file
+
+
+
+
+2012-12-19T07:24:09.630068Z
+76c77b3c8463f0d21ded0e9ced9c2b33
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+55593
+
+230-tun_get_user_backport.patch
+file
+
+
+
+
+2012-12-19T07:24:09.630068Z
+7f66eb85bbec8693ef6106242836966d
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+3272
+
+210-fix-irq-serial.patch
+file
+
+
+
+
+2012-12-19T07:24:09.674068Z
+7813f4ac029d8e28724f8fabcb0ddd63
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+544
+
+802-usb_serial_3g_cards.patch
+file
+
+
+
+
+2012-12-19T07:24:09.594068Z
+b7c225cf28280fa3a9469958c414af42
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2078
 
 700-multiple_default_gateways.patch
 file
@@ -1460,7 +1018,7 @@ file
 
 
 
-2012-11-17T08:17:04.307421Z
+2012-12-19T07:24:09.638068Z
 03826b013f523c88d123ec8e71b019d3
 2011-09-15T14:06:21.195238Z
 1
@@ -1488,13 +1046,81 @@ lintel.huang@gmail.com
 
 35877
 
+008-intel_flashchip_fix.patch
+file
+
+
+
+
+2012-12-19T07:24:09.598068Z
+82acc8c7671646ed0485e6d3f781fc98
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2812
+
+611-netfilter_condition.patch
+file
+
+
+
+
+2012-12-19T07:24:09.598068Z
+620c45323c3fd66a15a8926258640bf5
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+16790
+
 225-string_lib_useful_exports.patch
 file
 
 
 
 
-2012-11-17T08:17:04.307421Z
+2012-12-19T07:24:09.638068Z
 96188b1e8c5ab2667f91388d844a0245
 2011-09-15T14:06:21.195238Z
 1
@@ -1528,7 +1154,7 @@ file
 
 
 
-2012-11-17T08:17:04.307421Z
+2012-12-19T07:24:09.638068Z
 9d5ca6af3112808550f2ba5c6bf55a07
 2011-09-15T14:06:21.195238Z
 1
@@ -1556,14 +1182,14 @@ lintel.huang@gmail.com
 
 1006
 
-612-netfilter_quota.patch
+618-netfilter_multiport_backport.patch
 file
 
 
 
 
-2012-11-17T08:17:04.307421Z
-449a7c89be2ff7842cda870db822d0a2
+2012-12-19T07:24:09.626068Z
+4e0c745f05abffff2313287979266034
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1588,16 +1214,16 @@ lintel.huang@gmail.com
 
 
 
-4228
+6515
 
-629-netlink_types_h.patch
+050-build_flags.patch
 file
 
 
 
 
-2012-11-17T08:17:04.311421Z
-f263c3cf56b746ca25de30334181f990
+2012-12-19T07:24:09.598068Z
+5902354411d05202764b9654b6684320
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1622,7 +1248,41 @@ lintel.huang@gmail.com
 
 
 
-639
+2557
+
+051-parallel_build.patch
+file
+
+
+
+
+2012-12-19T07:24:09.682068Z
+5d12c0bf37720ab7c9f398aa698e52d5
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+727
 
 002-squashfs_lzma.patch
 file
@@ -1630,7 +1290,7 @@ file
 
 
 
-2012-11-17T08:17:04.311421Z
+2012-12-19T07:24:09.642068Z
 34df701853fb75b9235fe642d9a03958
 2011-09-15T14:06:21.195238Z
 1
@@ -1658,14 +1318,14 @@ lintel.huang@gmail.com
 
 23375
 
-228-more_usb_fixes.patch
+626-netfilter_conntrack_fix.patch
 file
 
 
 
 
-2012-11-17T08:17:04.263421Z
-03108cf74212577a37a7b810eb8f54f0
+2012-12-19T07:24:09.602068Z
+31c8cffe2874e00be963cb4537d7ee61
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1690,7 +1350,7 @@ lintel.huang@gmail.com
 
 
 
-26308
+1255
 
 615-netfilter_nat_mms.patch
 file
@@ -1698,7 +1358,7 @@ file
 
 
 
-2012-11-17T08:17:04.319421Z
+2012-12-19T07:24:09.650068Z
 3e6f17909c4e1baa52c2db8446436cb1
 2011-09-15T14:06:21.195238Z
 1
@@ -1726,14 +1386,14 @@ lintel.huang@gmail.com
 
 24175
 
-231-mini_fo.patch
+213-htb_disable_hysteresis.patch
 file
 
 
 
 
-2012-11-17T08:17:04.319421Z
-aa52d9f3e1f85491de718ac8daa2fe74
+2012-12-19T07:24:09.550068Z
+6cd3044e46977cd1281795a7018412dc
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1758,7 +1418,7 @@ lintel.huang@gmail.com
 
 
 
-217430
+633
 
 604-netfilter_maxconn.patch
 file
@@ -1766,7 +1426,7 @@ file
 
 
 
-2012-11-17T08:17:04.335421Z
+2012-12-19T07:24:09.670068Z
 3263f4a0c605c1a49b4837eeeee89355
 2011-09-15T14:06:21.195238Z
 1
@@ -1800,7 +1460,7 @@ file
 
 
 
-2012-11-17T08:17:04.335421Z
+2012-12-19T07:24:09.670068Z
 067beee073ffd14e3d6f17977cb1fcd2
 2011-09-15T14:06:21.195238Z
 1
@@ -1828,14 +1488,14 @@ lintel.huang@gmail.com
 
 4932
 
-224-atm_hotplug.patch
+200-i4l.patch
 file
 
 
 
 
-2012-11-17T08:17:04.335421Z
-ccb85a4a1533880a871f3d89e53706c7
+2012-12-19T07:24:09.622068Z
+c10d45a6931302d1f6b76737cf29dd84
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1860,16 +1520,16 @@ lintel.huang@gmail.com
 
 
 
-2556
+590341
 
-203-hfsplus_fix.patch
+208-usb2_fix.patch
 file
 
 
 
 
-2012-11-17T08:17:04.339421Z
-85e0d63a44e8bbb5f6cab93563274668
+2012-12-19T07:24:09.630068Z
+df5a62b324ba7ba7e85ae36bb4685cd8
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1894,16 +1554,16 @@ lintel.huang@gmail.com
 
 
 
-1049
+491
 
-110-netdev_random_core.patch
+005-mtd_flashtypes.patch
 file
 
 
 
 
-2012-11-17T08:17:04.287421Z
-9c9ab38d2be8b75405b3345306a6d169
+2012-12-19T07:24:09.554068Z
+1dab3f698b68ba27f0f0949348e0c139
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1928,16 +1588,16 @@ lintel.huang@gmail.com
 
 
 
-8625
+24342
 
-109-ipsec_nat_traversal.patch
+115-branch_emul_fix.patch
 file
 
 
 
 
-2012-11-17T08:17:04.343421Z
-68320dd5fb7ad05db33a5d30eb9f5e2b
+2012-12-19T07:24:09.622068Z
+4178589ec5b4c2e423c7b0cf0282ffc9
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -1962,7 +1622,75 @@ lintel.huang@gmail.com
 
 
 
-3243
+335
+
+201-hfc_usb_backport.patch
+file
+
+
+
+
+2012-12-19T07:24:09.634068Z
+8f77be27ba127d454322c917421d12d4
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+89503
+
+009-mtd_uaccess.patch
+file
+
+
+
+
+2012-12-19T07:24:09.622068Z
+49c9a8322a94297d317914578b701a2f
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1069
 
 624-netfilter_ip6t_reject.patch
 file
@@ -1970,7 +1698,7 @@ file
 
 
 
-2012-11-17T08:17:04.343421Z
+2012-12-19T07:24:09.678068Z
 05a7175abf6345603e6bc900de687a0e
 2011-09-15T14:06:21.195238Z
 1
@@ -1998,14 +1726,14 @@ lintel.huang@gmail.com
 
 10017
 
-209-build_fixes.patch
+601-netfilter_ipp2p_0.8.1rc1.patch
 file
 
 
 
 
-2012-11-17T08:17:04.343421Z
-c09175953b8c6843638a34ac3303f4b8
+2012-12-19T07:24:09.638068Z
+c6c474e06ca152a5939859759b6d0cf8
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2030,16 +1758,16 @@ lintel.huang@gmail.com
 
 
 
-2014
+27523
 
-618-netfilter_multiport_backport.patch
+613-netfilter_nat_h323.patch
 file
 
 
 
 
-2012-11-17T08:17:04.287421Z
-4e0c745f05abffff2313287979266034
+2012-12-19T07:24:09.594068Z
+a106b4c845a6523e6e0f0775f3a38729
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2064,7 +1792,143 @@ lintel.huang@gmail.com
 
 
 
-6515
+26285
+
+100-wireless-extension.patch
+file
+
+
+
+
+2012-12-19T07:24:09.594068Z
+31cb0303a84a5468406b8fec439903e9
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+40743
+
+010-disable_old_squashfs_compatibility.patch
+file
+
+
+
+
+2012-12-19T07:24:09.594068Z
+3b053923a5dbcc7cb2bbdc8e837f63c4
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+562
+
+112-bridging_performance.patch
+file
+
+
+
+
+2012-12-19T07:24:09.638068Z
+b75c1b8d9f3b6e8c57951248ed086531
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+726
+
+051-remove_pcmcia_modinst_compat.patch
+file
+
+
+
+
+2012-12-19T07:24:09.642068Z
+96504128819cef88dd1296e51330d174
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+770
 
 616-netfilter_imq.patch
 file
@@ -2072,7 +1936,7 @@ file
 
 
 
-2012-11-17T08:17:04.347421Z
+2012-12-19T07:24:09.678068Z
 7a54d08c8cd2d51ff820fa44bb0bbd57
 2011-09-15T14:06:21.195238Z
 1
@@ -2106,7 +1970,7 @@ file
 
 
 
-2012-11-17T08:17:04.347421Z
+2012-12-19T07:24:09.682068Z
 817ea378b78fb1583a2b454c3d9c5e18
 2011-09-15T14:06:21.195238Z
 1
@@ -2140,7 +2004,7 @@ file
 
 
 
-2012-11-17T08:17:04.351421Z
+2012-12-19T07:24:09.682068Z
 c3b714b5ec2b0fdfc8a0dba5bec0a92a
 2011-09-15T14:06:21.195238Z
 1
@@ -2168,14 +2032,14 @@ lintel.huang@gmail.com
 
 21491
 
-610-netfilter_connbytes.patch
+228-more_usb_fixes.patch
 file
 
 
 
 
-2012-11-17T08:17:04.227421Z
-519a18b75a3dacb2642161ddd6d03081
+2012-12-19T07:24:09.602068Z
+03108cf74212577a37a7b810eb8f54f0
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2200,7 +2064,7 @@ lintel.huang@gmail.com
 
 
 
-15198
+26308
 
 630-netfilter_comment.patch
 file
@@ -2208,7 +2072,7 @@ file
 
 
 
-2012-11-17T08:17:04.227421Z
+2012-12-19T07:24:09.550068Z
 8390f4ca98e2e7628658809ce820196c
 2011-09-15T14:06:21.195238Z
 1
@@ -2236,14 +2100,14 @@ lintel.huang@gmail.com
 
 2648
 
-208-usb2_fix.patch
+801-usb_serial_endpoint_size.patch
 file
 
 
 
 
-2012-11-17T08:17:04.291421Z
-df5a62b324ba7ba7e85ae36bb4685cd8
+2012-12-19T07:24:09.670068Z
+dcb3d7df47f54f61cae1b0782ff901e1
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2268,7 +2132,109 @@ lintel.huang@gmail.com
 
 
 
-491
+1060
+
+229-usb_storage_16_byte_cdb.patch
+file
+
+
+
+
+2012-12-19T07:24:09.630068Z
+3ca52f7d6095d2ad8f1af6386c96a80a
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+377
+
+001-squashfs.patch
+file
+
+
+
+
+2012-12-19T07:24:09.674068Z
+3465032b203879101395f88a5138a722
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+120607
+
+622-tc_esfq.patch
+file
+
+
+
+
+2012-12-19T07:24:09.630068Z
+d513dd4a25060ce641f853552919418d
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+19284
 
 003-jffs2_compression.patch
 file
@@ -2276,7 +2242,7 @@ file
 
 
 
-2012-11-17T08:17:04.251421Z
+2012-12-19T07:24:09.582068Z
 354248c8265c5617e7353e33ce07b23c
 2011-09-15T14:06:21.195238Z
 1
@@ -2304,14 +2270,14 @@ lintel.huang@gmail.com
 
 243916
 
-607-netfilter_connmark.patch
+110-netdev_random_core.patch
 file
 
 
 
 
-2012-11-17T08:17:04.299421Z
-047b1e926b89311a85485e33b61c9fa9
+2012-12-19T07:24:09.622068Z
+9c9ab38d2be8b75405b3345306a6d169
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2336,16 +2302,16 @@ lintel.huang@gmail.com
 
 
 
-11627
+8625
 
-201-hfc_usb_backport.patch
+609-netfilter_string.patch
 file
 
 
 
 
-2012-11-17T08:17:04.295421Z
-8f77be27ba127d454322c917421d12d4
+2012-12-19T07:24:09.674068Z
+a620a1b5e913be2b209ec74430580ef5
 2011-09-15T14:06:21.195238Z
 1
 lintel.huang@gmail.com
@@ -2370,5 +2336,39 @@ lintel.huang@gmail.com
 
 
 
-89503
+28259
+
+227-jffs2_eofdetect.patch
+file
+
+
+
+
+2012-12-19T07:24:09.634068Z
+2cce183e33ae1806bb6161a2319dc6ac
+2011-09-15T14:06:21.195238Z
+1
+lintel.huang@gmail.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2846
 
